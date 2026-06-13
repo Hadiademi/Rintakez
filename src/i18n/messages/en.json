@@ -119,6 +119,16 @@
     "empty": "You haven't posted a shoot yet.",
     "createCta": "Post a shoot"
   },
+  "browse": {
+    "title": "Open shoots",
+    "count": "{count, plural, =0 {No shoots} one {# shoot} other {# shoots}}",
+    "filterCanton": "Canton",
+    "filterType": "Type",
+    "filterBudget": "Budget up to",
+    "all": "All",
+    "clear": "Clear",
+    "empty": "No open shoots match your filters."
+  },
   "shootDetail": {
     "brief": "Brief",
     "details": "Details",
@@ -130,5 +140,38 @@
     "contactTitle": "Contact",
     "contactHint": "You're connected. Reach out directly.",
     "byPhotographer": "Photographer"
+  },
+  "myBids": {
+    "title": "My bids",
+    "empty": "You haven't placed a bid yet.",
+    "browseCta": "Browse shoots"
+  },
+  "bid": {
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    }
+  },
+  "bidSheet": {
+    "submitTitle": "Submit an offer",
+    "yourPrice": "Your price (CHF)",
+    "yourMessage": "Message to the client",
+    "messagePlaceholder": "What's your focus? Describe your style.",
+    "send": "Send offer",
+    "clientBudget": "Client budget: {range}",
+    "alreadyBid": "You've already submitted an offer.",
+    "yourBid": "Your bid",
+    "edit": "Edit",
+    "withdraw": "Withdraw",
+    "save": "Save",
+    "cancel": "Cancel",
+    "bidStatusPending": "Pending",
+    "bidStatusAccepted": "Accepted — congrats!",
+    "bidStatusDeclined": "Declined",
+    "bidStatusWithdrawn": "Withdrawn",
+    "errorSubmit": "Could not send.",
+    "notOpen": "This shoot is no longer accepting offers."
   }
 }

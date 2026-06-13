@@ -119,6 +119,16 @@
     "empty": "Tu n'as pas encore créé de mission.",
     "createCta": "Créer une mission"
   },
+  "browse": {
+    "title": "Missions ouvertes",
+    "count": "{count, plural, =0 {Aucune mission} one {# mission} other {# missions}}",
+    "filterCanton": "Canton",
+    "filterType": "Type",
+    "filterBudget": "Budget jusqu'à",
+    "all": "Toutes",
+    "clear": "Réinitialiser",
+    "empty": "Aucune mission ouverte ne correspond à tes filtres."
+  },
   "shootDetail": {
     "brief": "Brief",
     "details": "Détails",
@@ -130,5 +140,38 @@
     "contactTitle": "Contact",
     "contactHint": "Vous êtes connectés. Contactez-vous directement.",
     "byPhotographer": "Photographe"
+  },
+  "myBids": {
+    "title": "Mes offres",
+    "empty": "Tu n'as pas encore soumis d'offre.",
+    "browseCta": "Parcourir les missions"
+  },
+  "bid": {
+    "status": {
+      "pending": "En attente",
+      "accepted": "Acceptée",
+      "declined": "Refusée",
+      "withdrawn": "Retirée"
+    }
+  },
+  "bidSheet": {
+    "submitTitle": "Soumettre une offre",
+    "yourPrice": "Ton prix (CHF)",
+    "yourMessage": "Message au client",
+    "messagePlaceholder": "Quel est ton angle ? Décris ton approche.",
+    "send": "Envoyer l'offre",
+    "clientBudget": "Budget du client : {range}",
+    "alreadyBid": "Tu as déjà soumis une offre.",
+    "yourBid": "Ton offre",
+    "edit": "Modifier",
+    "withdraw": "Retirer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "bidStatusPending": "En attente",
+    "bidStatusAccepted": "Acceptée — félicitations !",
+    "bidStatusDeclined": "Refusée",
+    "bidStatusWithdrawn": "Retirée",
+    "errorSubmit": "Échec de l'envoi.",
+    "notOpen": "Cette mission n'accepte plus d'offres."
   }
 }

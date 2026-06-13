@@ -8,6 +8,8 @@ import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { BidCard, type BidCardData } from "@/components/bid-card";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
+import { BidSheet } from "@/components/bid-sheet";
+import { MyBidPanel } from "@/components/my-bid-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +93,42 @@ export default async function ShootDetailPage({
     </div>
   );
 
-  // Non-owner (photographer) read-only summary. Full photographer view is Plan 4.
+  // ── Photographer view ─────────────────────────────────────────────
+  // Photographers never own shoots. They may read only their OWN bid.
+  if (!isOwner && profile.role === "photographer") {
+    const { data: myBid } = await supabase
+      .from("bids")
+      .select("id,amount_chf,message,status")
+      .eq("shoot_id", id)
+      .eq("photographer_id", profile.id)
+      .maybeSingle();
+
+    const tBid = await getTranslations("bidSheet");
+
+    return (
+      <div className="space-y-10">
+        {summary}
+        {myBid ? (
+          <MyBidPanel
+            bid={myBid}
+            canEdit={myBid.status === "pending" && shoot.status === "open"}
+          />
+        ) : shoot.status === "open" ? (
+          <BidSheet
+            shootId={id}
+            budgetRange={formatCHFRange(
+              shoot.budget_min_chf,
+              shoot.budget_max_chf
+            )}
+          />
+        ) : (
+          <p className="text-mute">{tBid("notOpen")}</p>
+        )}
+      </div>
+    );
+  }
+
+  // Non-owner client read-only summary.
   if (!isOwner) {
     return summary;
   }
