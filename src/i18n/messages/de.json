@@ -389,7 +389,8 @@
     "placeholder": "Nachricht schreiben …",
     "send": "Senden",
     "about": "Zu: {title}",
-    "threadEmpty": "Noch keine Nachrichten. Schreib die erste."
+    "threadEmpty": "Noch keine Nachrichten. Schreib die erste.",
+    "open": "Nachricht senden"
   },
   "report": {
     "report": "Melden",

@@ -389,7 +389,8 @@
     "placeholder": "Écrire un message …",
     "send": "Envoyer",
     "about": "À propos de : {title}",
-    "threadEmpty": "Pas encore de messages. Écris le premier."
+    "threadEmpty": "Pas encore de messages. Écris le premier.",
+    "open": "Envoyer un message"
   },
   "report": {
     "report": "Signaler",

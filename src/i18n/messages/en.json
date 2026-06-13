@@ -389,7 +389,8 @@
     "placeholder": "Write a message …",
     "send": "Send",
     "about": "About: {title}",
-    "threadEmpty": "No messages yet. Write the first one."
+    "threadEmpty": "No messages yet. Write the first one.",
+    "open": "Send a message"
   },
   "report": {
     "report": "Report",

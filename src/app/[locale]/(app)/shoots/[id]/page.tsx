@@ -1,6 +1,6 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { redirect } from "@/i18n/navigation";
+import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
@@ -54,8 +54,29 @@ export default async function ShootDetailPage({
       .publicUrl,
   }));
 
+  // Conversation for this shoot (RLS returns it only to the two participants).
+  const { data: conversation } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("shoot_id", id)
+    .maybeSingle();
+
   const tShoot = await getTranslations("shoot");
   const t = await getTranslations("shootDetail");
+  const tMsg = await getTranslations("messages");
+
+  const messageLink = conversation ? (
+    <Link
+      href={`/messages/${conversation.id}`}
+      data-testid="open-conversation"
+      className="press inline-flex items-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+        <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 11.5 3 8.5 8.5 0 0 1 21 11.5z" />
+      </svg>
+      {tMsg("open")}
+    </Link>
+  ) : null;
 
   const isOwner = shoot.client_id === profile.id;
   const location = `${shoot.location_city}${
@@ -197,6 +218,7 @@ export default async function ShootDetailPage({
         ) : (
           <p className="text-mute">{tBid("notOpen")}</p>
         )}
+        {messageLink}
         <div className="border-t border-line pt-6">
           <ReportButton targetType="shoot" targetId={id} />
         </div>
@@ -250,7 +272,10 @@ export default async function ShootDetailPage({
       </div>
 
       {shoot.status === "assigned" || shoot.status === "completed" ? (
-        <ContactReveal shootId={id} />
+        <div className="space-y-4">
+          <ContactReveal shootId={id} />
+          {messageLink}
+        </div>
       ) : null}
 
       {shoot.status === "completed" ? (
