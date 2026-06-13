@@ -55,6 +55,19 @@
     "openShoots": "Offene Aufträge",
     "none": "Noch nichts hier."
   },
+  "onboarding": {
+    "title": "Profil vervollständigen",
+    "subtitle": "Damit Auftraggeber dich finden.",
+    "specialties": "Spezialgebiete",
+    "cantons": "Einsatzgebiete",
+    "hourlyRate": "Stundensatz (CHF, optional)",
+    "website": "Website (optional)",
+    "instagram": "Instagram (optional)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Fotos hinzufügen",
+    "finish": "Fertig",
+    "errorSave": "Konnte nicht gespeichert werden."
+  },
   "shoot": {
     "date": "Datum",
     "location": "Ort",

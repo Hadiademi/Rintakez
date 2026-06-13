@@ -55,6 +55,19 @@
     "openShoots": "Missions ouvertes",
     "none": "Rien pour l'instant."
   },
+  "onboarding": {
+    "title": "Compléter le profil",
+    "subtitle": "Pour que les clients te trouvent.",
+    "specialties": "Spécialités",
+    "cantons": "Régions couvertes",
+    "hourlyRate": "Tarif horaire (CHF, optionnel)",
+    "website": "Site web (optionnel)",
+    "instagram": "Instagram (optionnel)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Ajouter des photos",
+    "finish": "Terminer",
+    "errorSave": "Échec de l'enregistrement."
+  },
   "shoot": {
     "date": "Date",
     "location": "Lieu",

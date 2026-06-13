@@ -55,6 +55,19 @@
     "openShoots": "Open shoots",
     "none": "Nothing here yet."
   },
+  "onboarding": {
+    "title": "Complete your profile",
+    "subtitle": "So clients can find you.",
+    "specialties": "Specialties",
+    "cantons": "Coverage areas",
+    "hourlyRate": "Hourly rate (CHF, optional)",
+    "website": "Website (optional)",
+    "instagram": "Instagram (optional)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Add photos",
+    "finish": "Finish",
+    "errorSave": "Could not save."
+  },
   "shoot": {
     "date": "Date",
     "location": "Location",
