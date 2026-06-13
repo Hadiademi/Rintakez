@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(16);
+select plan(25);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -34,12 +34,28 @@ values
    'Abgesagter Termin', 'portrait', 'Wird nicht stattfinden.',
    'Bern', 'BE', '2027-09-01', 2, 500, 800, 'cancelled');
 
+-- A third open shoot used for status-transition and bid-immutability tests,
+-- so the accept_bid happy-path block (tests 13-16) is not disturbed.
+insert into public.shoots (id, client_id, title, type, brief, location_city,
+                           canton, shoot_date, duration_hours,
+                           budget_min_chf, budget_max_chf)
+values
+  ('10000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001',
+   'Portrait in Basel', 'portrait', 'Modernes Businessportrait im Studio.',
+   'Basel', 'BS', '2027-10-01', 3, 600, 1000);
+
 insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
 values
   ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
    '00000000-0000-0000-0000-000000000002', 3800, 'Ruhiger dokumentarischer Stil.'),
   ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001',
    '00000000-0000-0000-0000-000000000003', 4200, 'Editorial und ehrlich.');
+
+-- Bid on the third shoot for the shoot_id immutability test.
+insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
+values
+  ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003',
+   '00000000-0000-0000-0000-000000000002', 700, 'Businessportrait, gerne.');
 
 -- ── 1–5: tables exist ────────────────────────────────────────────────
 select has_table('public', 'profiles', 'profiles exists');
@@ -52,8 +68,8 @@ select has_table('public', 'bids', 'bids exists');
 set local role anon;
 select results_eq(
   'select count(*)::int from public.shoots',
-  array[1],
-  'anon sees only the open shoot, not the cancelled one'
+  array[2],
+  'anon sees only the open shoots (1 and 3), not the cancelled one'
 );
 reset role;
 
@@ -72,8 +88,8 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
 select results_eq(
   'select count(*)::int from public.bids',
-  array[2],
-  'client sees all bids on own shoot'
+  array[3],
+  'client sees all bids on own shoots'
 );
 
 -- ── 9: client cannot insert a bid (wrong role) ──────────────────────
@@ -145,7 +161,111 @@ select results_eq(
   array['assigned:20000000-0000-0000-0000-000000000001'],
   'shoot assigned with accepted_bid_id set'
 );
+
+-- ── 17: get_counterparty_email returns photographer email to client ───
+-- Shoot 1 is now assigned to Marko (00...0002 / marko@test.ch).
+-- The client calls the function and should get Marko's email.
+select results_eq(
+  $$select public.get_counterparty_email('10000000-0000-0000-0000-000000000001')$$,
+  array['marko@test.ch'],
+  'client gets photographer email on assigned shoot'
+);
+
+-- ── 18: get_counterparty_email throws for unrelated party ────────────
+-- Shoot 3 is still open; client is still logged in but shoot 3 has no
+-- accepted bid, so the function raises 'no contact available'.
+select throws_ok(
+  $$select public.get_counterparty_email('10000000-0000-0000-0000-000000000003')$$,
+  'P0001',
+  'no contact available',
+  'get_counterparty_email throws for shoot with no accepted bid'
+);
 reset role;
+
+-- ── 19: client cannot update own role ────────────────────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$update public.profiles set role = 'photographer'
+    where id = '00000000-0000-0000-0000-000000000001'$$,
+  '42501',
+  null,
+  'client cannot change own role'
+);
+reset role;
+
+-- ── 20: anon cannot INSERT into shoots ───────────────────────────────
+set local role anon;
+select throws_ok(
+  $$insert into public.shoots (client_id, title, type, brief, location_city,
+                               canton, shoot_date, duration_hours,
+                               budget_min_chf, budget_max_chf)
+    values ('00000000-0000-0000-0000-000000000001',
+            'Anon shoot', 'portrait', 'Should be rejected by RLS.',
+            'Zurich', 'ZH', '2028-01-01', 2, 100, 200)$$,
+  '42501',
+  null,
+  'anon cannot insert shoots'
+);
+
+-- ── 21: anon cannot INSERT into bids ─────────────────────────────────
+select throws_ok(
+  $$insert into public.bids (shoot_id, photographer_id, amount_chf, message)
+    values ('10000000-0000-0000-0000-000000000003',
+            '00000000-0000-0000-0000-000000000002', 500, 'Anon bid.')$$,
+  '42501',
+  null,
+  'anon cannot insert bids'
+);
+reset role;
+
+-- ── 22: trigger blocks assigned→open directly (bypassing RLS with postgres role) ──
+-- Shoot 1 is assigned after test 13. Using the postgres superuser role bypasses RLS
+-- so we hit the trigger directly. assigned->open is explicitly forbidden by the FSM.
+select throws_ok(
+  $$update public.shoots set status = 'open'
+    where id = '10000000-0000-0000-0000-000000000001'$$,
+  'P0001',
+  'illegal shoot status transition',
+  'trigger blocks assigned->open (postgres role, no RLS)'
+);
+
+-- ── 23: client cannot re-open an assigned shoot ───────────────────────
+-- Shoot 1 is now assigned (after test 13). Trying to set it back to 'open'
+-- is blocked by the status-guard trigger (assigned->open is forbidden).
+-- USING admits assigned shoots, WITH CHECK admits 'open', but the BEFORE trigger
+-- fires first and raises 'illegal shoot status transition'.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$update public.shoots set status = 'open'
+    where id = '10000000-0000-0000-0000-000000000001'$$,
+  'P0001',
+  null,
+  'client cannot re-open an assigned shoot'
+);
+reset role;
+
+-- ── 24: photographer cannot move bid to a different shoot ─────────────
+-- Marko (00...0002) tries to move bid 3 (on shoot 3) to shoot 1.
+-- The trigger must block the shoot_id change.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select throws_ok(
+  $$update public.bids set shoot_id = '10000000-0000-0000-0000-000000000001'
+    where id = '20000000-0000-0000-0000-000000000003'$$,
+  'P0001',
+  null,
+  'photographer cannot change shoot_id on own bid'
+);
+reset role;
+
+-- ── 25: accept_bid is NOT executable by anon ─────────────────────────
+select is(
+  has_function_privilege('anon', 'public.accept_bid(uuid)', 'execute'),
+  false,
+  'anon cannot execute accept_bid'
+);
 
 select * from finish();
 rollback;
