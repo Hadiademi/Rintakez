@@ -184,6 +184,28 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "legal": {
+    "impressumTitle": "Legal notice",
+    "impressumIntro": "Provider identification pursuant to applicable transparency obligations.",
+    "impressumOperator": "Operator",
+    "impressumContact": "Contact",
+    "impressumPlaceholder": "[TO COMPLETE: full name / company, street and number, postcode city, email address] — This information must be accurate and complete before public launch.",
+    "datenschutzTitle": "Privacy policy",
+    "dsIntro": "This privacy policy explains how Rintakez collects, processes and protects personal data. It applies to all users of the platform rintakez.ch and is governed by the revised Swiss Federal Act on Data Protection (revFADP / nFADP).",
+    "dsDataTitle": "Data we collect",
+    "dsData": "We collect and process the following data: Upon registration, your email address and password (stored encrypted). In your profile: display name, role (client or photographer), city, canton, language, biography and an optional avatar. Photographers additionally provide their specialties, coverage cantons, an optional hourly rate, website and Instagram links, and portfolio images. Clients post shoots with a title, brief, location, date and budget. Photographers submit bids with an amount and a message.",
+    "dsPurposeTitle": "Purpose of processing",
+    "dsPurpose": "The data collected is used exclusively to operate the marketplace: providing and managing user accounts, connecting clients and photographers, displaying profiles and portfolios, and processing shoots and bids. Data is not shared with third parties for advertising purposes.",
+    "dsProcessorTitle": "Processor & hosting",
+    "dsProcessor": "We use Supabase as our technical service provider (Supabase, Inc., USA, available at supabase.com). Supabase handles database services, authentication and file storage. Data is stored and processed in the Zürich region, Switzerland. Processing is carried out under a data processing agreement in compliance with the revFADP.",
+    "dsRightsTitle": "Your rights",
+    "dsRights": "You have the right at any time to request access to your stored data, to correct inaccurate information, and to request deletion of your account and associated data. You may exercise these rights via the contact address below. We will respond to your request within 30 days.",
+    "dsContactTitle": "Data protection contact",
+    "dsContactPlaceholder": "[TO COMPLETE: data protection contact email address] — This information must be accurate before public launch.",
+    "dsUpdated": "Last updated: June 2026",
+    "footerImpressum": "Legal notice",
+    "footerDatenschutz": "Privacy"
+  },
   "bidSheet": {
     "submitTitle": "Submit an offer",
     "yourPrice": "Your price (CHF)",

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ShootCard } from "@/components/shoot-card";
+import { SiteFooter } from "@/components/site-footer";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
@@ -50,7 +51,7 @@ export default async function Home() {
         : "/shoots";
 
   return (
-    <main className="min-h-screen bg-paper text-ink">
+    <main className="min-h-screen bg-paper text-ink flex flex-col">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
         <span className="text-lg font-medium tracking-tight">Rintakez</span>
         <div className="flex items-center gap-4">
@@ -101,6 +102,8 @@ export default async function Home() {
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }
