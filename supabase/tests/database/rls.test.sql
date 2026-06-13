@@ -65,31 +65,37 @@ select has_table('public', 'shoots', 'shoots exists');
 select has_table('public', 'bids', 'bids exists');
 
 -- ── 6: anon sees only open shoots ────────────────────────────────────
+-- Scoped to fixture rows (id like '10000000-%') so seed data cannot affect this.
+-- Fixture shoots: 1...01 (open), 1...02 (cancelled), 1...03 (open) → anon sees 2.
 set local role anon;
 select results_eq(
-  'select count(*)::int from public.shoots',
+  $$select count(*)::int from public.shoots where id::text like '10000000-%'$$,
   array[2],
-  'anon sees only the open shoots (1 and 3), not the cancelled one'
+  'anon sees only the open fixture shoots (1 and 3), not the cancelled one'
 );
 reset role;
 
 -- ── 7: photographer Anna cannot see Markos bid ──────────────────────
+-- Scoped to fixture bids (shoot_id like '10000000-%') so seed data cannot affect this.
+-- Anna has 1 fixture bid (bid 2 on shoot 1); she cannot see Marko's bids.
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
 select results_eq(
-  'select count(*)::int from public.bids',
+  $$select count(*)::int from public.bids where shoot_id::text like '10000000-%'$$,
   array[1],
-  'photographer sees only her own bid'
+  'photographer sees only her own fixture bid'
 );
 reset role;
 
 -- ── 8: client sees both bids on own shoot ────────────────────────────
+-- Scoped to fixture bids (shoot_id like '10000000-%') so seed data cannot affect this.
+-- Client owns all 3 fixture shoots → sees all 3 fixture bids (bid 1, 2, 3).
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
 select results_eq(
-  'select count(*)::int from public.bids',
+  $$select count(*)::int from public.bids where shoot_id::text like '10000000-%'$$,
   array[3],
-  'client sees all bids on own shoots'
+  'client sees all fixture bids on own shoots'
 );
 
 -- ── 9: client cannot insert a bid (wrong role) ──────────────────────
