@@ -68,6 +68,27 @@
     "finish": "Terminer",
     "errorSave": "Échec de l'enregistrement."
   },
+  "createShoot": {
+    "title": "Créer une mission",
+    "stepType": "Type de séance",
+    "stepWhere": "Où et quand",
+    "stepDetails": "Détails et budget",
+    "fieldTitle": "Titre",
+    "fieldBrief": "Briefing",
+    "briefPlaceholder": "Décris le déroulé, le style et les attentes.",
+    "fieldCity": "Lieu",
+    "fieldPostcode": "NPA (optionnel)",
+    "fieldCanton": "Canton",
+    "fieldDate": "Date",
+    "fieldDuration": "Durée (heures)",
+    "fieldBudgetMin": "Budget de (CHF)",
+    "fieldBudgetMax": "Budget à (CHF)",
+    "next": "Suivant",
+    "back": "Retour",
+    "submit": "Publier",
+    "errorCreate": "La création a échoué.",
+    "stepLabel": "Étape {current} sur {total}"
+  },
   "shoot": {
     "date": "Date",
     "location": "Lieu",

@@ -68,6 +68,27 @@
     "finish": "Finish",
     "errorSave": "Could not save."
   },
+  "createShoot": {
+    "title": "Post a shoot",
+    "stepType": "Type of shoot",
+    "stepWhere": "Where and when",
+    "stepDetails": "Details and budget",
+    "fieldTitle": "Title",
+    "fieldBrief": "Brief",
+    "briefPlaceholder": "Describe the flow, style and expectations.",
+    "fieldCity": "City",
+    "fieldPostcode": "Postcode (optional)",
+    "fieldCanton": "Canton",
+    "fieldDate": "Date",
+    "fieldDuration": "Duration (hours)",
+    "fieldBudgetMin": "Budget from (CHF)",
+    "fieldBudgetMax": "Budget to (CHF)",
+    "next": "Next",
+    "back": "Back",
+    "submit": "Publish",
+    "errorCreate": "Could not create.",
+    "stepLabel": "Step {current} of {total}"
+  },
   "shoot": {
     "date": "Date",
     "location": "Location",

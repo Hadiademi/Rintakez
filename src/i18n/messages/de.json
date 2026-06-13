@@ -68,6 +68,27 @@
     "finish": "Fertig",
     "errorSave": "Konnte nicht gespeichert werden."
   },
+  "createShoot": {
+    "title": "Auftrag erstellen",
+    "stepType": "Art des Shootings",
+    "stepWhere": "Wo und wann",
+    "stepDetails": "Details und Budget",
+    "fieldTitle": "Titel",
+    "fieldBrief": "Briefing",
+    "briefPlaceholder": "Beschreibe Ablauf, Stil und Erwartungen.",
+    "fieldCity": "Ort",
+    "fieldPostcode": "PLZ (optional)",
+    "fieldCanton": "Kanton",
+    "fieldDate": "Datum",
+    "fieldDuration": "Dauer (Stunden)",
+    "fieldBudgetMin": "Budget von (CHF)",
+    "fieldBudgetMax": "Budget bis (CHF)",
+    "next": "Weiter",
+    "back": "Zurück",
+    "submit": "Veröffentlichen",
+    "errorCreate": "Konnte nicht erstellt werden.",
+    "stepLabel": "Schritt {current} von {total}"
+  },
   "shoot": {
     "date": "Datum",
     "location": "Ort",
