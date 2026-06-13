@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ShootCard } from "@/components/shoot-card";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
@@ -59,6 +60,7 @@ export default async function Home() {
               </Link>
             </>
           )}
+          <ThemeToggle />
           <LocaleSwitcher />
         </div>
       </header>

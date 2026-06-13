@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface AppNavProps {
   role: "client" | "photographer";
@@ -51,8 +52,9 @@ export async function AppNav({ role, displayName }: AppNavProps) {
           </div>
         </div>
 
-        {/* Right: locale switcher + display name + sign out */}
+        {/* Right: theme toggle + locale switcher + display name + sign out */}
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <LocaleSwitcher />
           <span className="label text-mute-2">{displayName}</span>
           <SignOutButton />
