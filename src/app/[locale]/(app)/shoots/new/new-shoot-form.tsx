@@ -8,6 +8,7 @@ import { useRouter } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
 import { createShootAction } from "@/lib/actions/shoots";
+import { errorKey } from "@/lib/error-messages";
 
 const STEP_COUNT = 3;
 
@@ -21,6 +22,7 @@ const STEP_FIELDS: Array<Array<keyof CreateShootInput>> = [
 export default function NewShootForm() {
   const t = useTranslations("createShoot");
   const tShoot = useTranslations("shoot");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export default function NewShootForm() {
       router.push(`/shoots/${result.id}`);
       router.refresh();
     } else {
-      setServerError(t("errorCreate"));
+      setServerError(tErr(errorKey(result.error)));
     }
   }
 

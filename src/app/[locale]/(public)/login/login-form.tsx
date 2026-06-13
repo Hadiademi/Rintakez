@@ -6,10 +6,12 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { loginAction } from "@/lib/actions/auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
+import { errorKey } from "@/lib/error-messages";
 import { useState } from "react";
 
 export default function LoginForm() {
   const t = useTranslations("auth");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -28,9 +30,7 @@ export default function LoginForm() {
       router.push("/home");
       router.refresh();
     } else {
-      setServerError(
-        result.error === "invalid_input" ? t("genericError") : result.error
-      );
+      setServerError(tErr(errorKey(result.error)));
     }
   }
 

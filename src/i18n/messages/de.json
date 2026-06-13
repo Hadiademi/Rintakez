@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Rintakez — Fotografie-Marktplatz Schweiz",
+    "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen aus deiner Region.",
+    "ogTitle": "Rintakez — Fotografie-Marktplatz Schweiz"
+  },
   "common": {
     "appName": "Rintakez",
     "back": "Zurück",
@@ -153,6 +158,60 @@
       "declined": "Abgelehnt",
       "withdrawn": "Zurückgezogen"
     }
+  },
+  "profile": {
+    "specialties": "Spezialgebiete",
+    "coverage": "Einsatzgebiete",
+    "hourlyRate": "Stundensatz",
+    "portfolio": "Portfolio",
+    "noPortfolio": "Noch keine Bilder.",
+    "website": "Website",
+    "instagram": "Instagram",
+    "hourlyFrom": "ab {amount}/Std"
+  },
+  "errors": {
+    "invalid_input": "Bitte überprüfe deine Eingaben.",
+    "unauthorized": "Bitte melde dich an.",
+    "forbidden": "Dazu hast du keine Berechtigung.",
+    "already_bid": "Du hast bereits ein Angebot abgegeben.",
+    "not_found": "Nicht gefunden.",
+    "limit_reached": "Limit erreicht.",
+    "invalid_file": "Ungültige Datei. Nur Bilder bis 5 MB.",
+    "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
+  "theme": {
+    "toggle": "Theme wechseln",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "legal": {
+    "impressumTitle": "Impressum",
+    "impressumIntro": "Angaben gemäss Art. 3 lit. s UWG und zur Erfüllung der Informationspflichten.",
+    "impressumOperator": "Betreiber",
+    "impressumContact": "Kontakt",
+    "impressumPlaceholder": "[BITTE AUSFÜLLEN: Name / Firma, Strasse und Hausnummer, PLZ Ort, E-Mail-Adresse] — Diese Angaben müssen vor dem öffentlichen Launch korrekt und vollständig sein.",
+    "datenschutzTitle": "Datenschutzerklärung",
+    "dsIntro": "Diese Datenschutzerklärung informiert dich darüber, wie Rintakez personenbezogene Daten erhebt, verarbeitet und schützt. Sie gilt für alle Nutzer:innen der Plattform rintakez.ch und richtet sich nach dem revidierten Datenschutzgesetz der Schweiz (revDSG / nFADP).",
+    "dsDataTitle": "Welche Daten wir erheben",
+    "dsData": "Wir erheben und verarbeiten die folgenden Daten: Bei der Registrierung die E-Mail-Adresse und das Passwort (verschlüsselt gespeichert). Im Profil: Anzeigename, Rolle (Auftraggeber:in oder Fotograf:in), Stadt, Kanton, Sprache, Biografie sowie optional ein Profilbild. Fotograf:innen geben zusätzlich ihre Spezialgebiete, Einsatzkantone, einen optionalen Stundensatz, Website- und Instagram-Links sowie Portfolio-Bilder an. Auftraggeber:innen erstellen Aufträge mit Titel, Briefing, Ort, Datum und Budget. Fotograf:innen geben Angebote ab mit Betrag und Nachricht.",
+    "dsPurposeTitle": "Zweck der Datenverarbeitung",
+    "dsPurpose": "Die erhobenen Daten dienen ausschliesslich dem Betrieb des Marktplatzes: Bereitstellung und Verwaltung von Nutzerkonten, Vermittlung zwischen Auftraggeber:innen und Fotograf:innen, Darstellung von Profilen und Portfolios sowie Verarbeitung von Aufträgen und Angeboten. Daten werden nicht für Werbezwecke an Dritte weitergegeben.",
+    "dsProcessorTitle": "Auftragsverarbeiter & Hosting",
+    "dsProcessor": "Als technischer Dienstleister setzen wir Supabase ein (Supabase, Inc., USA, verfügbar unter supabase.com). Supabase übernimmt Datenbankdienste, Authentifizierung und Dateispeicherung. Die Daten werden in der Region Zürich, Schweiz, gespeichert und verarbeitet. Die Verarbeitung erfolgt auf Basis eines Auftragsverarbeitungsvertrags gemäss revDSG.",
+    "dsRightsTitle": "Deine Rechte",
+    "dsRights": "Du hast jederzeit das Recht auf Auskunft über deine gespeicherten Daten, auf Berichtigung unrichtiger Angaben sowie auf Löschung deines Kontos und der damit verbundenen Daten. Diese Rechte kannst du über die Kontaktadresse unten geltend machen. Wir bearbeiten dein Anliegen innert 30 Tagen.",
+    "dsContactTitle": "Kontakt für Datenschutz",
+    "dsContactPlaceholder": "[BITTE AUSFÜLLEN: Datenschutz-Kontakt-E-Mail-Adresse] — Diese Angabe muss vor dem öffentlichen Launch korrekt sein.",
+    "dsUpdated": "Stand: Juni 2026",
+    "footerImpressum": "Impressum",
+    "footerDatenschutz": "Datenschutz"
+  },
+  "states": {
+    "errorTitle": "Etwas ist schiefgelaufen.",
+    "errorRetry": "Erneut versuchen",
+    "notFoundTitle": "Seite nicht gefunden.",
+    "notFoundHome": "Zur Startseite",
+    "loading": "Wird geladen…"
   },
   "bidSheet": {
     "submitTitle": "Angebot abgeben",

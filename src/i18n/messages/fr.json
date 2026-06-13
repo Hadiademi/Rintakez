@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Rintakez — Place de marché photo Suisse",
+    "description": "Décris ton shoot et reçois des offres de photographes professionnels de ta région.",
+    "ogTitle": "Rintakez — Place de marché photo Suisse"
+  },
   "common": {
     "appName": "Rintakez",
     "back": "Retour",
@@ -153,6 +158,60 @@
       "declined": "Refusée",
       "withdrawn": "Retirée"
     }
+  },
+  "profile": {
+    "specialties": "Spécialités",
+    "coverage": "Régions",
+    "hourlyRate": "Tarif horaire",
+    "portfolio": "Portfolio",
+    "noPortfolio": "Pas encore d'images.",
+    "website": "Site web",
+    "instagram": "Instagram",
+    "hourlyFrom": "dès {amount}/h"
+  },
+  "errors": {
+    "invalid_input": "Vérifie tes saisies.",
+    "unauthorized": "Connecte-toi.",
+    "forbidden": "Tu n'as pas l'autorisation.",
+    "already_bid": "Tu as déjà soumis une offre.",
+    "not_found": "Introuvable.",
+    "limit_reached": "Limite atteinte.",
+    "invalid_file": "Fichier invalide. Images jusqu'à 5 Mo.",
+    "generic": "Une erreur est survenue. Réessaie."
+  },
+  "theme": {
+    "toggle": "Changer de thème",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "legal": {
+    "impressumTitle": "Mentions légales",
+    "impressumIntro": "Identification du prestataire conformément aux obligations de transparence applicables.",
+    "impressumOperator": "Exploitant",
+    "impressumContact": "Contact",
+    "impressumPlaceholder": "[À COMPLÉTER : nom / société, rue et numéro, NPA localité, adresse e-mail] — Ces informations doivent être exactes et complètes avant le lancement public.",
+    "datenschutzTitle": "Politique de confidentialité",
+    "dsIntro": "Cette politique de confidentialité explique comment Rintakez collecte, traite et protège les données personnelles. Elle s'applique à tous les utilisateurs de la plateforme rintakez.ch et est régie par la loi fédérale révisée sur la protection des données (nLPD / revLPD).",
+    "dsDataTitle": "Données collectées",
+    "dsData": "Nous collectons et traitons les données suivantes : lors de l'inscription, l'adresse e-mail et le mot de passe (stocké de manière chiffrée). Dans le profil : nom d'affichage, rôle (client·e ou photographe), ville, canton, langue, biographie et un avatar optionnel. Les photographes indiquent en outre leurs spécialités, les cantons couverts, un tarif horaire optionnel, des liens vers leur site web et Instagram, ainsi que des images de portfolio. Les client·e·s publient des missions avec un titre, un brief, un lieu, une date et un budget. Les photographes soumettent des offres avec un montant et un message.",
+    "dsPurposeTitle": "Finalité du traitement",
+    "dsPurpose": "Les données collectées sont utilisées exclusivement pour exploiter la place de marché : fourniture et gestion des comptes utilisateurs, mise en relation entre client·e·s et photographes, affichage des profils et portfolios, et traitement des missions et des offres. Les données ne sont pas transmises à des tiers à des fins publicitaires.",
+    "dsProcessorTitle": "Sous-traitant & hébergement",
+    "dsProcessor": "Nous utilisons Supabase comme prestataire technique (Supabase, Inc., États-Unis, disponible sur supabase.com). Supabase assure les services de base de données, d'authentification et de stockage de fichiers. Les données sont hébergées et traitées dans la région de Zürich, Suisse. Le traitement est encadré par un contrat de sous-traitance conforme à la nLPD.",
+    "dsRightsTitle": "Tes droits",
+    "dsRights": "Tu as le droit à tout moment de demander l'accès à tes données enregistrées, de corriger des informations inexactes et de demander la suppression de ton compte et des données associées. Tu peux exercer ces droits via l'adresse de contact ci-dessous. Nous répondrons à ta demande dans un délai de 30 jours.",
+    "dsContactTitle": "Contact protection des données",
+    "dsContactPlaceholder": "[À COMPLÉTER : adresse e-mail de contact pour la protection des données] — Cette information doit être exacte avant le lancement public.",
+    "dsUpdated": "Mise à jour : juin 2026",
+    "footerImpressum": "Mentions légales",
+    "footerDatenschutz": "Confidentialité"
+  },
+  "states": {
+    "errorTitle": "Une erreur est survenue.",
+    "errorRetry": "Réessayer",
+    "notFoundTitle": "Page introuvable.",
+    "notFoundHome": "Accueil",
+    "loading": "Chargement…"
   },
   "bidSheet": {
     "submitTitle": "Soumettre une offre",

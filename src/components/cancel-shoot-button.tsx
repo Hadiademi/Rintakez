@@ -4,9 +4,11 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { cancelShootAction } from "@/lib/actions/shoots";
+import { errorKey } from "@/lib/error-messages";
 
 export function CancelShootButton({ shootId }: { shootId: string }) {
   const t = useTranslations("shootDetail");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -21,7 +23,7 @@ export function CancelShootButton({ shootId }: { shootId: string }) {
       if (res.ok) {
         router.refresh();
       } else {
-        setError(res.error);
+        setError(tErr(errorKey(res.error)));
       }
     });
   }

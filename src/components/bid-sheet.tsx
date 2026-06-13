@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createBidSchema, type CreateBidInput } from "@/lib/validation/bid";
 import { submitBidAction } from "@/lib/actions/bids";
+import { errorKey } from "@/lib/error-messages";
 
 export function BidSheet({
   shootId,
@@ -16,6 +17,7 @@ export function BidSheet({
   budgetRange: string;
 }) {
   const t = useTranslations("bidSheet");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -35,10 +37,8 @@ export function BidSheet({
       const res = await submitBidAction(shootId, values);
       if (res.ok) {
         router.refresh();
-      } else if (res.error === "already_bid") {
-        setError(t("alreadyBid"));
       } else {
-        setError(t("errorSubmit"));
+        setError(tErr(errorKey(res.error)));
       }
     });
   }
