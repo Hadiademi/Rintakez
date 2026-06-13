@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { formatCHF } from "@/lib/format";
 import { acceptBidAction, declineBidAction } from "@/lib/actions/shoots";
+import { errorKey } from "@/lib/error-messages";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -29,6 +30,7 @@ export function BidCard({
   canManage: boolean;
 }) {
   const t = useTranslations("shootDetail");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -46,7 +48,7 @@ export function BidCard({
       if (res.ok) {
         router.refresh();
       } else {
-        setError(res.error);
+        setError(tErr(errorKey(res.error)));
       }
     });
   }

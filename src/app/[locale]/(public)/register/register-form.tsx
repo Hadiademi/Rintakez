@@ -6,10 +6,12 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { registerAction } from "@/lib/actions/auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
+import { errorKey } from "@/lib/error-messages";
 import { useState } from "react";
 
 export default function RegisterForm() {
   const t = useTranslations("auth");
+  const tErr = useTranslations("errors");
   const locale = useLocale() as RegisterInput["locale"];
   const router = useRouter();
   const [checkEmail, setCheckEmail] = useState(false);
@@ -42,9 +44,7 @@ export default function RegisterForm() {
         setCheckEmail(true);
       }
     } else {
-      setServerError(
-        result.error === "invalid_input" ? t("genericError") : result.error
-      );
+      setServerError(tErr(errorKey(result.error)));
     }
   }
 

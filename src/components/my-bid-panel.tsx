@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { formatCHF } from "@/lib/format";
 import { updateBidAction, withdrawBidAction } from "@/lib/actions/bids";
+import { errorKey } from "@/lib/error-messages";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -21,6 +22,7 @@ export function MyBidPanel({
   canEdit: boolean;
 }) {
   const t = useTranslations("bidSheet");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(String(bid.amount_chf));
@@ -58,7 +60,7 @@ export function MyBidPanel({
         setEditing(false);
         router.refresh();
       } else {
-        setError(t("errorSubmit"));
+        setError(tErr(errorKey(res.error)));
       }
     });
   }
@@ -80,7 +82,7 @@ export function MyBidPanel({
       if (res.ok) {
         router.refresh();
       } else {
-        setError(t("errorSubmit"));
+        setError(tErr(errorKey(res.error)));
       }
     });
   }

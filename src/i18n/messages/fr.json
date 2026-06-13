@@ -154,6 +154,16 @@
       "withdrawn": "Retirée"
     }
   },
+  "errors": {
+    "invalid_input": "Vérifie tes saisies.",
+    "unauthorized": "Connecte-toi.",
+    "forbidden": "Tu n'as pas l'autorisation.",
+    "already_bid": "Tu as déjà soumis une offre.",
+    "not_found": "Introuvable.",
+    "limit_reached": "Limite atteinte.",
+    "invalid_file": "Fichier invalide. Images jusqu'à 5 Mo.",
+    "generic": "Une erreur est survenue. Réessaie."
+  },
   "bidSheet": {
     "submitTitle": "Soumettre une offre",
     "yourPrice": "Ton prix (CHF)",

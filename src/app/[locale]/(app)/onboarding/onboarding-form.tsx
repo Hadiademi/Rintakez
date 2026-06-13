@@ -10,12 +10,14 @@ import {
   removePortfolioImage,
 } from "@/lib/actions/photographer";
 import { SHOOT_TYPES, CANTONS } from "@/lib/validation/photographer";
+import { errorKey } from "@/lib/error-messages";
 
 type PortfolioItem = { id: string; url: string };
 
 export default function OnboardingForm() {
   const t = useTranslations("onboarding");
   const tShoot = useTranslations("shoot");
+  const tErr = useTranslations("errors");
   const router = useRouter();
 
   const [specialties, setSpecialties] = useState<string[]>([]);
@@ -77,7 +79,7 @@ export default function OnboardingForm() {
       router.push("/home");
       router.refresh();
     } else {
-      setSaveError(t("errorSave"));
+      setSaveError(tErr(errorKey(result.error)));
     }
   }
 

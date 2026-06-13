@@ -154,6 +154,16 @@
       "withdrawn": "Withdrawn"
     }
   },
+  "errors": {
+    "invalid_input": "Please check your input.",
+    "unauthorized": "Please log in.",
+    "forbidden": "You're not allowed to do that.",
+    "already_bid": "You've already submitted an offer.",
+    "not_found": "Not found.",
+    "limit_reached": "Limit reached.",
+    "invalid_file": "Invalid file. Images up to 5 MB.",
+    "generic": "Something went wrong. Please try again."
+  },
   "bidSheet": {
     "submitTitle": "Submit an offer",
     "yourPrice": "Your price (CHF)",
