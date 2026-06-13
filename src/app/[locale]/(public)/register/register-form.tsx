@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
@@ -19,7 +19,7 @@ export default function RegisterForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -29,7 +29,7 @@ export default function RegisterForm() {
     },
   });
 
-  const selectedRole = watch("role");
+  const selectedRole = useWatch({ control, name: "role" });
 
   async function onSubmit(values: RegisterInput) {
     setServerError(null);
