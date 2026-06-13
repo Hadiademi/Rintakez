@@ -119,6 +119,16 @@
     "empty": "Du hast noch keinen Auftrag erstellt.",
     "createCta": "Auftrag erstellen"
   },
+  "browse": {
+    "title": "Offene Aufträge",
+    "count": "{count, plural, =0 {Keine Aufträge} one {# Auftrag} other {# Aufträge}}",
+    "filterCanton": "Kanton",
+    "filterType": "Art",
+    "filterBudget": "Budget bis",
+    "all": "Alle",
+    "clear": "Zurücksetzen",
+    "empty": "Keine offenen Aufträge passen zu deinen Filtern."
+  },
   "shootDetail": {
     "brief": "Briefing",
     "details": "Eckdaten",
