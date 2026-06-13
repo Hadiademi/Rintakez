@@ -67,6 +67,10 @@ export async function addPortfolioImage(
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
 
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
+
   const file = formData.get("file");
 
   if (
@@ -88,10 +92,12 @@ export async function addPortfolioImage(
 
   if ((count ?? 0) >= 20) return { ok: false, error: "limit_reached" };
 
-  // Derive extension
-  const extFromName = file.name.includes(".")
+  // Derive extension. The filename is attacker-controlled, so only accept a
+  // short alphanumeric ext; otherwise fall back to the MIME-derived one. This
+  // keeps the storage key strictly `<uid>/<uuid>.<safe-ext>` (no traversal).
+  const rawExt = file.name.includes(".")
     ? file.name.split(".").pop()!.toLowerCase()
-    : null;
+    : "";
   const extFromMime =
     file.type === "image/jpeg"
       ? "jpg"
@@ -102,7 +108,7 @@ export async function addPortfolioImage(
           : file.type === "image/gif"
             ? "gif"
             : "bin";
-  const ext = extFromName ?? extFromMime;
+  const ext = /^[a-z0-9]{1,5}$/.test(rawExt) ? rawExt : extFromMime;
 
   const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
 
