@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(67);
+select plan(68);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -683,6 +683,41 @@ select results_eq(
   $$select count(*)::int from public.messages$$,
   array[2],
   'participant sees all messages in the conversation'
+);
+reset role;
+
+-- ── 68: cancelling an assigned booking notifies the photographer ─────
+insert into public.shoots (id, client_id, title, type, brief, location_city,
+                           canton, shoot_date, duration_hours,
+                           budget_min_chf, budget_max_chf)
+values
+  ('18000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000001',
+   'Bald abgesagt', 'event', 'Wird zugewiesen und dann abgesagt.',
+   'Bern', 'BE', '2027-12-01', 3, 500, 900);
+insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
+values
+  ('28000000-0000-0000-0000-000000000008', '18000000-0000-0000-0000-000000000008',
+   '00000000-0000-0000-0000-000000000002', 700, 'Mache ich gerne.');
+-- assign (postgres role bypasses RLS for the setup)
+update public.shoots
+  set status = 'assigned', accepted_bid_id = '28000000-0000-0000-0000-000000000008'
+  where id = '18000000-0000-0000-0000-000000000008';
+
+-- client cancels the assigned shoot
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+update public.shoots set status = 'cancelled'
+  where id = '18000000-0000-0000-0000-000000000008';
+reset role;
+
+-- the assigned photographer is notified
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and type = 'shoot_cancelled'$$,
+  array[1],
+  'cancelling an assigned shoot notifies the photographer'
 );
 reset role;
 

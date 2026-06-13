@@ -145,6 +145,15 @@ export default async function ShootDetailPage({
       {hero}
       {header}
 
+      {shoot.status === "cancelled" && shoot.cancellation_reason ? (
+        <div className="border-l-2 border-accent bg-surface px-4 py-3">
+          <p className="label text-mute">{t("cancelledReason")}</p>
+          <p className="mt-1 whitespace-pre-line text-[14px] text-ink">
+            {shoot.cancellation_reason}
+          </p>
+        </div>
+      ) : null}
+
       <section>{detailsGrid}</section>
 
       <section className="space-y-3">

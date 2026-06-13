@@ -246,7 +246,8 @@ export async function completeShootAction(
 }
 
 export async function cancelShootAction(
-  shootId: string
+  shootId: string,
+  reason?: string
 ): Promise<{ ok: true } | ErrResult> {
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
@@ -254,7 +255,10 @@ export async function cancelShootAction(
   const supabase = await createClient();
   const { error } = await supabase
     .from("shoots")
-    .update({ status: "cancelled" })
+    .update({
+      status: "cancelled",
+      cancellation_reason: reason?.trim() ? reason.trim().slice(0, 500) : null,
+    })
     .eq("id", shootId)
     .eq("client_id", user.id);
   if (error) return { ok: false, error: error.message };

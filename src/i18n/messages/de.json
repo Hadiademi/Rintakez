@@ -207,7 +207,11 @@
     "cancelShoot": "Auftrag stornieren",
     "contactTitle": "Kontakt",
     "contactHint": "Ihr seid verbunden. Nehmt direkt Kontakt auf.",
-    "byPhotographer": "Fotograf:in"
+    "byPhotographer": "Fotograf:in",
+    "cancelReasonLabel": "Grund (optional)",
+    "cancelReasonPlaceholder": "Warum sagst du ab?",
+    "cancelledReason": "Grund der Absage",
+    "cancelPolicy": "Eine Absage informiert die andere Partei. Bitte sage rechtzeitig ab."
   },
   "myBids": {
     "title": "Meine Angebote",
@@ -338,7 +342,8 @@
     "view": "Ansehen",
     "bid_received": "Neues Angebot erhalten",
     "bid_accepted": "Dein Angebot wurde angenommen",
-    "bid_declined": "Dein Angebot wurde abgelehnt"
+    "bid_declined": "Dein Angebot wurde abgelehnt",
+    "shoot_cancelled": "Ein Shooting wurde abgesagt"
   },
   "review": {
     "title": "Bewertung",

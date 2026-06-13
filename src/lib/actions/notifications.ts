@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 
 export type NotificationItem = {
   id: string;
-  type: "bid_received" | "bid_accepted" | "bid_declined";
+  type: "bid_received" | "bid_accepted" | "bid_declined" | "shoot_cancelled";
   shootId: string | null;
   title: string | null;
   readAt: string | null;

@@ -207,7 +207,11 @@
     "cancelShoot": "Annuler la mission",
     "contactTitle": "Contact",
     "contactHint": "Vous êtes connectés. Contactez-vous directement.",
-    "byPhotographer": "Photographe"
+    "byPhotographer": "Photographe",
+    "cancelReasonLabel": "Motif (optionnel)",
+    "cancelReasonPlaceholder": "Pourquoi annules-tu ?",
+    "cancelledReason": "Motif de l'annulation",
+    "cancelPolicy": "Une annulation informe l'autre partie. Merci d'annuler à temps."
   },
   "myBids": {
     "title": "Mes offres",
@@ -338,7 +342,8 @@
     "view": "Voir",
     "bid_received": "Nouvelle offre reçue",
     "bid_accepted": "Ton offre a été acceptée",
-    "bid_declined": "Ton offre a été refusée"
+    "bid_declined": "Ton offre a été refusée",
+    "shoot_cancelled": "Un shooting a été annulé"
   },
   "review": {
     "title": "Évaluation",

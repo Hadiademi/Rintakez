@@ -207,7 +207,11 @@
     "cancelShoot": "Cancel shoot",
     "contactTitle": "Contact",
     "contactHint": "You're connected. Reach out directly.",
-    "byPhotographer": "Photographer"
+    "byPhotographer": "Photographer",
+    "cancelReasonLabel": "Reason (optional)",
+    "cancelReasonPlaceholder": "Why are you cancelling?",
+    "cancelledReason": "Cancellation reason",
+    "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time."
   },
   "myBids": {
     "title": "My bids",
@@ -338,7 +342,8 @@
     "view": "View",
     "bid_received": "New offer received",
     "bid_accepted": "Your offer was accepted",
-    "bid_declined": "Your offer was declined"
+    "bid_declined": "Your offer was declined",
+    "shoot_cancelled": "A shoot was cancelled"
   },
   "review": {
     "title": "Review",

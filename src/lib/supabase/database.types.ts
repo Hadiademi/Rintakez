@@ -137,6 +137,7 @@ export type Database = {
           status: Database["public"]["Enums"]["shoot_status"];
           accepted_bid_id: string | null;
           created_at: string;
+          cancellation_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -154,6 +155,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["shoot_status"];
           accepted_bid_id?: string | null;
           created_at?: string;
+          cancellation_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -171,6 +173,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["shoot_status"];
           accepted_bid_id?: string | null;
           created_at?: string;
+          cancellation_reason?: string | null;
         };
         Relationships: [];
       };
@@ -414,7 +417,11 @@ export type Database = {
         | "other";
       shoot_status: "open" | "assigned" | "completed" | "cancelled";
       bid_status: "pending" | "accepted" | "declined" | "withdrawn";
-      notification_type: "bid_received" | "bid_accepted" | "bid_declined";
+      notification_type:
+        | "bid_received"
+        | "bid_accepted"
+        | "bid_declined"
+        | "shoot_cancelled";
     };
     CompositeTypes: Record<string, never>;
   };

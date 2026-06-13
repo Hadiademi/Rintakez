@@ -40,8 +40,9 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
   specialty/canton/rating/price filters + sort; verified. — ✅
 - **T1.2 In-app messaging** — conversations + messages, RLS, auto-open on
   assignment, realtime thread + list + read markers; verified two-way live. — ✅
-- **T1.3 Booking & cancellation** — formal booking after acceptance with status +
-  cancellation policy; optional deposit hook (ties into payments). — 🟦
+- **T1.3 Booking & cancellation** — cancellation reason + policy note; notifies
+  the assigned photographer (`shoot_cancelled`); reason shown on detail. Deposit
+  hook deferred to payments (#1). — ✅
 
 ## Tier 2 — Production hardening
 - **T2.1 Error monitoring + analytics** — Sentry (gated on DSN) + privacy-first
