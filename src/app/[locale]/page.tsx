@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { ShootCard, type ShootCardData } from "@/components/shoot-card";
+import { ShootCard } from "@/components/shoot-card";
 import { createClient } from "@/lib/supabase/server";
 
 // Live marketplace data; revisit caching strategy in Plan 5.
@@ -41,7 +41,7 @@ export default async function Home() {
         <h2 className="label text-mute">{t("latestShoots")}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(shoots ?? []).map((s) => (
-            <ShootCard key={s.id} shoot={s as ShootCardData} />
+            <ShootCard key={s.id} shoot={s} />
           ))}
         </div>
       </section>
