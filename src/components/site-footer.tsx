@@ -24,6 +24,12 @@ export async function SiteFooter() {
           >
             {t("footerDatenschutz")}
           </Link>
+          <Link
+            href="/agb"
+            className="label text-mute hover:text-ink transition-colors"
+          >
+            {t("footerAgb")}
+          </Link>
         </nav>
       </div>
     </footer>

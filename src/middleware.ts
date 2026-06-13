@@ -11,5 +11,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/((?!api|_next|_vercel|.*\\..*).*)",
+  // `auth` is excluded so the locale-agnostic OAuth callback (/auth/callback)
+  // is not rewritten into a locale-prefixed path by the i18n middleware.
+  matcher: "/((?!api|auth|_next|_vercel|.*\\..*).*)",
 };

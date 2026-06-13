@@ -14,6 +14,7 @@ export type Database = {
           locale: Database["public"]["Enums"]["locale"];
           bio: string | null;
           created_at: string;
+          role_confirmed: boolean;
         };
         Insert: {
           id: string;
@@ -25,6 +26,7 @@ export type Database = {
           locale?: Database["public"]["Enums"]["locale"];
           bio?: string | null;
           created_at?: string;
+          role_confirmed?: boolean;
         };
         Update: {
           id?: string;
@@ -36,6 +38,7 @@ export type Database = {
           locale?: Database["public"]["Enums"]["locale"];
           bio?: string | null;
           created_at?: string;
+          role_confirmed?: boolean;
         };
         Relationships: [];
       };
@@ -87,6 +90,30 @@ export type Database = {
         Update: {
           id?: string;
           photographer_id?: string;
+          storage_path?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      shoot_images: {
+        Row: {
+          id: string;
+          shoot_id: string;
+          storage_path: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shoot_id: string;
+          storage_path: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          shoot_id?: string;
           storage_path?: string;
           sort_order?: number;
           created_at?: string;
@@ -177,11 +204,88 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: Database["public"]["Enums"]["notification_type"];
+          shoot_id: string | null;
+          bid_id: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: Database["public"]["Enums"]["notification_type"];
+          shoot_id?: string | null;
+          bid_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: Database["public"]["Enums"]["notification_type"];
+          shoot_id?: string | null;
+          bid_id?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      reviews: {
+        Row: {
+          id: string;
+          shoot_id: string;
+          client_id: string;
+          photographer_id: string;
+          rating: number;
+          comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shoot_id: string;
+          client_id: string;
+          photographer_id: string;
+          rating: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          shoot_id?: string;
+          client_id?: string;
+          photographer_id?: string;
+          rating?: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      photographer_ratings: {
+        Row: {
+          photographer_id: string | null;
+          avg_rating: number | null;
+          review_count: number | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
       accept_bid: {
         Args: { p_bid_id: string };
+        Returns: undefined;
+      };
+      complete_shoot: {
+        Args: { p_shoot_id: string };
+        Returns: undefined;
+      };
+      set_initial_role: {
+        Args: { p_role: Database["public"]["Enums"]["user_role"] };
         Returns: undefined;
       };
       decline_bid: {
@@ -249,6 +353,7 @@ export type Database = {
         | "other";
       shoot_status: "open" | "assigned" | "completed" | "cancelled";
       bid_status: "pending" | "accepted" | "declined" | "withdrawn";
+      notification_type: "bid_received" | "bid_accepted" | "bid_declined";
     };
     CompositeTypes: Record<string, never>;
   };

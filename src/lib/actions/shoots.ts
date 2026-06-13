@@ -4,8 +4,53 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
 import { createShootSchema } from "@/lib/validation/shoot";
+import { notifyEmail, type EmailKind } from "@/lib/email";
 
 type ErrResult = { ok: false; error: string };
+
+/** Email the photographer of a bid after its status changed (best-effort). */
+async function emailBidOutcome(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bidId: string,
+  kind: EmailKind
+) {
+  const { data: bid } = await supabase
+    .from("bids")
+    .select("photographer_id, shoot_id")
+    .eq("id", bidId)
+    .maybeSingle();
+  if (!bid) return;
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("title")
+    .eq("id", bid.shoot_id)
+    .maybeSingle();
+  await notifyEmail({
+    kind,
+    recipientId: bid.photographer_id,
+    shootId: bid.shoot_id,
+    shootTitle: shoot?.title ?? null,
+  });
+}
+
+const MAX_SHOOT_IMAGES = 6;
+
+function imageExt(file: File): string {
+  const rawExt = file.name.includes(".")
+    ? file.name.split(".").pop()!.toLowerCase()
+    : "";
+  const fromMime =
+    file.type === "image/jpeg"
+      ? "jpg"
+      : file.type === "image/png"
+        ? "png"
+        : file.type === "image/webp"
+          ? "webp"
+          : file.type === "image/gif"
+            ? "gif"
+            : "bin";
+  return /^[a-z0-9]{1,5}$/.test(rawExt) ? rawExt : fromMime;
+}
 
 export async function createShootAction(
   raw: unknown
@@ -48,6 +93,107 @@ export async function createShootAction(
   return { ok: true, id: data.id };
 }
 
+// ---------------------------------------------------------------------------
+// Reference images — optional inspiration photos attached to a shoot brief.
+// ---------------------------------------------------------------------------
+export async function addShootImage(
+  shootId: string,
+  formData: FormData
+): Promise<{ ok: true; id: string; url: string } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const file = formData.get("file");
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    !file.type.startsWith("image/") ||
+    file.size > 5 * 1024 * 1024
+  ) {
+    return { ok: false, error: "invalid_file" };
+  }
+
+  const supabase = await createClient();
+
+  // Ownership guard (RLS also enforces this; fail fast with a clear error).
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("id")
+    .eq("id", shootId)
+    .eq("client_id", user.id)
+    .maybeSingle();
+  if (!shoot) return { ok: false, error: "forbidden" };
+
+  const { count } = await supabase
+    .from("shoot_images")
+    .select("id", { count: "exact", head: true })
+    .eq("shoot_id", shootId);
+  if ((count ?? 0) >= MAX_SHOOT_IMAGES)
+    return { ok: false, error: "limit_reached" };
+
+  const path = `${user.id}/${shootId}/${crypto.randomUUID()}.${imageExt(file)}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("shoot-refs")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("shoot_images")
+    .insert({ shoot_id: shootId, storage_path: path })
+    .select("id")
+    .single();
+
+  if (insertError || !inserted) {
+    await supabase.storage.from("shoot-refs").remove([path]);
+    return { ok: false, error: insertError?.message ?? "insert_failed" };
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("shoot-refs")
+    .getPublicUrl(path);
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+
+  return { ok: true, id: inserted.id, url: urlData.publicUrl };
+}
+
+export async function removeShootImage(
+  imageId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+
+  const { data: row } = await supabase
+    .from("shoot_images")
+    .select("id, storage_path, shoot_id")
+    .eq("id", imageId)
+    .maybeSingle();
+  if (!row) return { ok: false, error: "not_found" };
+
+  // Confirm the caller owns the parent shoot.
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("id")
+    .eq("id", row.shoot_id)
+    .eq("client_id", user.id)
+    .maybeSingle();
+  if (!shoot) return { ok: false, error: "not_found" };
+
+  await supabase.storage.from("shoot-refs").remove([row.storage_path]);
+
+  const { error: deleteError } = await supabase
+    .from("shoot_images")
+    .delete()
+    .eq("id", imageId);
+  if (deleteError) return { ok: false, error: deleteError.message };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  return { ok: true };
+}
+
 export async function acceptBidAction(
   bidId: string
 ): Promise<{ ok: true } | ErrResult> {
@@ -57,6 +203,8 @@ export async function acceptBidAction(
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_bid", { p_bid_id: bidId });
   if (error) return { ok: false, error: error.message };
+
+  await emailBidOutcome(supabase, bidId, "bid_accepted");
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");
@@ -71,6 +219,25 @@ export async function declineBidAction(
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("decline_bid", { p_bid_id: bidId });
+  if (error) return { ok: false, error: error.message };
+
+  await emailBidOutcome(supabase, bidId, "bid_declined");
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
+
+export async function completeShootAction(
+  shootId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("complete_shoot", {
+    p_shoot_id: shootId,
+  });
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");

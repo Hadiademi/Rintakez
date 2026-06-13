@@ -4,11 +4,15 @@ import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { shootImage } from "@/lib/shoot-image";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
+import { CompleteShootButton } from "@/components/complete-shoot-button";
+import { ReviewForm } from "@/components/review-form";
+import { Stars } from "@/components/stars";
 import { BidSheet } from "@/components/bid-sheet";
 import { MyBidPanel } from "@/components/my-bid-panel";
 
@@ -35,6 +39,19 @@ export default async function ShootDetailPage({
     .maybeSingle();
 
   if (!shoot) notFound();
+
+  // Reference images (visible whenever the shoot is — enforced by RLS).
+  const { data: rawRefs } = await supabase
+    .from("shoot_images")
+    .select("id, storage_path")
+    .eq("shoot_id", id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+  const refImages = (rawRefs ?? []).map((r) => ({
+    id: r.id,
+    url: supabase.storage.from("shoot-refs").getPublicUrl(r.storage_path).data
+      .publicUrl,
+  }));
 
   const tShoot = await getTranslations("shoot");
   const t = await getTranslations("shootDetail");
@@ -76,9 +93,41 @@ export default async function ShootDetailPage({
     </dl>
   );
 
-  const hero = (
-    <div className="aspect-[16/9] w-full bg-chip" aria-hidden="true" />
-  );
+  const hero =
+    refImages.length > 0 ? (
+      <div className="space-y-2">
+        <div className="aspect-[16/9] w-full overflow-hidden bg-chip">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={refImages[0].url}
+            alt=""
+            className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
+          />
+        </div>
+        {refImages.length > 1 && (
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+            {refImages.slice(1).map((img) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={img.id}
+                src={img.url}
+                alt=""
+                className="aspect-square w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    ) : (
+      <div className="aspect-[16/9] w-full overflow-hidden bg-chip">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={shootImage(shoot.type, shoot.id, 1200, 675)}
+          alt=""
+          className="h-full w-full object-cover grayscale"
+        />
+      </div>
+    );
 
   const header = (
     <div className="space-y-4">
@@ -161,6 +210,18 @@ export default async function ShootDetailPage({
   const bidList = (bids ?? []) as unknown as BidCardData[];
   const canManageBids = shoot.status === "open";
 
+  // Existing review (owner, completed shoot).
+  const { data: myReview } =
+    shoot.status === "completed"
+      ? await supabase
+          .from("reviews")
+          .select("rating, comment")
+          .eq("shoot_id", id)
+          .maybeSingle()
+      : { data: null };
+
+  const tReview = await getTranslations("review");
+
   return (
     <div className="mx-auto max-w-3xl space-y-12">
       <div className="space-y-10">
@@ -169,10 +230,33 @@ export default async function ShootDetailPage({
         {shoot.status === "open" ? (
           <CancelShootButton shootId={shoot.id} />
         ) : null}
+
+        {shoot.status === "assigned" ? (
+          <CompleteShootButton shootId={shoot.id} />
+        ) : null}
       </div>
 
       {shoot.status === "assigned" || shoot.status === "completed" ? (
         <ContactReveal shootId={id} />
+      ) : null}
+
+      {shoot.status === "completed" ? (
+        <section className="space-y-4 border-t border-line pt-8">
+          <SectionLabel title={tReview("title")} />
+          {myReview ? (
+            <div className="space-y-2" data-testid="review-summary">
+              <Stars value={myReview.rating} size={18} />
+              {myReview.comment ? (
+                <p className="whitespace-pre-line leading-relaxed text-ink">
+                  {myReview.comment}
+                </p>
+              ) : null}
+              <p className="text-[13px] text-mute">{tReview("thanks")}</p>
+            </div>
+          ) : (
+            <ReviewForm shootId={id} />
+          )}
+        </section>
       ) : null}
 
       <section className="space-y-4">

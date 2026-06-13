@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import NewShootForm from "./new-shoot-form";
@@ -18,14 +18,5 @@ export default async function NewShootPage() {
     return null;
   }
 
-  const t = await getTranslations("createShoot");
-
-  return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="mb-8 text-3xl font-medium tracking-tight text-ink">
-        {t("title")}
-      </h1>
-      <NewShootForm />
-    </div>
-  );
+  return <NewShootForm />;
 }

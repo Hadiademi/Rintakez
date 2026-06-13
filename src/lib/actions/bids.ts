@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { createBidSchema } from "@/lib/validation/bid";
+import { notifyEmail } from "@/lib/email";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -29,6 +30,22 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
     if (error.code === "23505") return { ok: false, error: "already_bid" };
     return { ok: false, error: error.message };
   }
+
+  // Email the shoot's client (best-effort; gated on RESEND_API_KEY).
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("client_id, title")
+    .eq("id", shootId)
+    .maybeSingle();
+  if (shoot) {
+    await notifyEmail({
+      kind: "bid_received",
+      recipientId: shoot.client_id,
+      shootId,
+      shootTitle: shoot.title,
+    });
+  }
+
   revalidateBidViews();
   return { ok: true };
 }

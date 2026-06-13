@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHF } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
+import { Stars } from "@/components/stars";
 
 export const dynamic = "force-dynamic";
 
@@ -102,8 +103,23 @@ export default async function PhotographerProfilePage({
     }
   }
 
+  // Ratings & reviews (public).
+  const { data: rating } = await supabase
+    .from("photographer_ratings")
+    .select("avg_rating, review_count")
+    .eq("photographer_id", id)
+    .maybeSingle();
+
+  const { data: reviewRows } = await supabase
+    .from("reviews")
+    .select("id, rating, comment, created_at")
+    .eq("photographer_id", id)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
   const t = await getTranslations("profile");
   const tShoot = await getTranslations("shoot");
+  const tReview = await getTranslations("review");
 
   // Initials for avatar placeholder
   const initials = profile.display_name
@@ -157,6 +173,15 @@ export default async function PhotographerProfilePage({
                 {[profile.city, profile.canton].filter(Boolean).join(", ")}
               </p>
             )}
+            {rating && rating.review_count ? (
+              <div className="mt-1 flex items-center gap-2">
+                <Stars value={rating.avg_rating ?? 0} />
+                <span className="tabular text-[13px] text-mute">
+                  {rating.avg_rating?.toFixed(1)} ·{" "}
+                  {tReview("count", { count: rating.review_count })}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -255,6 +280,25 @@ export default async function PhotographerProfilePage({
             <p className="text-[14px] text-mute">{t("noPortfolio")}</p>
           )}
         </div>
+
+        {/* Reviews */}
+        {reviewRows && reviewRows.length > 0 && (
+          <div className="space-y-5 border-t border-line pt-8">
+            <p className="label text-mute">{tReview("reviews")}</p>
+            <ul className="space-y-5">
+              {reviewRows.map((r) => (
+                <li key={r.id} className="space-y-1.5">
+                  <Stars value={r.rating} />
+                  {r.comment ? (
+                    <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">
+                      {r.comment}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </main>
   );

@@ -4,9 +4,15 @@ import { registerSchema, loginSchema } from "./auth";
 describe("registerSchema", () => {
   it("accepts a valid client registration", () => {
     const r = registerSchema.safeParse({
-      email: "a@b.ch", password: "password123", displayName: "Lena K.", role: "client", locale: "de",
+      email: "a@b.ch", password: "password123", displayName: "Lena K.", role: "client", locale: "de", acceptTerms: true,
     });
     expect(r.success).toBe(true);
+  });
+  it("rejects registration without accepting terms", () => {
+    const r = registerSchema.safeParse({
+      email: "a@b.ch", password: "password123", displayName: "Lena K.", role: "client", locale: "de", acceptTerms: false,
+    });
+    expect(r.success).toBe(false);
   });
   it("rejects a short password", () => {
     const r = registerSchema.safeParse({

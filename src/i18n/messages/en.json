@@ -21,7 +21,10 @@
     "createShoot": "Post a shoot",
     "myShoots": "My shoots",
     "browseShoots": "Shoots",
-    "myBids": "My bids"
+    "myBids": "My bids",
+    "create": "Create",
+    "searchPlaceholder": "Open shoots",
+    "notifications": "Notifications"
   },
   "landing": {
     "title": "Photography. Direct. Across Switzerland.",
@@ -48,7 +51,27 @@
     "toLogin": "Log in",
     "toRegister": "Sign up",
     "checkEmail": "Confirm your email address to continue.",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "loginSubtitle": "Welcome back. Sign in to continue.",
+    "registerSubtitle": "Create your account in seconds.",
+    "tagline": "Photography. Direct. Across Switzerland.",
+    "registeredSuccess": "Account created — please sign in.",
+    "continueWithGoogle": "Continue with Google",
+    "orDivider": "or",
+    "forgotTitle": "Forgot password",
+    "forgotSubtitle": "We'll send you a reset link.",
+    "forgotLink": "Forgot password?",
+    "sendResetLink": "Send link",
+    "resetEmailSent": "If an account exists, we've sent you a link.",
+    "resetTitle": "New password",
+    "resetSubtitle": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated. Please sign in.",
+    "resetLinkInvalid": "The link is invalid or expired.",
+    "termsAgree": "I accept the <agb>Terms</agb> and <privacy>Privacy Policy</privacy>.",
+    "errorAcceptTerms": "Please accept the Terms and Privacy Policy.",
+    "googleConsent": "By continuing you accept our Terms and Privacy Policy."
   },
   "home": {
     "greeting": "Hi, {name}.",
@@ -94,7 +117,10 @@
     "portfolio": "Portfolio",
     "addPhotos": "Add photos",
     "finish": "Finish",
-    "errorSave": "Could not save."
+    "errorSave": "Could not save.",
+    "editTitle": "Edit profile",
+    "editSubtitle": "Update your details and portfolio.",
+    "save": "Save"
   },
   "createShoot": {
     "title": "Post a shoot",
@@ -115,7 +141,9 @@
     "back": "Back",
     "submit": "Publish",
     "errorCreate": "Could not create.",
-    "stepLabel": "Step {current} of {total}"
+    "stepLabel": "Step {current} of {total}",
+    "fieldReferences": "References (optional)",
+    "referencesHint": "Images that show the style you want. Max 6."
   },
   "shoot": {
     "date": "Date",
@@ -134,6 +162,15 @@
       "family": "Family",
       "other": "Other"
     },
+    "typeDesc": {
+      "wedding": "Ceremony, apéro, dinner. 6–10 hours.",
+      "portrait": "Solo or team. Studio or on location.",
+      "commercial": "Product, campaign, editorial.",
+      "event": "Corporate, conference, opening.",
+      "architecture": "Exterior and interior.",
+      "family": "At home or outdoors. Relaxed.",
+      "other": "Describe it in the brief."
+    },
     "status": {
       "open": "Open",
       "assigned": "Assigned",
@@ -150,6 +187,7 @@
   "browse": {
     "title": "Open shoots",
     "count": "{count, plural, =0 {No shoots} one {# shoot} other {# shoots}}",
+    "filterLabel": "Filter",
     "filterCanton": "Canton",
     "filterType": "Type",
     "filterBudget": "Budget up to",
@@ -190,7 +228,18 @@
     "noPortfolio": "No images yet.",
     "website": "Website",
     "instagram": "Instagram",
-    "hourlyFrom": "from {amount}/hr"
+    "hourlyFrom": "from {amount}/hr",
+    "title": "Profile",
+    "account": "Account",
+    "role": "Role",
+    "viewPublic": "View public profile",
+    "changePhoto": "Change photo",
+    "editDetails": "Edit details",
+    "dangerZone": "Delete account",
+    "deleteAccount": "Permanently delete account",
+    "deleteWarning": "Your account and all associated data will be permanently deleted.",
+    "deleteConfirm": "Really delete? This cannot be undone.",
+    "deleting": "Deleting …"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -227,7 +276,32 @@
     "dsContactPlaceholder": "[TO COMPLETE: data protection contact email address] — This information must be accurate before public launch.",
     "dsUpdated": "Last updated: June 2026",
     "footerImpressum": "Legal notice",
-    "footerDatenschutz": "Privacy"
+    "footerDatenschutz": "Privacy",
+    "agbTitle": "Terms of Service",
+    "agbIntro": "These terms govern use of the Rintakez platform. By registering, you accept them.",
+    "agbUpdated": "Last updated: June 2026",
+    "agbReviewNote": "Template — have it reviewed by a professional before public launch.",
+    "agbS1T": "1. Scope",
+    "agbS1B": "These terms apply to all users of rintakez.ch, both clients and photographers.",
+    "agbS2T": "2. Platform services",
+    "agbS2B": "Rintakez is an intermediary marketplace. We connect clients with photographers but are not a party to the individual shoot contract.",
+    "agbS3T": "3. Registration & account",
+    "agbS3B": "An account is required. Your details must be true and current. Credentials must be kept confidential.",
+    "agbS4T": "4. Roles",
+    "agbS4B": "Clients post shoots; photographers submit offers and carry out shoots. Each role follows the applicable rules.",
+    "agbS5T": "5. Shoots, offers & contracts",
+    "agbS5B": "When a client accepts an offer, the contract is formed directly between the client and the photographer. Rintakez is not a party to it.",
+    "agbS6T": "6. Fees",
+    "agbS6B": "The current fee structure is shown transparently before any paid use. [To be completed before launch.]",
+    "agbS7T": "7. Content & rights",
+    "agbS7B": "You keep the rights to your uploaded content and grant Rintakez the right to display it to present your profile or shoot.",
+    "agbS8T": "8. Prohibited conduct",
+    "agbS8B": "Unlawful, offensive or misleading content, spam, and circumventing the platform to avoid fees are prohibited.",
+    "agbS9T": "9. Liability",
+    "agbS9B": "Rintakez is not liable for the photography service itself. Liability is limited, to the extent permitted by law, to intent and gross negligence.",
+    "agbS10T": "10. Termination, changes & law",
+    "agbS10B": "You may delete your account at any time. We may amend these terms and will inform you in good time. Swiss law applies; place of jurisdiction is the operator's seat.",
+    "footerAgb": "Terms"
   },
   "states": {
     "errorTitle": "Something went wrong.",
@@ -255,5 +329,28 @@
     "bidStatusWithdrawn": "Withdrawn",
     "errorSubmit": "Could not send.",
     "notOpen": "This shoot is no longer accepting offers."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Nothing here yet.",
+    "view": "View",
+    "bid_received": "New offer received",
+    "bid_accepted": "Your offer was accepted",
+    "bid_declined": "Your offer was declined"
+  },
+  "review": {
+    "title": "Review",
+    "markCompleted": "Mark as completed",
+    "completedHint": "Shoot done? Mark it completed to review the photographer.",
+    "leaveReview": "Review the photographer",
+    "yourRating": "Your rating",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "How was the collaboration?",
+    "submit": "Submit review",
+    "thanks": "Thanks for your review.",
+    "recommended": "Recommended photographers",
+    "newBadge": "New",
+    "reviews": "Reviews",
+    "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}"
   }
 }

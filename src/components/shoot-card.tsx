@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { shootImage } from "@/lib/shoot-image";
 
 export type ShootCardData = {
   id: string;
@@ -22,7 +24,6 @@ export async function ShootCard({
   shoot: ShootCardData;
   offersCount?: number;
 }) {
-  const t = await getTranslations("shoot");
   const tShoot = await getTranslations("shoot");
 
   const meta = [
@@ -35,11 +36,15 @@ export async function ShootCard({
 
   return (
     <article className="group">
-      {/* Grayscale cover — grey placeholder when the shoot has no image (per design) */}
+      {/* Grayscale editorial cover */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-chip">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="label text-mute-2">{t(`types.${shoot.type}`)}</span>
-        </div>
+        <Image
+          src={shootImage(shoot.type, shoot.id, 900, 600)}
+          alt={shoot.title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover grayscale transition-[filter,transform] duration-500 group-hover:grayscale-0 group-hover:scale-[1.02]"
+        />
       </div>
 
       <div className="mt-3">

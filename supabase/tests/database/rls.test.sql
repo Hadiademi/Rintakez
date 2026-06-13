@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(28);
+select plan(58);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -312,6 +312,296 @@ select results_eq(
   $$select status::text from public.bids where id = '29000000-0000-0000-0000-000000000009'$$,
   array['declined'],
   'declined bid is declined'
+);
+reset role;
+
+-- ── 29: shoot_images table exists ────────────────────────────────────
+select has_table('public', 'shoot_images', 'shoot_images exists');
+
+-- Owner (client) attaches reference images. Shoot 3 is open, shoot 2 is the
+-- cancelled shoot — the owner may attach to either (status-agnostic insert).
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+
+-- ── 30: owner inserts an image on own open shoot ─────────────────────
+select lives_ok(
+  $$insert into public.shoot_images (id, shoot_id, storage_path)
+    values ('30000000-0000-0000-0000-000000000001',
+            '10000000-0000-0000-0000-000000000003',
+            '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg')$$,
+  'owner attaches a reference image to own open shoot'
+);
+
+-- ── 31: owner inserts an image on own cancelled shoot ────────────────
+select lives_ok(
+  $$insert into public.shoot_images (id, shoot_id, storage_path)
+    values ('30000000-0000-0000-0000-000000000002',
+            '10000000-0000-0000-0000-000000000002',
+            '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000002/b.jpg')$$,
+  'owner attaches a reference image to own cancelled shoot'
+);
+reset role;
+
+-- ── 32–33: anon sees images on open shoots, not on cancelled ones ────
+-- `reset role` does not clear the JWT claims GUC, so blank it explicitly —
+-- otherwise auth.uid() would still resolve to the previous client.
+set local role anon;
+set local request.jwt.claims to '';
+select results_eq(
+  $$select count(*)::int from public.shoot_images
+    where shoot_id = '10000000-0000-0000-0000-000000000003'$$,
+  array[1],
+  'anon sees reference images on an open shoot'
+);
+select results_eq(
+  $$select count(*)::int from public.shoot_images
+    where shoot_id = '10000000-0000-0000-0000-000000000002'$$,
+  array[0],
+  'anon cannot see reference images on a cancelled shoot'
+);
+
+-- ── 34: anon cannot insert a shoot image ─────────────────────────────
+select throws_ok(
+  $$insert into public.shoot_images (shoot_id, storage_path)
+    values ('10000000-0000-0000-0000-000000000003', 'x/y/z.jpg')$$,
+  '42501',
+  null,
+  'anon cannot insert shoot images'
+);
+reset role;
+
+-- ── 35: non-owner photographer cannot insert a shoot image ───────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.shoot_images (shoot_id, storage_path)
+    values ('10000000-0000-0000-0000-000000000003',
+            '00000000-0000-0000-0000-000000000002/x.jpg')$$,
+  '42501',
+  null,
+  'non-owner photographer cannot attach images to a shoot'
+);
+
+-- ── 36–37: non-owner delete is a no-op (RLS filters the row out) ──────
+select lives_ok(
+  $$delete from public.shoot_images
+    where id = '30000000-0000-0000-0000-000000000001'$$,
+  'non-owner delete runs but affects no rows'
+);
+select results_eq(
+  $$select count(*)::int from public.shoot_images
+    where id = '30000000-0000-0000-0000-000000000001'$$,
+  array[1],
+  'owner image survives a non-owner delete attempt'
+);
+reset role;
+
+-- ── 38–39: owner deletes own image ───────────────────────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select lives_ok(
+  $$delete from public.shoot_images
+    where id = '30000000-0000-0000-0000-000000000001'$$,
+  'owner deletes own reference image'
+);
+select results_eq(
+  $$select count(*)::int from public.shoot_images
+    where id = '30000000-0000-0000-0000-000000000001'$$,
+  array[0],
+  'deleted reference image is gone'
+);
+reset role;
+
+-- ── 40: notifications table exists ───────────────────────────────────
+select has_table('public', 'notifications', 'notifications exists');
+
+-- Fixtures inserted 4 bids on client-01's shoots → 4 bid_received rows.
+-- Test 13 accepted bid 1 → Marko bid_accepted + Anna bid_declined (sibling).
+-- Test 27 declined bid 9 → Marko bid_declined.
+
+-- ── 41: client sees own bid_received notifications ───────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and type = 'bid_received'$$,
+  array[4],
+  'client sees a bid_received notification for each incoming bid'
+);
+reset role;
+
+-- ── 42–43: photographer isolation + own accepted notification ────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.notifications where type = 'bid_received'$$,
+  array[0],
+  'photographer cannot see the client''s bid_received notifications'
+);
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and type = 'bid_accepted'$$,
+  array[1],
+  'photographer is notified when their bid is accepted'
+);
+reset role;
+
+-- ── 44: sibling photographer gets a declined notification ────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and type = 'bid_declined'$$,
+  array[1],
+  'auto-declined photographer is notified'
+);
+reset role;
+
+-- ── 45–46: a user may mark only their own notifications read ─────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select lives_ok(
+  $$update public.notifications set read_at = now() where user_id = auth.uid()$$,
+  'photographer marks own notifications read'
+);
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and read_at is null$$,
+  array[0],
+  'all of the photographer''s notifications are now read'
+);
+-- Attempt to touch everyone else's notifications — RLS filters them out.
+update public.notifications set read_at = now();
+reset role;
+
+-- ── 47: the other user's notifications were untouched ────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.notifications
+    where user_id = auth.uid() and read_at is null$$,
+  array[4],
+  'one user cannot mark another user''s notifications read'
+);
+reset role;
+
+-- ── 48: non-owner cannot complete a shoot ────────────────────────────
+-- Shoot 1 is assigned to Marko. Marko (the photographer) is not the client.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select throws_ok(
+  $$select public.complete_shoot('10000000-0000-0000-0000-000000000001')$$,
+  'P0001',
+  'cannot complete shoot',
+  'only the shoot client can complete it'
+);
+reset role;
+
+-- ── 49: owner completes the assigned shoot ───────────────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select lives_ok(
+  $$select public.complete_shoot('10000000-0000-0000-0000-000000000001')$$,
+  'client completes own assigned shoot'
+);
+reset role;
+
+-- ── 50: reviews table exists ─────────────────────────────────────────
+select has_table('public', 'reviews', 'reviews exists');
+
+-- ── 51: a photographer cannot leave a review ─────────────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.reviews (shoot_id, client_id, photographer_id, rating)
+    values ('10000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000002',
+            '00000000-0000-0000-0000-000000000002', 5)$$,
+  '42501',
+  null,
+  'a photographer cannot review'
+);
+reset role;
+
+-- ── 52: review must name the photographer who was actually assigned ──
+-- Shoot 1 was assigned to Marko (02); a review naming Anna (03) is rejected.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.reviews (shoot_id, client_id, photographer_id, rating)
+    values ('10000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000003', 5)$$,
+  '42501',
+  null,
+  'review must reference the assigned photographer'
+);
+
+-- ── 53: owner leaves a valid review ──────────────────────────────────
+select lives_ok(
+  $$insert into public.reviews (shoot_id, client_id, photographer_id, rating, comment)
+    values ('10000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000002', 5, 'Hervorragende Arbeit.')$$,
+  'client reviews the assigned photographer on a completed shoot'
+);
+
+-- ── 54: only one review per shoot ────────────────────────────────────
+select throws_ok(
+  $$insert into public.reviews (shoot_id, client_id, photographer_id, rating)
+    values ('10000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000002', 4)$$,
+  '23505',
+  null,
+  'one review per shoot'
+);
+reset role;
+
+-- ── 55: rating aggregate view reflects the review ────────────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select review_count from public.photographer_ratings
+    where photographer_id = '00000000-0000-0000-0000-000000000002'$$,
+  array[1],
+  'photographer_ratings view counts the review'
+);
+reset role;
+
+-- ── 56–58: set_initial_role (Google sign-in role assignment) ─────────
+-- A fresh OAuth-style user: no role in metadata → role_confirmed = false.
+insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+                        email_confirmed_at, raw_user_meta_data, created_at, updated_at)
+values
+  ('00000000-0000-0000-0000-0000000000aa', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'oauth@test.ch',
+   extensions.crypt('pw', extensions.gen_salt('bf')),
+   now(), '{"full_name":"OAuth User"}', now(), now());
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000aa","role":"authenticated"}';
+select lives_ok(
+  $$select public.set_initial_role('photographer')$$,
+  'fresh OAuth user can claim a role'
+);
+select results_eq(
+  $$select role::text from public.profiles
+    where id = '00000000-0000-0000-0000-0000000000aa'$$,
+  array['photographer'],
+  'OAuth user role is set to the chosen role'
+);
+reset role;
+
+-- A confirmed user cannot flip their role via set_initial_role (no-op).
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select set_initial_role('photographer');
+select results_eq(
+  $$select role::text from public.profiles
+    where id = '00000000-0000-0000-0000-000000000001'$$,
+  array['client'],
+  'set_initial_role is a no-op once the role is confirmed'
 );
 reset role;
 

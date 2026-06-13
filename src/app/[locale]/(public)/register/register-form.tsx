@@ -3,10 +3,11 @@
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations, useLocale } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 import { registerAction } from "@/lib/actions/auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { errorKey } from "@/lib/error-messages";
+import { GoogleButton } from "@/components/google-button";
 import { useState } from "react";
 
 export default function RegisterForm() {
@@ -14,7 +15,6 @@ export default function RegisterForm() {
   const tErr = useTranslations("errors");
   const locale = useLocale() as RegisterInput["locale"];
   const router = useRouter();
-  const [checkEmail, setCheckEmail] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -28,6 +28,7 @@ export default function RegisterForm() {
     defaultValues: {
       role: "client",
       locale,
+      acceptTerms: false as unknown as true,
     },
   });
 
@@ -37,26 +38,13 @@ export default function RegisterForm() {
     setServerError(null);
     const result = await registerAction({ ...values, locale });
     if (result.ok) {
-      if (result.session) {
-        router.push("/home");
-        router.refresh();
-      } else {
-        setCheckEmail(true);
-      }
+      // Always land on the login page. `registered` = account is ready to use;
+      // `confirm` = email confirmation is required first.
+      router.push(result.session ? "/login?registered=1" : "/login?confirm=1");
+      router.refresh();
     } else {
       setServerError(tErr(errorKey(result.error)));
     }
-  }
-
-  if (checkEmail) {
-    return (
-      <div
-        data-testid="register-check-email"
-        className="text-center py-8 px-4"
-      >
-        <p className="text-ink">{t("checkEmail")}</p>
-      </div>
-    );
   }
 
   return (
@@ -79,7 +67,7 @@ export default function RegisterForm() {
           type="text"
           autoComplete="name"
           {...register("displayName")}
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.displayName && (
           <p className="text-[12px] text-accent">{errors.displayName.message}</p>
@@ -97,7 +85,7 @@ export default function RegisterForm() {
           type="email"
           autoComplete="email"
           {...register("email")}
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.email && (
           <p className="text-[12px] text-accent">{errors.email.message}</p>
@@ -115,7 +103,7 @@ export default function RegisterForm() {
           type="password"
           autoComplete="new-password"
           {...register("password")}
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.password && (
           <p className="text-[12px] text-accent">{errors.password.message}</p>
@@ -132,7 +120,7 @@ export default function RegisterForm() {
             data-testid="register-role-client"
             onClick={() => setValue("role", "client", { shouldValidate: true })}
             className={[
-              "press flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-colors",
+              "press flex flex-col gap-1 border px-4 py-3 text-left transition-colors",
               selectedRole === "client"
                 ? "border-ink bg-surface"
                 : "border-line bg-paper",
@@ -152,7 +140,7 @@ export default function RegisterForm() {
               setValue("role", "photographer", { shouldValidate: true })
             }
             className={[
-              "press flex flex-col gap-1 rounded-xl border px-4 py-3 text-left transition-colors",
+              "press flex flex-col gap-1 border px-4 py-3 text-left transition-colors",
               selectedRole === "photographer"
                 ? "border-ink bg-surface"
                 : "border-line bg-paper",
@@ -171,6 +159,43 @@ export default function RegisterForm() {
         )}
       </div>
 
+      {/* Terms acceptance */}
+      <div className="flex flex-col gap-1">
+        <label className="flex items-start gap-2.5 text-[13px] text-mute">
+          <input
+            type="checkbox"
+            data-testid="register-accept-terms"
+            {...register("acceptTerms")}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-ink,#111)]"
+          />
+          <span>
+            {t.rich("termsAgree", {
+              agb: (chunks) => (
+                <Link
+                  href="/agb"
+                  target="_blank"
+                  className="text-ink underline underline-offset-2"
+                >
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link
+                  href="/datenschutz"
+                  target="_blank"
+                  className="text-ink underline underline-offset-2"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
+          </span>
+        </label>
+        {errors.acceptTerms && (
+          <p className="text-[12px] text-accent">{t("errorAcceptTerms")}</p>
+        )}
+      </div>
+
       {/* Server error */}
       {serverError && (
         <p className="text-[13px] text-accent">{serverError}</p>
@@ -181,10 +206,21 @@ export default function RegisterForm() {
         type="submit"
         data-testid="register-submit"
         disabled={isSubmitting}
-        className="press w-full rounded-lg bg-ink text-paper py-2.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
+        className="press w-full bg-ink text-paper py-3.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
       >
         {t("submitRegister")}
       </button>
+
+      {/* OAuth — uses the role selected above */}
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" />
+        <span className="label text-mute-2">{t("orDivider")}</span>
+        <span className="h-px flex-1 bg-line" />
+      </div>
+      <GoogleButton role={selectedRole} />
+      <p className="text-center text-[12px] text-mute-2">
+        {t("googleConsent")}
+      </p>
     </form>
   );
 }

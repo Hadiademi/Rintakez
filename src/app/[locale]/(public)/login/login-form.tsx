@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 import { loginAction } from "@/lib/actions/auth";
 import { loginSchema, type LoginInput } from "@/lib/validation/auth";
 import { errorKey } from "@/lib/error-messages";
@@ -51,7 +51,7 @@ export default function LoginForm() {
           type="email"
           autoComplete="email"
           {...register("email")}
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.email && (
           <p className="text-[12px] text-accent">{errors.email.message}</p>
@@ -60,16 +60,24 @@ export default function LoginForm() {
 
       {/* Password */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="login-password" className="label text-mute">
-          {t("password")}
-        </label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="login-password" className="label text-mute">
+            {t("password")}
+          </label>
+          <Link
+            href="/forgot-password"
+            className="text-[12px] text-mute hover:text-ink"
+          >
+            {t("forgotLink")}
+          </Link>
+        </div>
         <input
           id="login-password"
           data-testid="login-password"
           type="password"
           autoComplete="current-password"
           {...register("password")}
-          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.password && (
           <p className="text-[12px] text-accent">{errors.password.message}</p>
@@ -86,7 +94,7 @@ export default function LoginForm() {
         type="submit"
         data-testid="login-submit"
         disabled={isSubmitting}
-        className="press w-full rounded-lg bg-ink text-paper py-2.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
+        className="press w-full bg-ink text-paper py-3.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
       >
         {t("submitLogin")}
       </button>

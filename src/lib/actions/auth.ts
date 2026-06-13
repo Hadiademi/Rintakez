@@ -22,7 +22,12 @@ export async function registerAction(raw: unknown): Promise<RegisterResult> {
     options: { data: { display_name: displayName, role, locale } },
   });
   if (error) return { ok: false, error: error.message };
-  return { ok: true, session: !!data.session };
+  // When local confirmations are disabled, signUp returns a live session and
+  // would auto-log-in the user. We instead send them to the login page, so the
+  // session is torn down here before returning.
+  const hadSession = !!data.session;
+  if (hadSession) await supabase.auth.signOut();
+  return { ok: true, session: hadSession };
 }
 
 export async function loginAction(raw: unknown): Promise<ActionResult> {

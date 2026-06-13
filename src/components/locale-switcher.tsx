@@ -10,12 +10,15 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-3">
+    <nav className="flex items-center border border-line">
       {routing.locales.map((l) => (
         <button
           key={l}
           onClick={() => router.replace(pathname, { locale: l })}
-          className={`label press ${l === locale ? "text-ink" : "text-mute-2"}`}
+          aria-pressed={l === locale}
+          className={`label press px-2.5 py-1.5 transition-colors ${
+            l === locale ? "bg-ink text-paper" : "text-mute-2 hover:text-ink"
+          }`}
         >
           {l.toUpperCase()}
         </button>

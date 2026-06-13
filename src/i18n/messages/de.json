@@ -21,7 +21,10 @@
     "createShoot": "Auftrag erstellen",
     "myShoots": "Meine Aufträge",
     "browseShoots": "Aufträge",
-    "myBids": "Meine Angebote"
+    "myBids": "Meine Angebote",
+    "create": "Erstellen",
+    "searchPlaceholder": "Offene Aufträge",
+    "notifications": "Benachrichtigungen"
   },
   "landing": {
     "title": "Fotografie. Direkt. Schweizweit.",
@@ -48,10 +51,30 @@
     "toLogin": "Anmelden",
     "toRegister": "Registrieren",
     "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
-    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "loginSubtitle": "Willkommen zurück. Melde dich an, um fortzufahren.",
+    "registerSubtitle": "Erstelle dein Konto in wenigen Sekunden.",
+    "tagline": "Fotografie. Direkt. In der ganzen Schweiz.",
+    "registeredSuccess": "Konto erstellt — bitte melde dich an.",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "orDivider": "oder",
+    "forgotTitle": "Passwort vergessen",
+    "forgotSubtitle": "Wir senden dir einen Link zum Zurücksetzen.",
+    "forgotLink": "Passwort vergessen?",
+    "sendResetLink": "Link senden",
+    "resetEmailSent": "Wenn ein Konto existiert, haben wir dir einen Link gesendet.",
+    "resetTitle": "Neues Passwort",
+    "resetSubtitle": "Wähle ein neues Passwort für dein Konto.",
+    "newPassword": "Neues Passwort",
+    "updatePassword": "Passwort aktualisieren",
+    "passwordUpdated": "Passwort aktualisiert. Bitte melde dich an.",
+    "resetLinkInvalid": "Der Link ist ungültig oder abgelaufen.",
+    "termsAgree": "Ich akzeptiere die <agb>AGB</agb> und <privacy>Datenschutzerklärung</privacy>.",
+    "errorAcceptTerms": "Bitte akzeptiere die AGB und Datenschutzerklärung.",
+    "googleConsent": "Mit der Fortsetzung akzeptierst du unsere AGB und Datenschutzerklärung."
   },
   "home": {
-    "greeting": "Hallo, {name}.",
+    "greeting": "Guten Tag, {name}.",
     "subtitleClient": "Beschreibe deinen Shoot, erhalte Angebote von Fotograf:innen aus der ganzen Schweiz und wähle die passende Person.",
     "subtitlePhotographer": "Durchsuche offene Aufträge in deiner Region und gib Angebote ab. Täglich kommen neue Aufträge dazu.",
     "ctaClientTitle": "Neuen Auftrag erstellen",
@@ -94,7 +117,10 @@
     "portfolio": "Portfolio",
     "addPhotos": "Fotos hinzufügen",
     "finish": "Fertig",
-    "errorSave": "Konnte nicht gespeichert werden."
+    "errorSave": "Konnte nicht gespeichert werden.",
+    "editTitle": "Profil bearbeiten",
+    "editSubtitle": "Aktualisiere deine Angaben und dein Portfolio.",
+    "save": "Speichern"
   },
   "createShoot": {
     "title": "Auftrag erstellen",
@@ -115,7 +141,9 @@
     "back": "Zurück",
     "submit": "Veröffentlichen",
     "errorCreate": "Konnte nicht erstellt werden.",
-    "stepLabel": "Schritt {current} von {total}"
+    "stepLabel": "Schritt {current} von {total}",
+    "fieldReferences": "Referenzen (optional)",
+    "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6."
   },
   "shoot": {
     "date": "Datum",
@@ -134,6 +162,15 @@
       "family": "Familie",
       "other": "Andere"
     },
+    "typeDesc": {
+      "wedding": "Trauung, Apéro, Dinner. Meist 6–10 Stunden.",
+      "portrait": "Einzeln oder Team. Studio oder vor Ort.",
+      "commercial": "Produkt, Kampagne, Editorial.",
+      "event": "Firmenanlass, Konferenz, Vernissage.",
+      "architecture": "Aussen und Innen.",
+      "family": "Zuhause oder draussen. Entspannt.",
+      "other": "Beschreibe es im Briefing."
+    },
     "status": {
       "open": "Offen",
       "assigned": "Vergeben",
@@ -150,6 +187,7 @@
   "browse": {
     "title": "Offene Aufträge",
     "count": "{count, plural, =0 {Keine Aufträge} one {# Auftrag} other {# Aufträge}}",
+    "filterLabel": "Filter",
     "filterCanton": "Kanton",
     "filterType": "Art",
     "filterBudget": "Budget bis",
@@ -190,7 +228,18 @@
     "noPortfolio": "Noch keine Bilder.",
     "website": "Website",
     "instagram": "Instagram",
-    "hourlyFrom": "ab {amount}/Std"
+    "hourlyFrom": "ab {amount}/Std",
+    "title": "Profil",
+    "account": "Konto",
+    "role": "Rolle",
+    "viewPublic": "Öffentliches Profil ansehen",
+    "changePhoto": "Foto ändern",
+    "editDetails": "Details bearbeiten",
+    "dangerZone": "Konto löschen",
+    "deleteAccount": "Konto endgültig löschen",
+    "deleteWarning": "Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht.",
+    "deleteConfirm": "Wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+    "deleting": "Wird gelöscht …"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -227,7 +276,32 @@
     "dsContactPlaceholder": "[BITTE AUSFÜLLEN: Datenschutz-Kontakt-E-Mail-Adresse] — Diese Angabe muss vor dem öffentlichen Launch korrekt sein.",
     "dsUpdated": "Stand: Juni 2026",
     "footerImpressum": "Impressum",
-    "footerDatenschutz": "Datenschutz"
+    "footerDatenschutz": "Datenschutz",
+    "agbTitle": "Allgemeine Geschäftsbedingungen",
+    "agbIntro": "Diese AGB regeln die Nutzung der Plattform Rintakez. Mit der Registrierung akzeptierst du sie.",
+    "agbUpdated": "Stand: Juni 2026",
+    "agbReviewNote": "Vorlage — vor dem öffentlichen Start durch eine Fachperson prüfen lassen.",
+    "agbS1T": "1. Geltungsbereich",
+    "agbS1B": "Diese Bedingungen gelten für alle Nutzer:innen der Plattform rintakez.ch, sowohl Auftraggeber:innen als auch Fotograf:innen.",
+    "agbS2T": "2. Leistungen der Plattform",
+    "agbS2B": "Rintakez ist ein Vermittlungsmarktplatz. Wir verbinden Auftraggeber:innen mit Fotograf:innen, sind aber nicht Vertragspartei des einzelnen Shootings.",
+    "agbS3T": "3. Registrierung & Konto",
+    "agbS3B": "Für die Nutzung ist ein Konto nötig. Die Angaben müssen wahr und aktuell sein. Zugangsdaten sind vertraulich zu behandeln.",
+    "agbS4T": "4. Rollen",
+    "agbS4B": "Auftraggeber:innen schreiben Shootings aus; Fotograf:innen geben Angebote ab und führen Shootings durch. Jede Rolle hält sich an die geltenden Regeln.",
+    "agbS5T": "5. Aufträge, Angebote & Verträge",
+    "agbS5B": "Nimmt eine Auftraggeber:in ein Angebot an, kommt der Vertrag direkt zwischen Auftraggeber:in und Fotograf:in zustande. Rintakez ist daran nicht beteiligt.",
+    "agbS6T": "6. Gebühren",
+    "agbS6B": "Die aktuelle Gebührenstruktur wird vor einer kostenpflichtigen Nutzung transparent ausgewiesen. [Vor dem Start zu vervollständigen.]",
+    "agbS7T": "7. Inhalte & Rechte",
+    "agbS7B": "Du behältst die Rechte an deinen hochgeladenen Inhalten und räumst Rintakez das Recht ein, sie zur Darstellung deines Profils bzw. Auftrags zu zeigen.",
+    "agbS8T": "8. Verbotenes Verhalten",
+    "agbS8B": "Untersagt sind rechtswidrige, beleidigende oder irreführende Inhalte, Spam sowie die Umgehung der Plattform zur Vermeidung von Gebühren.",
+    "agbS9T": "9. Haftung",
+    "agbS9B": "Rintakez haftet nicht für die Erbringung der Fotodienstleistung selbst. Die Haftung ist im gesetzlich zulässigen Rahmen auf Vorsatz und grobe Fahrlässigkeit beschränkt.",
+    "agbS10T": "10. Kündigung, Änderungen & Recht",
+    "agbS10B": "Du kannst dein Konto jederzeit löschen. Wir können diese AGB anpassen und informieren rechtzeitig. Es gilt schweizerisches Recht; Gerichtsstand ist der Sitz des Betreibers.",
+    "footerAgb": "AGB"
   },
   "states": {
     "errorTitle": "Etwas ist schiefgelaufen.",
@@ -255,5 +329,28 @@
     "bidStatusWithdrawn": "Zurückgezogen",
     "errorSubmit": "Konnte nicht gesendet werden.",
     "notOpen": "Dieser Auftrag nimmt keine Angebote mehr an."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "empty": "Noch nichts hier.",
+    "view": "Ansehen",
+    "bid_received": "Neues Angebot erhalten",
+    "bid_accepted": "Dein Angebot wurde angenommen",
+    "bid_declined": "Dein Angebot wurde abgelehnt"
+  },
+  "review": {
+    "title": "Bewertung",
+    "markCompleted": "Als abgeschlossen markieren",
+    "completedHint": "Shooting fertig? Markiere es als abgeschlossen, um die Fotograf:in zu bewerten.",
+    "leaveReview": "Fotograf:in bewerten",
+    "yourRating": "Deine Bewertung",
+    "comment": "Kommentar (optional)",
+    "commentPlaceholder": "Wie war die Zusammenarbeit?",
+    "submit": "Bewertung senden",
+    "thanks": "Danke für deine Bewertung.",
+    "recommended": "Empfohlene Fotograf:innen",
+    "newBadge": "Neu",
+    "reviews": "Bewertungen",
+    "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}"
   }
 }

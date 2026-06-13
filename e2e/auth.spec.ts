@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 const SEED_CLIENT_EMAIL = "lena@example.ch";
-const SEED_CLIENT_NAME = "Lena & Tobias K.";
+// The dashboard greets with the first name only (e.g. "Guten Tag, Lena.").
+const SEED_CLIENT_FIRST_NAME = "Lena";
 const PASSWORD = "password123";
 
 function uniqueEmail() {
@@ -25,9 +26,9 @@ test.describe("auth journey", () => {
     await page.getByTestId("login-submit").click();
 
     await expect(page).toHaveURL(/\/de\/home/, { timeout: 20_000 });
-    // The dashboard greets with the display name (e.g. "Hallo, Lena & Tobias K.").
+    // The dashboard greets with the first name (e.g. "Guten Tag, Lena.").
     await expect(
-      page.getByRole("heading", { name: new RegExp(SEED_CLIENT_NAME) })
+      page.getByRole("heading", { name: new RegExp(SEED_CLIENT_FIRST_NAME) })
     ).toBeVisible();
 
     // Sign out from the app nav.
@@ -62,15 +63,12 @@ test.describe("auth journey", () => {
     await page.getByTestId("register-email").fill(uniqueEmail());
     await page.getByTestId("register-password").fill(PASSWORD);
     await page.getByTestId("register-role-client").click();
+    await page.getByTestId("register-accept-terms").check();
     await page.getByTestId("register-submit").click();
 
-    // With local confirmations disabled, registerAction returns session:true
-    // and the form routes to /home. Prefer asserting /home; fall back to the
-    // check-email panel if the session was not created (confirmations on).
-    try {
-      await expect(page).toHaveURL(/\/de\/home/, { timeout: 20_000 });
-    } catch {
-      await expect(page.getByTestId("register-check-email")).toBeVisible();
-    }
+    // After registering, the user is always routed to the login page (no
+    // auto-login). A success notice confirms the account is ready.
+    await expect(page).toHaveURL(/\/de\/login(\?|$)/, { timeout: 20_000 });
+    await expect(page.getByTestId("login-notice")).toBeVisible();
   });
 });

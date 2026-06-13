@@ -12,7 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function BrowseShootsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ canton?: string; type?: string; budgetMax?: string }>;
+  searchParams: Promise<{
+    canton?: string;
+    type?: string;
+    budgetMax?: string;
+    q?: string;
+  }>;
 }) {
   const [profile, locale] = await Promise.all([getProfile(), getLocale()]);
 
@@ -25,8 +30,10 @@ export default async function BrowseShootsPage({
   const canton = sp.canton;
   const type = sp.type;
   const budgetMax = sp.budgetMax;
+  const q = sp.q?.trim();
 
   const t = await getTranslations("browse");
+  const tNav = await getTranslations("nav");
   const supabase = await createClient();
 
   let query = supabase
@@ -49,38 +56,54 @@ export default async function BrowseShootsPage({
     query = query.lte("budget_min_chf", budgetMaxNum);
   }
 
+  if (q) {
+    query = query.ilike("title", `%${q}%`);
+  }
+
   query = query.order("created_at", { ascending: false });
 
   const { data: shoots } = await query;
   const list = shoots ?? [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Header */}
-      <PageHeading title={t("title")} count={list.length} />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeading title={t("title")} count={list.length} />
+        {profile.role === "client" && (
+          <Link
+            href="/shoots/new"
+            className="press mt-2 hidden shrink-0 items-center gap-1.5 bg-ink px-5 py-3 text-sm font-medium text-paper sm:inline-flex"
+          >
+            <span className="text-base leading-none">+</span>
+            {tNav("create")}
+          </Link>
+        )}
+      </div>
 
-      {/* Filters */}
-      <ShootFilters />
+      {/* Sidebar + grid */}
+      <div className="lg:grid lg:grid-cols-[200px_1fr] lg:gap-14">
+        <aside className="mb-8 lg:mb-0">
+          <ShootFilters />
+        </aside>
 
-      {/* Grid / empty state */}
-      {list.length === 0 ? (
-        <p className="text-mute">{t("empty")}</p>
-      ) : (
-        <div
-          data-testid="browse-list"
-          className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {list.map((s) => (
-            <Link
-              key={s.id}
-              href={`/shoots/${s.id}`}
-              className="press block"
+        <div>
+          {list.length === 0 ? (
+            <p className="text-mute">{t("empty")}</p>
+          ) : (
+            <div
+              data-testid="browse-list"
+              className="grid gap-x-6 gap-y-10 sm:grid-cols-2"
             >
-              <ShootCard shoot={s} />
-            </Link>
-          ))}
+              {list.map((s) => (
+                <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
+                  <ShootCard shoot={s} />
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

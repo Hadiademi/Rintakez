@@ -14,18 +14,44 @@ import { errorKey } from "@/lib/error-messages";
 
 type PortfolioItem = { id: string; url: string };
 
-export default function OnboardingForm() {
+type InitialDetails = {
+  specialties: string[];
+  cantons: string[];
+  hourlyRate: string;
+  website: string;
+  instagram: string;
+  portfolio: PortfolioItem[];
+};
+
+const EMPTY_INITIAL: InitialDetails = {
+  specialties: [],
+  cantons: [],
+  hourlyRate: "",
+  website: "",
+  instagram: "",
+  portfolio: [],
+};
+
+export default function OnboardingForm({
+  initial = EMPTY_INITIAL,
+  isEdit = false,
+}: {
+  initial?: InitialDetails;
+  isEdit?: boolean;
+}) {
   const t = useTranslations("onboarding");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const router = useRouter();
 
-  const [specialties, setSpecialties] = useState<string[]>([]);
-  const [cantons, setCantons] = useState<string[]>([]);
-  const [hourlyRate, setHourlyRate] = useState("");
-  const [website, setWebsite] = useState("");
-  const [instagram, setInstagram] = useState("");
-  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+  const [specialties, setSpecialties] = useState<string[]>(initial.specialties);
+  const [cantons, setCantons] = useState<string[]>(initial.cantons);
+  const [hourlyRate, setHourlyRate] = useState(initial.hourlyRate);
+  const [website, setWebsite] = useState(initial.website);
+  const [instagram, setInstagram] = useState(initial.instagram);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>(
+    initial.portfolio
+  );
   const [uploading, setUploading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -76,7 +102,7 @@ export default function OnboardingForm() {
     });
     setSaving(false);
     if (result.ok) {
-      router.push("/home");
+      router.push(isEdit ? "/profile" : "/home");
       router.refresh();
     } else {
       setSaveError(tErr(errorKey(result.error)));
@@ -203,7 +229,7 @@ export default function OnboardingForm() {
         onClick={handleFinish}
         className="press w-full bg-ink text-paper py-2.5 text-sm font-medium disabled:opacity-40 transition-opacity"
       >
-        {t("finish")}
+        {isEdit ? t("save") : t("finish")}
       </button>
     </div>
   );

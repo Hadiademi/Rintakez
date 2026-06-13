@@ -4,19 +4,38 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { NavLinks } from "@/components/nav-links";
+import { NavSearch } from "@/components/nav-search";
 import { Wordmark } from "@/components/wordmark";
+import { NotificationBell } from "@/components/notification-bell";
+import { getNotificationData } from "@/lib/actions/notifications";
 
 interface AppNavProps {
   role: "client" | "photographer";
   displayName: string;
+  userId: string;
+  avatarUrl?: string | null;
 }
 
-export async function AppNav({ role, displayName }: AppNavProps) {
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export async function AppNav({
+  role,
+  displayName,
+  userId,
+  avatarUrl,
+}: AppNavProps) {
   const t = await getTranslations("nav");
+  const { items: notifItems, unread: notifUnread } =
+    await getNotificationData();
 
   const clientLinks = [
     { href: "/home", label: t("home") },
-    { href: "/shoots/new", label: t("createShoot") },
     { href: "/my-shoots", label: t("myShoots") },
     { href: "/profile", label: t("profile") },
   ] as const;
@@ -34,31 +53,50 @@ export async function AppNav({ role, displayName }: AppNavProps) {
     <>
       {/* Desktop top bar — hidden on mobile, shown on lg+ */}
       <nav className="hidden lg:block border-b border-line bg-paper">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center gap-8 px-8 py-4">
           {/* Left: brand + nav links */}
-          <div className="flex items-center gap-6">
-            <Link href="/home" className="text-base">
-              <Wordmark />
-            </Link>
-            <div className="flex items-center gap-4">
-              {links.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="label text-mute hover:text-ink"
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </div>
+          <Link href="/home" className="text-lg shrink-0">
+            <Wordmark />
+          </Link>
+          <NavLinks links={links} />
 
-          {/* Right: theme toggle + locale switcher + display name + sign out */}
-          {/* SignOutButton with testid (desktop only) — keeps exactly one sign-out testid in DOM */}
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+          {/* Search — grows to fill, capped */}
+          <NavSearch className="ml-auto w-full max-w-sm" />
+
+          {/* Right cluster */}
+          <div className="flex items-center gap-3 shrink-0">
             <LocaleSwitcher />
-            <span className="label text-mute-2">{displayName}</span>
+            <ThemeToggle />
+            <NotificationBell
+              userId={userId}
+              initialItems={notifItems}
+              initialUnread={notifUnread}
+            />
+            {role === "client" && (
+              <Link
+                href="/shoots/new"
+                className="press inline-flex items-center gap-1.5 bg-ink px-4 py-2.5 text-sm font-medium text-paper"
+              >
+                <span className="text-base leading-none">+</span>
+                {t("create")}
+              </Link>
+            )}
+            <Link
+              href="/profile"
+              aria-label={displayName}
+              className="press flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-ink text-[11px] font-semibold tracking-wide text-paper"
+            >
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="h-full w-full object-cover grayscale"
+                />
+              ) : (
+                initials(displayName)
+              )}
+            </Link>
             <SignOutButton showTestId={true} />
           </div>
         </div>
@@ -66,16 +104,18 @@ export async function AppNav({ role, displayName }: AppNavProps) {
 
       {/* Mobile top bar — shown on mobile, hidden on lg+ */}
       <nav className="flex lg:hidden border-b border-line bg-paper">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-3">
-          {/* Left: brand */}
-          <Link href="/home" className="text-base">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5">
+          <Link href="/home" className="text-lg">
             <Wordmark />
           </Link>
-
-          {/* Right: theme toggle + locale switcher + sign out (no testid) */}
           <div className="flex items-center gap-3">
-            <ThemeToggle />
+            <NotificationBell
+              userId={userId}
+              initialItems={notifItems}
+              initialUnread={notifUnread}
+            />
             <LocaleSwitcher />
+            <ThemeToggle />
             <SignOutButton showTestId={false} />
           </div>
         </div>

@@ -21,7 +21,10 @@
     "createShoot": "Créer une mission",
     "myShoots": "Mes missions",
     "browseShoots": "Missions",
-    "myBids": "Mes offres"
+    "myBids": "Mes offres",
+    "create": "Créer",
+    "searchPlaceholder": "Missions ouvertes",
+    "notifications": "Notifications"
   },
   "landing": {
     "title": "Photographie. En direct. Dans toute la Suisse.",
@@ -48,7 +51,27 @@
     "toLogin": "Se connecter",
     "toRegister": "S'inscrire",
     "checkEmail": "Confirme ton adresse e-mail pour continuer.",
-    "genericError": "Une erreur est survenue. Réessaie."
+    "genericError": "Une erreur est survenue. Réessaie.",
+    "loginSubtitle": "Bon retour. Connecte-toi pour continuer.",
+    "registerSubtitle": "Crée ton compte en quelques secondes.",
+    "tagline": "Photographie. Directe. Partout en Suisse.",
+    "registeredSuccess": "Compte créé — connecte-toi.",
+    "continueWithGoogle": "Continuer avec Google",
+    "orDivider": "ou",
+    "forgotTitle": "Mot de passe oublié",
+    "forgotSubtitle": "Nous t'envoyons un lien de réinitialisation.",
+    "forgotLink": "Mot de passe oublié ?",
+    "sendResetLink": "Envoyer le lien",
+    "resetEmailSent": "Si un compte existe, nous t'avons envoyé un lien.",
+    "resetTitle": "Nouveau mot de passe",
+    "resetSubtitle": "Choisis un nouveau mot de passe pour ton compte.",
+    "newPassword": "Nouveau mot de passe",
+    "updatePassword": "Mettre à jour",
+    "passwordUpdated": "Mot de passe mis à jour. Connecte-toi.",
+    "resetLinkInvalid": "Le lien est invalide ou expiré.",
+    "termsAgree": "J'accepte les <agb>CGU</agb> et la <privacy>politique de confidentialité</privacy>.",
+    "errorAcceptTerms": "Merci d'accepter les CGU et la politique de confidentialité.",
+    "googleConsent": "En continuant, tu acceptes nos CGU et notre politique de confidentialité."
   },
   "home": {
     "greeting": "Bonjour, {name}.",
@@ -94,7 +117,10 @@
     "portfolio": "Portfolio",
     "addPhotos": "Ajouter des photos",
     "finish": "Terminer",
-    "errorSave": "Échec de l'enregistrement."
+    "errorSave": "Échec de l'enregistrement.",
+    "editTitle": "Modifier le profil",
+    "editSubtitle": "Mets à jour tes informations et ton portfolio.",
+    "save": "Enregistrer"
   },
   "createShoot": {
     "title": "Créer une mission",
@@ -115,7 +141,9 @@
     "back": "Retour",
     "submit": "Publier",
     "errorCreate": "La création a échoué.",
-    "stepLabel": "Étape {current} sur {total}"
+    "stepLabel": "Étape {current} sur {total}",
+    "fieldReferences": "Références (optionnel)",
+    "referencesHint": "Images illustrant le style souhaité. Max. 6."
   },
   "shoot": {
     "date": "Date",
@@ -134,6 +162,15 @@
       "family": "Famille",
       "other": "Autre"
     },
+    "typeDesc": {
+      "wedding": "Cérémonie, apéro, dîner. 6–10 heures.",
+      "portrait": "Individuel ou équipe. Studio ou sur place.",
+      "commercial": "Produit, campagne, éditorial.",
+      "event": "Entreprise, conférence, vernissage.",
+      "architecture": "Extérieur et intérieur.",
+      "family": "À la maison ou dehors. Détendu.",
+      "other": "Décris-le dans le briefing."
+    },
     "status": {
       "open": "Ouvert",
       "assigned": "Attribué",
@@ -150,6 +187,7 @@
   "browse": {
     "title": "Missions ouvertes",
     "count": "{count, plural, =0 {Aucune mission} one {# mission} other {# missions}}",
+    "filterLabel": "Filtre",
     "filterCanton": "Canton",
     "filterType": "Type",
     "filterBudget": "Budget jusqu'à",
@@ -190,7 +228,18 @@
     "noPortfolio": "Pas encore d'images.",
     "website": "Site web",
     "instagram": "Instagram",
-    "hourlyFrom": "dès {amount}/h"
+    "hourlyFrom": "dès {amount}/h",
+    "title": "Profil",
+    "account": "Compte",
+    "role": "Rôle",
+    "viewPublic": "Voir le profil public",
+    "changePhoto": "Changer la photo",
+    "editDetails": "Modifier les détails",
+    "dangerZone": "Supprimer le compte",
+    "deleteAccount": "Supprimer définitivement le compte",
+    "deleteWarning": "Ton compte et toutes les données associées seront supprimés définitivement.",
+    "deleteConfirm": "Vraiment supprimer ? Action irréversible.",
+    "deleting": "Suppression …"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -227,7 +276,32 @@
     "dsContactPlaceholder": "[À COMPLÉTER : adresse e-mail de contact pour la protection des données] — Cette information doit être exacte avant le lancement public.",
     "dsUpdated": "Mise à jour : juin 2026",
     "footerImpressum": "Mentions légales",
-    "footerDatenschutz": "Confidentialité"
+    "footerDatenschutz": "Confidentialité",
+    "agbTitle": "Conditions générales",
+    "agbIntro": "Ces conditions régissent l'utilisation de la plateforme Rintakez. En t'inscrivant, tu les acceptes.",
+    "agbUpdated": "Mise à jour : juin 2026",
+    "agbReviewNote": "Modèle — à faire vérifier par un·e professionnel·le avant le lancement public.",
+    "agbS1T": "1. Champ d'application",
+    "agbS1B": "Ces conditions s'appliquent à tou·tes les utilisateur·rices de rintakez.ch, clients comme photographes.",
+    "agbS2T": "2. Services de la plateforme",
+    "agbS2B": "Rintakez est une place de marché d'intermédiation. Nous mettons en relation clients et photographes, sans être partie au contrat de shooting.",
+    "agbS3T": "3. Inscription & compte",
+    "agbS3B": "Un compte est nécessaire. Les informations doivent être exactes et à jour. Les identifiants restent confidentiels.",
+    "agbS4T": "4. Rôles",
+    "agbS4B": "Les clients publient des shootings ; les photographes soumettent des offres et réalisent les shootings. Chaque rôle respecte les règles applicables.",
+    "agbS5T": "5. Demandes, offres & contrats",
+    "agbS5B": "Lorsqu'un client accepte une offre, le contrat est conclu directement entre le client et le/la photographe. Rintakez n'y est pas partie.",
+    "agbS6T": "6. Frais",
+    "agbS6B": "La structure tarifaire en vigueur est indiquée de façon transparente avant toute utilisation payante. [À compléter avant le lancement.]",
+    "agbS7T": "7. Contenus & droits",
+    "agbS7B": "Tu conserves les droits sur tes contenus et accordes à Rintakez le droit de les afficher pour présenter ton profil ou ta demande.",
+    "agbS8T": "8. Comportements interdits",
+    "agbS8B": "Sont interdits les contenus illégaux, offensants ou trompeurs, le spam et le contournement de la plateforme pour éviter les frais.",
+    "agbS9T": "9. Responsabilité",
+    "agbS9B": "Rintakez n'est pas responsable de la prestation photographique elle-même. La responsabilité est limitée, dans les limites légales, au dol et à la faute grave.",
+    "agbS10T": "10. Résiliation, modifications & droit",
+    "agbS10B": "Tu peux supprimer ton compte à tout moment. Nous pouvons adapter ces conditions et t'informons à temps. Le droit suisse s'applique ; le for est au siège de l'exploitant.",
+    "footerAgb": "CGU"
   },
   "states": {
     "errorTitle": "Une erreur est survenue.",
@@ -255,5 +329,28 @@
     "bidStatusWithdrawn": "Retirée",
     "errorSubmit": "Échec de l'envoi.",
     "notOpen": "Cette mission n'accepte plus d'offres."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Rien pour l'instant.",
+    "view": "Voir",
+    "bid_received": "Nouvelle offre reçue",
+    "bid_accepted": "Ton offre a été acceptée",
+    "bid_declined": "Ton offre a été refusée"
+  },
+  "review": {
+    "title": "Évaluation",
+    "markCompleted": "Marquer comme terminé",
+    "completedHint": "Shooting terminé ? Marque-le comme terminé pour évaluer le/la photographe.",
+    "leaveReview": "Évaluer le/la photographe",
+    "yourRating": "Ton évaluation",
+    "comment": "Commentaire (optionnel)",
+    "commentPlaceholder": "Comment s'est passée la collaboration ?",
+    "submit": "Envoyer l'évaluation",
+    "thanks": "Merci pour ton évaluation.",
+    "recommended": "Photographes recommandé·es",
+    "newBadge": "Nouveau",
+    "reviews": "Évaluations",
+    "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}"
   }
 }
