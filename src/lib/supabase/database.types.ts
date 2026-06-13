@@ -270,6 +270,39 @@ export type Database = {
         };
         Relationships: [];
       };
+      favorites: {
+        Row: {
+          user_id: string;
+          photographer_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          photographer_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          photographer_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      photographer_unavailable: {
+        Row: {
+          photographer_id: string;
+          date: string;
+        };
+        Insert: {
+          photographer_id: string;
+          date: string;
+        };
+        Update: {
+          photographer_id?: string;
+          date?: string;
+        };
+        Relationships: [];
+      };
       reports: {
         Row: {
           id: string;

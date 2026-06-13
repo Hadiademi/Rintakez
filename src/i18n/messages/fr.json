@@ -246,7 +246,14 @@
     "deleteAccount": "Supprimer définitivement le compte",
     "deleteWarning": "Ton compte et toutes les données associées seront supprimés définitivement.",
     "deleteConfirm": "Vraiment supprimer ? Action irréversible.",
-    "deleting": "Suppression …"
+    "deleting": "Suppression …",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "availTitle": "Disponibilité",
+    "availSub": "Marque les jours où tu n'es pas disponible.",
+    "availAdd": "Bloquer un jour",
+    "availEmpty": "Aucun jour bloqué.",
+    "availUnavailable": "Indisponible"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -372,7 +379,8 @@
     "sortPriceAsc": "Prix croissant",
     "minRating": "Note min.",
     "empty": "Aucun·e photographe ne correspond à tes filtres.",
-    "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}"
+    "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}",
+    "savedOnly": "Enregistrés uniquement"
   },
   "messages": {
     "navMessages": "Messages",

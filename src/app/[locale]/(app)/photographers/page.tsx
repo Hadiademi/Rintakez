@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth";
 import { formatCHF } from "@/lib/format";
 import { Stars } from "@/components/stars";
 import { PhotographerFilters } from "@/components/photographer-filters";
@@ -22,11 +23,27 @@ export default async function PhotographersDirectoryPage({
     canton?: string;
     minRating?: string;
     sort?: string;
+    saved?: string;
   }>;
 }) {
-  const { type, canton, minRating, sort } = await searchParams;
+  const { type, canton, minRating, sort, saved } = await searchParams;
   const supabase = await createClient();
   const t = await getTranslations("directory");
+
+  // "Saved only" filter — restrict to the viewer's favorited photographers.
+  let savedIds: Set<string> | null = null;
+  if (saved) {
+    const viewer = await getSessionUser();
+    if (viewer) {
+      const { data: favs } = await supabase
+        .from("favorites")
+        .select("photographer_id")
+        .eq("user_id", viewer.id);
+      savedIds = new Set((favs ?? []).map((f) => f.photographer_id));
+    } else {
+      savedIds = new Set();
+    }
+  }
 
   // Filter on the photographer_details (array columns), then enrich.
   let detailsQuery = supabase
@@ -70,7 +87,8 @@ export default async function PhotographersDirectoryPage({
       return profile ? { ...d, profile, rating } : null;
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
-    .filter((x) => x.rating.avg >= minR);
+    .filter((x) => x.rating.avg >= minR)
+    .filter((x) => !savedIds || savedIds.has(x.profile_id));
 
   list = list.sort((a, b) => {
     if (sort === "price") {

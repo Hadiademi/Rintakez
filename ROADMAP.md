@@ -61,8 +61,9 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
 - **T3.2 Admin panel** — `is_admin` flag (column-protected, can't self-grant);
   `/admin` with metrics + open-reports review (reviewed/dismiss) via service
   role; admin-only nav link. Fixed service_role grants on migration tables. — ✅
-- **T3.3 Availability calendar + favorites** — photographer availability; client
-  saved photographers/shoots. — 🟦
+- **T3.3 Availability + favorites** — `favorites` (client saved photographers,
+  save button + "saved only" directory filter) + `photographer_unavailable`
+  (block dates in profile, shown on public profile). RLS-tested; verified. — ✅
 
 ---
 

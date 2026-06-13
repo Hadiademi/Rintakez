@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatCHF } from "@/lib/format";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
+import { AvailabilityManager } from "@/components/availability-manager";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 
@@ -52,6 +53,15 @@ export default async function ProfilePage() {
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true })
     : { data: [] };
+
+  const { data: unavailableRows } = isPhotographer
+    ? await supabase
+        .from("photographer_unavailable")
+        .select("date")
+        .eq("photographer_id", profile.id)
+        .order("date", { ascending: true })
+    : { data: [] };
+  const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
 
   const portfolioImages = (rawImages ?? []).map((img) => ({
     id: img.id,
@@ -235,6 +245,8 @@ export default async function ProfilePage() {
               {t("viewPublic")} →
             </Link>
           </div>
+
+          <AvailabilityManager initial={unavailableDates} />
         </>
       )}
 

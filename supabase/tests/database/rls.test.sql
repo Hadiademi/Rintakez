@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(73);
+select plan(79);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -764,6 +764,53 @@ select throws_ok(
   '42501',
   null,
   'a user cannot grant themselves admin'
+);
+reset role;
+
+-- ── 74–79: favorites & availability ──────────────────────────────────
+select has_table('public', 'favorites', 'favorites exists');
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+-- 75: a client saves a photographer.
+select lives_ok(
+  $$insert into public.favorites (user_id, photographer_id)
+    values ('00000000-0000-0000-0000-000000000001',
+            '00000000-0000-0000-0000-000000000002')$$,
+  'a user can save a favorite'
+);
+-- 76: but not on behalf of another user.
+select throws_ok(
+  $$insert into public.favorites (user_id, photographer_id)
+    values ('00000000-0000-0000-0000-000000000003',
+            '00000000-0000-0000-0000-000000000002')$$,
+  '42501',
+  null,
+  'a user cannot save favorites for someone else'
+);
+reset role;
+
+select has_table('public', 'photographer_unavailable', 'photographer_unavailable exists');
+
+-- 78: a photographer blocks one of their own dates.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select lives_ok(
+  $$insert into public.photographer_unavailable (photographer_id, date)
+    values ('00000000-0000-0000-0000-000000000002', '2027-12-24')$$,
+  'a photographer can block their own date'
+);
+reset role;
+
+-- 79: a client cannot block dates (wrong role / not own).
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.photographer_unavailable (photographer_id, date)
+    values ('00000000-0000-0000-0000-000000000001', '2027-12-24')$$,
+  '42501',
+  null,
+  'a non-photographer cannot block availability'
 );
 reset role;
 

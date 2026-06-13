@@ -246,7 +246,14 @@
     "deleteAccount": "Konto endgültig löschen",
     "deleteWarning": "Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht.",
     "deleteConfirm": "Wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-    "deleting": "Wird gelöscht …"
+    "deleting": "Wird gelöscht …",
+    "save": "Speichern",
+    "saved": "Gespeichert",
+    "availTitle": "Verfügbarkeit",
+    "availSub": "Markiere Tage, an denen du nicht verfügbar bist.",
+    "availAdd": "Tag blockieren",
+    "availEmpty": "Keine blockierten Tage.",
+    "availUnavailable": "Nicht verfügbar"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -372,7 +379,8 @@
     "sortPriceAsc": "Preis aufsteigend",
     "minRating": "Mind. Bewertung",
     "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
-    "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}"
+    "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",
+    "savedOnly": "Nur gespeicherte"
   },
   "messages": {
     "navMessages": "Nachrichten",

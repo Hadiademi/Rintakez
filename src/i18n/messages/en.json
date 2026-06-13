@@ -246,7 +246,14 @@
     "deleteAccount": "Permanently delete account",
     "deleteWarning": "Your account and all associated data will be permanently deleted.",
     "deleteConfirm": "Really delete? This cannot be undone.",
-    "deleting": "Deleting …"
+    "deleting": "Deleting …",
+    "save": "Save",
+    "saved": "Saved",
+    "availTitle": "Availability",
+    "availSub": "Mark the days you are not available.",
+    "availAdd": "Block a day",
+    "availEmpty": "No blocked days.",
+    "availUnavailable": "Unavailable"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -372,7 +379,8 @@
     "sortPriceAsc": "Price: low to high",
     "minRating": "Min. rating",
     "empty": "No photographers match your filters.",
-    "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}"
+    "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}",
+    "savedOnly": "Saved only"
   },
   "messages": {
     "navMessages": "Messages",

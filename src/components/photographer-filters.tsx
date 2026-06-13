@@ -66,6 +66,20 @@ export function PhotographerFilters() {
         ))}
       </select>
 
+      <button
+        type="button"
+        data-testid="filter-saved"
+        onClick={() => setParam("saved", params.get("saved") ? "" : "1")}
+        aria-pressed={!!params.get("saved")}
+        className={`press border px-3 py-2 text-[14px] transition-colors ${
+          params.get("saved")
+            ? "border-ink bg-ink text-paper"
+            : "border-line text-ink hover:border-ink"
+        }`}
+      >
+        ♥ {t("savedOnly")}
+      </button>
+
       <select
         data-testid="filter-sort"
         value={params.get("sort") ?? "rating"}

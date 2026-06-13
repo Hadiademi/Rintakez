@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth";
 import { formatCHF } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
+import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
 
 export const dynamic = "force-dynamic";
@@ -118,6 +120,27 @@ export default async function PhotographerProfilePage({
     .order("created_at", { ascending: false })
     .limit(10);
 
+  // Viewer context: can a logged-in client save this photographer?
+  const viewer = await getSessionUser();
+  let isSaved = false;
+  if (viewer && viewer.id !== id) {
+    const { data: fav } = await supabase
+      .from("favorites")
+      .select("photographer_id")
+      .eq("user_id", viewer.id)
+      .eq("photographer_id", id)
+      .maybeSingle();
+    isSaved = !!fav;
+  }
+
+  const { data: unavailableRows } = await supabase
+    .from("photographer_unavailable")
+    .select("date")
+    .eq("photographer_id", id)
+    .gte("date", new Date().toISOString().split("T")[0])
+    .order("date", { ascending: true });
+  const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
+
   const t = await getTranslations("profile");
   const tShoot = await getTranslations("shoot");
   const tReview = await getTranslations("review");
@@ -216,6 +239,26 @@ export default async function PhotographerProfilePage({
             ) : null}
           </div>
         </div>
+
+        {viewer && viewer.id !== profile.id && (
+          <SaveButton photographerId={profile.id} initialSaved={isSaved} />
+        )}
+
+        {unavailableDates.length > 0 && (
+          <div className="space-y-2">
+            <p className="label text-mute">{t("availUnavailable")}</p>
+            <div className="flex flex-wrap gap-2">
+              {unavailableDates.map((d) => (
+                <span
+                  key={d}
+                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Bio */}
         {profile.bio && (
