@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
+import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
@@ -43,52 +44,65 @@ export default async function ShootDetailPage({
     shoot.location_postcode ? ` ${shoot.location_postcode}` : ""
   }, ${shoot.canton}`;
 
+  const specRows: { label: string; value: string; tabular?: boolean }[] = [
+    { label: tShoot("date"), value: formatSwissDate(shoot.shoot_date), tabular: true },
+    { label: tShoot("location"), value: location },
+    {
+      label: tShoot("duration"),
+      value: tShoot("hours", { count: shoot.duration_hours }),
+      tabular: true,
+    },
+    {
+      label: tShoot("budget"),
+      value: formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf),
+      tabular: true,
+    },
+    { label: tShoot("type"), value: tShoot(`types.${shoot.type}`) },
+  ];
+
   const detailsGrid = (
-    <dl className="grid gap-4 sm:grid-cols-2">
-      <div>
-        <dt className="label text-mute">{tShoot("type")}</dt>
-        <dd className="mt-1 text-ink">{tShoot(`types.${shoot.type}`)}</dd>
-      </div>
-      <div>
-        <dt className="label text-mute">{tShoot("location")}</dt>
-        <dd className="mt-1 text-ink">{location}</dd>
-      </div>
-      <div>
-        <dt className="label text-mute">{tShoot("date")}</dt>
-        <dd className="mt-1 tabular text-ink">
-          {formatSwissDate(shoot.shoot_date)}
-        </dd>
-      </div>
-      <div>
-        <dt className="label text-mute">{tShoot("duration")}</dt>
-        <dd className="mt-1 tabular text-ink">
-          {tShoot("hours", { count: shoot.duration_hours })}
-        </dd>
-      </div>
-      <div>
-        <dt className="label text-mute">{tShoot("budget")}</dt>
-        <dd className="mt-1 tabular text-ink">
-          {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)}
-        </dd>
-      </div>
+    <dl className="border-t border-line">
+      {specRows.map((row) => (
+        <div
+          key={row.label}
+          className="flex items-center justify-between gap-6 border-b border-line py-3"
+        >
+          <dt className="label text-mute">{row.label}</dt>
+          <dd className={`text-right text-ink ${row.tabular ? "tabular" : ""}`}>
+            {row.value}
+          </dd>
+        </div>
+      ))}
     </dl>
   );
 
-  const summary = (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-medium tracking-tight">{shoot.title}</h1>
+  const hero = (
+    <div className="aspect-[16/9] w-full bg-chip" aria-hidden="true" />
+  );
+
+  const header = (
+    <div className="space-y-4">
+      <div>
         <ShootStatusBadge status={shoot.status} />
       </div>
+      <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        {shoot.title}
+      </h1>
+    </div>
+  );
+
+  const summary = (
+    <div className="space-y-10">
+      {hero}
+      {header}
+
+      <section>{detailsGrid}</section>
 
       <section className="space-y-3">
-        <h2 className="label text-mute">{t("details")}</h2>
-        {detailsGrid}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="label text-mute">{t("brief")}</h2>
-        <p className="whitespace-pre-line text-ink">{shoot.brief}</p>
+        <SectionLabel title={t("brief")} />
+        <p className="whitespace-pre-line leading-relaxed text-ink">
+          {shoot.brief}
+        </p>
       </section>
     </div>
   );
@@ -106,7 +120,7 @@ export default async function ShootDetailPage({
     const tBid = await getTranslations("bidSheet");
 
     return (
-      <div className="space-y-10">
+      <div className="mx-auto max-w-3xl space-y-10">
         {summary}
         {myBid ? (
           <MyBidPanel
@@ -130,7 +144,7 @@ export default async function ShootDetailPage({
 
   // Non-owner client read-only summary.
   if (!isOwner) {
-    return summary;
+    return <div className="mx-auto max-w-3xl">{summary}</div>;
   }
 
   // ── Owner management view ──────────────────────────────────────────
@@ -148,22 +162,9 @@ export default async function ShootDetailPage({
   const canManageBids = shoot.status === "open";
 
   return (
-    <div className="space-y-10">
-      <div className="space-y-8">
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-2xl font-medium tracking-tight">{shoot.title}</h1>
-          <ShootStatusBadge status={shoot.status} />
-        </div>
-
-        <section className="space-y-3">
-          <h2 className="label text-mute">{t("details")}</h2>
-          {detailsGrid}
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="label text-mute">{t("brief")}</h2>
-          <p className="whitespace-pre-line text-ink">{shoot.brief}</p>
-        </section>
+    <div className="mx-auto max-w-3xl space-y-12">
+      <div className="space-y-10">
+        {summary}
 
         {shoot.status === "open" ? (
           <CancelShootButton shootId={shoot.id} />
@@ -175,7 +176,7 @@ export default async function ShootDetailPage({
       ) : null}
 
       <section className="space-y-4">
-        <h2 className="text-lg font-medium tracking-tight">{t("offers")}</h2>
+        <SectionLabel title={t("offers")} />
         {bidList.length === 0 ? (
           <p className="text-mute">{t("noOffers")}</p>
         ) : (

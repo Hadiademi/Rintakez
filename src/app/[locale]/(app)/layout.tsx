@@ -19,7 +19,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-paper">
       <AppNav role={profile.role as "client" | "photographer"} displayName={profile.display_name ?? ""} />
-      <div className="mx-auto max-w-5xl px-6 py-8 pb-24 lg:pb-8">{children}</div>
+      <div className="mx-auto max-w-6xl px-6 py-10 pb-24 lg:pb-10">{children}</div>
     </div>
   );
 }

@@ -78,23 +78,25 @@ export function BidCard({
   return (
     <article
       data-testid={`bid-${bid.id}`}
-      className="border border-line bg-surface p-5"
+      className="border border-line bg-surface p-6"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm">{nameNode}</div>
+          <div className="text-base font-semibold">{nameNode}</div>
           {location ? (
-            <p className="mt-0.5 text-sm text-mute">{location}</p>
+            <p className="mt-1 label text-mute">{location}</p>
           ) : null}
         </div>
-        <span className="tabular text-lg font-medium text-ink">
+        <span className="tabular text-2xl font-semibold tracking-tight text-ink">
           {formatCHF(bid.amount_chf)}
         </span>
       </div>
 
-      <p className="mt-3 whitespace-pre-line text-sm text-mute">{bid.message}</p>
+      <p className="mt-4 whitespace-pre-line leading-relaxed text-mute">
+        {bid.message}
+      </p>
 
-      <div className="mt-4 flex items-center justify-between gap-4">
+      <div className="mt-6 flex items-center justify-between gap-4 border-t border-line pt-4">
         <span
           data-testid={`bid-status-${bid.id}`}
           className="label text-mute-2"
@@ -113,7 +115,7 @@ export function BidCard({
               data-testid={`bid-decline-${bid.id}`}
               onClick={onDecline}
               disabled={isPending}
-              className="press border border-line px-3 py-1.5 label text-mute disabled:opacity-50"
+              className="press border border-line px-4 py-2 label text-mute disabled:opacity-50"
             >
               {t("decline")}
             </button>
@@ -122,7 +124,7 @@ export function BidCard({
               data-testid={`bid-accept-${bid.id}`}
               onClick={onAccept}
               disabled={isPending}
-              className="press bg-ink px-3 py-1.5 label text-paper disabled:opacity-50"
+              className="press bg-ink px-4 py-2 label text-paper disabled:opacity-50"
             >
               {t("accept")}
             </button>
@@ -130,7 +132,7 @@ export function BidCard({
         ) : null}
       </div>
 
-      {error ? <p className="mt-2 text-sm text-accent">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-accent">{error}</p> : null}
     </article>
   );
 }

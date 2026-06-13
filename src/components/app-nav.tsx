@@ -4,6 +4,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { Wordmark } from "@/components/wordmark";
 
 interface AppNavProps {
   role: "client" | "photographer";
@@ -33,14 +34,11 @@ export async function AppNav({ role, displayName }: AppNavProps) {
     <>
       {/* Desktop top bar — hidden on mobile, shown on lg+ */}
       <nav className="hidden lg:block border-b border-line bg-paper">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           {/* Left: brand + nav links */}
           <div className="flex items-center gap-6">
-            <Link
-              href="/home"
-              className="text-base font-medium tracking-tight text-ink"
-            >
-              Rintakez
+            <Link href="/home" className="text-base">
+              <Wordmark />
             </Link>
             <div className="flex items-center gap-4">
               {links.map(({ href, label }) => (
@@ -68,13 +66,10 @@ export async function AppNav({ role, displayName }: AppNavProps) {
 
       {/* Mobile top bar — shown on mobile, hidden on lg+ */}
       <nav className="flex lg:hidden border-b border-line bg-paper">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-3">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-3">
           {/* Left: brand */}
-          <Link
-            href="/home"
-            className="text-base font-medium tracking-tight text-ink"
-          >
-            Rintakez
+          <Link href="/home" className="text-base">
+            <Wordmark />
           </Link>
 
           {/* Right: theme toggle + locale switcher + sign out (no testid) */}

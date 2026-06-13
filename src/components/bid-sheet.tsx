@@ -44,31 +44,34 @@ export function BidSheet({
   }
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="text-lg font-medium tracking-tight">{t("submitTitle")}</h2>
-      <p className="mt-1 text-sm text-mute">
-        {t("clientBudget", { range: budgetRange })}
-      </p>
+    <section className="border border-line bg-surface p-6">
+      <h2 className="label text-mute">{t("submitTitle")}</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-5 space-y-5">
-        <div className="space-y-1.5">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-8">
+        <div className="space-y-2">
           <label htmlFor="bid-amount" className="label text-mute">
             {t("yourPrice")}
           </label>
-          <input
-            id="bid-amount"
-            data-testid="bid-amount"
-            type="number"
-            inputMode="numeric"
-            {...register("amountChf", { valueAsNumber: true })}
-            className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink focus:outline-none focus:border-ink"
-          />
+          <div className="flex items-baseline gap-3 border-b border-ink pb-2">
+            <span className="text-2xl font-medium text-mute">CHF</span>
+            <input
+              id="bid-amount"
+              data-testid="bid-amount"
+              type="number"
+              inputMode="numeric"
+              {...register("amountChf", { valueAsNumber: true })}
+              className="tabular w-full bg-transparent text-4xl font-semibold tracking-tight text-ink focus:outline-none"
+            />
+          </div>
+          <p className="text-sm text-mute">
+            {t("clientBudget", { range: budgetRange })}
+          </p>
           {errors.amountChf ? (
             <p className="text-sm text-accent">{errors.amountChf.message}</p>
           ) : null}
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <label htmlFor="bid-message" className="label text-mute">
             {t("yourMessage")}
           </label>
@@ -78,7 +81,7 @@ export function BidSheet({
             rows={5}
             placeholder={t("messagePlaceholder")}
             {...register("message")}
-            className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink focus:outline-none focus:border-ink"
+            className="w-full border border-line bg-surface px-3.5 py-2.5 text-ink focus:border-ink focus:outline-none"
           />
           {errors.message ? (
             <p className="text-sm text-accent">{errors.message.message}</p>
@@ -89,7 +92,7 @@ export function BidSheet({
           type="submit"
           data-testid="bid-submit"
           disabled={isPending}
-          className="press bg-ink px-4 py-2.5 text-paper disabled:opacity-50"
+          className="press w-full bg-ink px-4 py-3 label text-paper disabled:opacity-50"
         >
           {t("send")}
         </button>

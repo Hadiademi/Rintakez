@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
 import { ShootCard } from "@/components/shoot-card";
 import { ShootFilters } from "@/components/shoot-filters";
+import { PageHeading } from "@/components/section-label";
 
 export const dynamic = "force-dynamic";
 
@@ -56,12 +57,7 @@ export default async function BrowseShootsPage({
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-medium tracking-tight">{t("title")}</h1>
-        <p className="mt-1 text-sm text-mute">
-          {t("count", { count: list.length })}
-        </p>
-      </div>
+      <PageHeading title={t("title")} count={list.length} />
 
       {/* Filters */}
       <ShootFilters />
@@ -72,10 +68,14 @@ export default async function BrowseShootsPage({
       ) : (
         <div
           data-testid="browse-list"
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3"
         >
           {list.map((s) => (
-            <Link key={s.id} href={`/shoots/${s.id}`} className="block">
+            <Link
+              key={s.id}
+              href={`/shoots/${s.id}`}
+              className="press block"
+            >
               <ShootCard shoot={s} />
             </Link>
           ))}
