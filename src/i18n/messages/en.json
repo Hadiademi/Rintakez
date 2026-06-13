@@ -26,7 +26,8 @@
     "searchPlaceholder": "Open shoots",
     "notifications": "Notifications",
     "photographers": "Photographers",
-    "messages": "Messages"
+    "messages": "Messages",
+    "admin": "Admin"
   },
   "landing": {
     "title": "Photography. Direct. Across Switzerland.",
@@ -390,5 +391,22 @@
     "reportSubmit": "Report",
     "reportThanks": "Thanks. We'll review your report.",
     "cancel": "Cancel"
+  },
+  "admin": {
+    "navAdmin": "Admin",
+    "title": "Admin",
+    "metricUsers": "Users",
+    "metricPhotographers": "Photographers",
+    "metricShoots": "Shoots",
+    "metricOpenShoots": "Open",
+    "metricReports": "Open reports",
+    "reports": "Reports",
+    "noReports": "No open reports.",
+    "markReviewed": "Reviewed",
+    "markDismissed": "Dismiss",
+    "reporter": "Reporter",
+    "target": "Target",
+    "reason": "Reason",
+    "viewTarget": "View"
   }
 }

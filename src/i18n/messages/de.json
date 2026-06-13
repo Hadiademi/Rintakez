@@ -26,7 +26,8 @@
     "searchPlaceholder": "Offene Aufträge",
     "notifications": "Benachrichtigungen",
     "photographers": "Fotograf:innen",
-    "messages": "Nachrichten"
+    "messages": "Nachrichten",
+    "admin": "Admin"
   },
   "landing": {
     "title": "Fotografie. Direkt. Schweizweit.",
@@ -390,5 +391,22 @@
     "reportSubmit": "Melden",
     "reportThanks": "Danke. Wir prüfen deine Meldung.",
     "cancel": "Abbrechen"
+  },
+  "admin": {
+    "navAdmin": "Admin",
+    "title": "Admin",
+    "metricUsers": "Nutzer:innen",
+    "metricPhotographers": "Fotograf:innen",
+    "metricShoots": "Aufträge",
+    "metricOpenShoots": "Offen",
+    "metricReports": "Offene Meldungen",
+    "reports": "Meldungen",
+    "noReports": "Keine offenen Meldungen.",
+    "markReviewed": "Geprüft",
+    "markDismissed": "Verwerfen",
+    "reporter": "Melder:in",
+    "target": "Ziel",
+    "reason": "Grund",
+    "viewTarget": "Ansehen"
   }
 }

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(72);
+select plan(73);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -751,6 +751,19 @@ select results_eq(
   $$select count(*)::int from public.reports$$,
   array[0],
   'reports are private to their reporter'
+);
+reset role;
+
+-- ── 73: a user cannot self-promote to admin ──────────────────────────
+-- is_admin is excluded from the column-level UPDATE grant, so this is denied.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select throws_ok(
+  $$update public.profiles set is_admin = true
+    where id = '00000000-0000-0000-0000-000000000001'$$,
+  '42501',
+  null,
+  'a user cannot grant themselves admin'
 );
 reset role;
 

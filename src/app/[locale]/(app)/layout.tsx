@@ -37,6 +37,7 @@ export default async function AppLayout({
         displayName={profile.display_name ?? ""}
         userId={profile.id}
         avatarUrl={avatarUrl}
+        isAdmin={profile.is_admin}
       />
       <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">{children}</div>
     </div>

@@ -26,7 +26,8 @@
     "searchPlaceholder": "Missions ouvertes",
     "notifications": "Notifications",
     "photographers": "Photographes",
-    "messages": "Messages"
+    "messages": "Messages",
+    "admin": "Admin"
   },
   "landing": {
     "title": "Photographie. En direct. Dans toute la Suisse.",
@@ -390,5 +391,22 @@
     "reportSubmit": "Signaler",
     "reportThanks": "Merci. Nous examinons ton signalement.",
     "cancel": "Annuler"
+  },
+  "admin": {
+    "navAdmin": "Admin",
+    "title": "Admin",
+    "metricUsers": "Utilisateurs",
+    "metricPhotographers": "Photographes",
+    "metricShoots": "Demandes",
+    "metricOpenShoots": "Ouvertes",
+    "metricReports": "Signalements ouverts",
+    "reports": "Signalements",
+    "noReports": "Aucun signalement ouvert.",
+    "markReviewed": "Examiné",
+    "markDismissed": "Rejeter",
+    "reporter": "Signalant",
+    "target": "Cible",
+    "reason": "Motif",
+    "viewTarget": "Voir"
   }
 }

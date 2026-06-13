@@ -15,6 +15,7 @@ export type Database = {
           bio: string | null;
           created_at: string;
           role_confirmed: boolean;
+          is_admin: boolean;
         };
         Insert: {
           id: string;
@@ -27,6 +28,7 @@ export type Database = {
           bio?: string | null;
           created_at?: string;
           role_confirmed?: boolean;
+          is_admin?: boolean;
         };
         Update: {
           id?: string;
@@ -39,6 +41,7 @@ export type Database = {
           bio?: string | null;
           created_at?: string;
           role_confirmed?: boolean;
+          is_admin?: boolean;
         };
         Relationships: [];
       };

@@ -133,8 +133,39 @@ export default async function PhotographerProfilePage({
   const specialties = details?.specialties ?? [];
   const coverageCantons = details?.coverage_cantons ?? [];
 
+  // Structured data — helps photographer profiles surface in search.
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: profile.display_name,
+    jobTitle: "Photographer",
+    ...(profile.city
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: profile.city,
+            addressRegion: profile.canton ?? undefined,
+            addressCountry: "CH",
+          },
+        }
+      : {}),
+    ...(rating && rating.review_count
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.avg_rating,
+            reviewCount: rating.review_count,
+          },
+        }
+      : {}),
+  };
+
   return (
     <main className="bg-paper min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
         {/* Back link */}
         <Link

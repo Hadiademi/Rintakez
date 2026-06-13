@@ -15,6 +15,7 @@ interface AppNavProps {
   displayName: string;
   userId: string;
   avatarUrl?: string | null;
+  isAdmin?: boolean;
 }
 
 function initials(name: string): string {
@@ -29,10 +30,14 @@ export async function AppNav({
   displayName,
   userId,
   avatarUrl,
+  isAdmin,
 }: AppNavProps) {
   const t = await getTranslations("nav");
   const { items: notifItems, unread: notifUnread } =
     await getNotificationData();
+  const adminLink = isAdmin
+    ? ([{ href: "/admin", label: t("admin") }] as const)
+    : ([] as const);
 
   const clientLinks = [
     { href: "/home", label: t("home") },
@@ -50,7 +55,10 @@ export async function AppNav({
     { href: "/profile", label: t("profile") },
   ] as const;
 
-  const links = role === "client" ? clientLinks : photographerLinks;
+  const links = [
+    ...(role === "client" ? clientLinks : photographerLinks),
+    ...adminLink,
+  ];
 
   return (
     <>

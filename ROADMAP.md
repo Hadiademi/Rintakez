@@ -54,11 +54,15 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
   report button on profiles & shoots; admin review via service role (T3.2). — ✅
 
 ## Tier 3 — Growth
-- **T3.1 SEO** — sitemap, structured data (Person/LocalBusiness), dynamic OG
-  images for public photographer profiles. — ⬜
-- **T3.2 Admin panel** — moderation, disputes, metrics (role-gated). — ⬜
+- **T3.1 SEO** — sitemap (static + photographer profiles + /agb), tightened
+  robots, JSON-LD Person schema (with aggregateRating) on photographer profiles.
+  Dynamic OG images dropped: `next/og` ImageResponse crashes in this
+  environment (even static) — revisit with a working runtime. — ✅
+- **T3.2 Admin panel** — `is_admin` flag (column-protected, can't self-grant);
+  `/admin` with metrics + open-reports review (reviewed/dismiss) via service
+  role; admin-only nav link. Fixed service_role grants on migration tables. — ✅
 - **T3.3 Availability calendar + favorites** — photographer availability; client
-  saved photographers/shoots. — ⬜
+  saved photographers/shoots. — 🟦
 
 ---
 

@@ -5,7 +5,14 @@ import { createClient } from "@/lib/supabase/server";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticPaths = ["", "/login", "/register", "/impressum", "/datenschutz"];
+  const staticPaths = [
+    "",
+    "/login",
+    "/register",
+    "/impressum",
+    "/datenschutz",
+    "/agb",
+  ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of routing.locales) {
     for (const p of staticPaths) {
