@@ -154,6 +154,16 @@
       "withdrawn": "Retirée"
     }
   },
+  "profile": {
+    "specialties": "Spécialités",
+    "coverage": "Régions",
+    "hourlyRate": "Tarif horaire",
+    "portfolio": "Portfolio",
+    "noPortfolio": "Pas encore d'images.",
+    "website": "Site web",
+    "instagram": "Instagram",
+    "hourlyFrom": "dès {amount}/h"
+  },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
     "unauthorized": "Connecte-toi.",

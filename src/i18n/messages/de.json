@@ -154,6 +154,16 @@
       "withdrawn": "Zurückgezogen"
     }
   },
+  "profile": {
+    "specialties": "Spezialgebiete",
+    "coverage": "Einsatzgebiete",
+    "hourlyRate": "Stundensatz",
+    "portfolio": "Portfolio",
+    "noPortfolio": "Noch keine Bilder.",
+    "website": "Website",
+    "instagram": "Instagram",
+    "hourlyFrom": "ab {amount}/Std"
+  },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
     "unauthorized": "Bitte melde dich an.",

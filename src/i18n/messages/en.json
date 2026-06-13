@@ -154,6 +154,16 @@
       "withdrawn": "Withdrawn"
     }
   },
+  "profile": {
+    "specialties": "Specialties",
+    "coverage": "Coverage areas",
+    "hourlyRate": "Hourly rate",
+    "portfolio": "Portfolio",
+    "noPortfolio": "No images yet.",
+    "website": "Website",
+    "instagram": "Instagram",
+    "hourlyFrom": "from {amount}/hr"
+  },
   "errors": {
     "invalid_input": "Please check your input.",
     "unauthorized": "Please log in.",
