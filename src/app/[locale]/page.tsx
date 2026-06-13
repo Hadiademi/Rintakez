@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,6 +9,19 @@ import { Link } from "@/i18n/navigation";
 
 // Live marketplace data; revisit caching strategy in Plan 5.
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "landing" });
+  return {
+    title: { absolute: t("title") },
+    description: t("subtitle"),
+  };
+}
 
 export default async function Home() {
   const [t, tNav, profile] = await Promise.all([

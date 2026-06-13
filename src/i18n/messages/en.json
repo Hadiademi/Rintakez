@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Rintakez — Swiss photography marketplace",
+    "description": "Describe your shoot and get offers from professional photographers in your region.",
+    "ogTitle": "Rintakez — Swiss photography marketplace"
+  },
   "common": {
     "appName": "Rintakez",
     "back": "Back",

@@ -12,16 +12,38 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { locale, id } = await params;
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select("display_name, role, city")
     .eq("id", id)
     .maybeSingle();
 
+  if (!data || data.role !== "photographer") {
+    return { title: "Rintakez" };
+  }
+
+  const { display_name, city } = data;
+
+  const locationLabel: Record<string, string> = {
+    de: city ? ` in ${city}` : "",
+    fr: city ? ` à ${city}` : "",
+    en: city ? ` in ${city}` : "",
+  };
+
+  const roleLabel: Record<string, string> = {
+    de: "Fotograf:in",
+    fr: "Photographe",
+    en: "Photographer",
+  };
+
+  const role = roleLabel[locale] ?? roleLabel.de;
+  const location = locationLabel[locale] ?? locationLabel.de;
+
   return {
-    title: data?.display_name ? `${data.display_name} — Rintakez` : "Rintakez",
+    title: display_name,
+    description: `${display_name} — ${role}${location}`,
   };
 }
 

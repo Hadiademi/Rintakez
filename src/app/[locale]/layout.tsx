@@ -2,19 +2,41 @@ import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-script";
 import "../globals.css";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
   variable: "--font-inter-tight",
 });
 
-export const metadata: Metadata = {
-  title: "Rintakez",
-  description: "Fotografie-Marktplatz Schweiz",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: t("title"), template: "%s — Rintakez" },
+    description: t("description"),
+    alternates: {
+      languages: { de: "/de", fr: "/fr", en: "/en" },
+    },
+    openGraph: {
+      title: t("ogTitle"),
+      description: t("description"),
+      type: "website",
+      locale,
+      siteName: "Rintakez",
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,

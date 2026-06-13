@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Rintakez — Place de marché photo Suisse",
+    "description": "Décris ton shoot et reçois des offres de photographes professionnels de ta région.",
+    "ogTitle": "Rintakez — Place de marché photo Suisse"
+  },
   "common": {
     "appName": "Rintakez",
     "back": "Retour",

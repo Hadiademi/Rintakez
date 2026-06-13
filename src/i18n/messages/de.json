@@ -1,4 +1,9 @@
 {
+  "meta": {
+    "title": "Rintakez — Fotografie-Marktplatz Schweiz",
+    "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen aus deiner Region.",
+    "ogTitle": "Rintakez — Fotografie-Marktplatz Schweiz"
+  },
   "common": {
     "appName": "Rintakez",
     "back": "Zurück",
