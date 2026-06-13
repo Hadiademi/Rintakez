@@ -1,0 +1,41 @@
+{
+  "common": {
+    "appName": "Rintakez",
+    "back": "Zurück",
+    "next": "Weiter",
+    "cancel": "Abbrechen",
+    "save": "Speichern"
+  },
+  "nav": {
+    "home": "Home",
+    "browse": "Aufträge",
+    "profile": "Profil",
+    "login": "Anmelden",
+    "register": "Registrieren"
+  },
+  "landing": {
+    "title": "Fotografie. Direkt. Schweizweit.",
+    "subtitle": "Beschreibe deinen Shoot, erhalte Angebote von professionellen Fotograf:innen aus deiner Region.",
+    "cta": "Auftrag erstellen",
+    "latestShoots": "Offene Aufträge",
+    "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
+  },
+  "shoot": {
+    "date": "Datum",
+    "location": "Ort",
+    "duration": "Dauer",
+    "budget": "Budget",
+    "type": "Art",
+    "statusOpen": "Offen",
+    "hours": "{count} Std",
+    "types": {
+      "wedding": "Hochzeit",
+      "portrait": "Porträt",
+      "commercial": "Commercial",
+      "event": "Event",
+      "architecture": "Architektur",
+      "family": "Familie",
+      "other": "Andere"
+    }
+  }
+}
