@@ -118,5 +118,17 @@
     "title": "Meine Aufträge",
     "empty": "Du hast noch keinen Auftrag erstellt.",
     "createCta": "Auftrag erstellen"
+  },
+  "shootDetail": {
+    "brief": "Briefing",
+    "details": "Eckdaten",
+    "offers": "Angebote",
+    "noOffers": "Noch keine Angebote. Die meisten Aufträge erhalten ihr erstes Angebot innerhalb weniger Stunden.",
+    "accept": "Annehmen",
+    "decline": "Ablehnen",
+    "cancelShoot": "Auftrag stornieren",
+    "contactTitle": "Kontakt",
+    "contactHint": "Ihr seid verbunden. Nehmt direkt Kontakt auf.",
+    "byPhotographer": "Fotograf:in"
   }
 }

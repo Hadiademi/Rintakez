@@ -118,5 +118,17 @@
     "title": "My shoots",
     "empty": "You haven't posted a shoot yet.",
     "createCta": "Post a shoot"
+  },
+  "shootDetail": {
+    "brief": "Brief",
+    "details": "Details",
+    "offers": "Offers",
+    "noOffers": "No offers yet. Most shoots get their first offer within a few hours.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "cancelShoot": "Cancel shoot",
+    "contactTitle": "Contact",
+    "contactHint": "You're connected. Reach out directly.",
+    "byPhotographer": "Photographer"
   }
 }

@@ -118,5 +118,17 @@
     "title": "Mes missions",
     "empty": "Tu n'as pas encore créé de mission.",
     "createCta": "Créer une mission"
+  },
+  "shootDetail": {
+    "brief": "Brief",
+    "details": "Détails",
+    "offers": "Offres",
+    "noOffers": "Pas encore d'offres. La plupart des missions reçoivent leur première offre en quelques heures.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "cancelShoot": "Annuler la mission",
+    "contactTitle": "Contact",
+    "contactHint": "Vous êtes connectés. Contactez-vous directement.",
+    "byPhotographer": "Photographe"
   }
 }

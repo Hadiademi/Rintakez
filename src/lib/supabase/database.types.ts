@@ -184,6 +184,10 @@ export type Database = {
         Args: { p_bid_id: string };
         Returns: undefined;
       };
+      decline_bid: {
+        Args: { p_bid_id: string };
+        Returns: undefined;
+      };
       get_counterparty_email: {
         Args: { p_shoot_id: string };
         Returns: string;

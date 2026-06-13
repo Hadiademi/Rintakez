@@ -47,3 +47,52 @@ export async function createShootAction(
 
   return { ok: true, id: data.id };
 }
+
+export async function acceptBidAction(
+  bidId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_bid", { p_bid_id: bidId });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
+
+export async function declineBidAction(
+  bidId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_bid", { p_bid_id: bidId });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
+
+export async function cancelShootAction(
+  shootId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("shoots")
+    .update({ status: "cancelled" })
+    .eq("id", shootId)
+    .eq("client_id", user.id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
