@@ -46,8 +46,10 @@ export default async function MyShootsPage() {
   const createCtaLink = (
     <Link
       href="/shoots/new"
-      className="press inline-block bg-ink text-paper px-5 py-2.5 label"
+      data-testid="my-shoots-create"
+      className="press inline-flex items-center gap-1.5 bg-ink px-5 py-2.5 text-paper label"
     >
+      <span className="text-base leading-none">+</span>
       {tMyShoots("createCta")}
     </Link>
   );
@@ -56,7 +58,7 @@ export default async function MyShootsPage() {
     <div className="space-y-10">
       <div className="flex items-end justify-between gap-4">
         <PageHeading title={tMyShoots("title")} count={shootList.length} />
-        <div className="hidden shrink-0 pb-1 sm:block">{createCtaLink}</div>
+        <div className="shrink-0 pb-1">{createCtaLink}</div>
       </div>
 
       {shootList.length === 0 ? (
