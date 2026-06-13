@@ -101,14 +101,33 @@ function UserIcon() {
   );
 }
 
+function ChatIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 11.5 3 8.5 8.5 0 0 1 21 11.5z" />
+    </svg>
+  );
+}
+
 export function MobileTabBar({ role }: MobileTabBarProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
   const clientTabs = [
     { href: "/home" as const, label: t("home"), icon: <HomeIcon /> },
-    { href: "/shoots/new" as const, label: t("createShoot"), icon: <PlusIcon /> },
     { href: "/my-shoots" as const, label: t("myShoots"), icon: <ListIcon /> },
+    { href: "/shoots/new" as const, label: t("createShoot"), icon: <PlusIcon /> },
+    { href: "/messages" as const, label: t("messages"), icon: <ChatIcon /> },
     { href: "/profile" as const, label: t("profile"), icon: <UserIcon /> },
   ];
 
@@ -116,6 +135,7 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
     { href: "/home" as const, label: t("home"), icon: <HomeIcon /> },
     { href: "/shoots" as const, label: t("browseShoots"), icon: <CameraIcon /> },
     { href: "/my-bids" as const, label: t("myBids"), icon: <ListIcon /> },
+    { href: "/messages" as const, label: t("messages"), icon: <ChatIcon /> },
     { href: "/profile" as const, label: t("profile"), icon: <UserIcon /> },
   ];
 
