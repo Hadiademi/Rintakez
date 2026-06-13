@@ -20,6 +20,26 @@
     "latestShoots": "Offene Aufträge",
     "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
   },
+  "auth": {
+    "registerTitle": "Konto erstellen",
+    "loginTitle": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "displayName": "Name oder Studio",
+    "roleQuestion": "Ich bin …",
+    "roleClient": "Auftraggeber:in",
+    "roleClientHint": "Ich suche Fotograf:innen",
+    "rolePhotographer": "Fotograf:in",
+    "rolePhotographerHint": "Ich biete Shootings an",
+    "submitRegister": "Konto erstellen",
+    "submitLogin": "Anmelden",
+    "haveAccount": "Schon ein Konto?",
+    "noAccount": "Noch kein Konto?",
+    "toLogin": "Anmelden",
+    "toRegister": "Registrieren",
+    "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
   "shoot": {
     "date": "Datum",
     "location": "Ort",

@@ -20,6 +20,26 @@
     "latestShoots": "Missions ouvertes",
     "offersCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
   },
+  "auth": {
+    "registerTitle": "Créer un compte",
+    "loginTitle": "Connexion",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "displayName": "Nom ou studio",
+    "roleQuestion": "Je suis …",
+    "roleClient": "Client·e",
+    "roleClientHint": "Je cherche un·e photographe",
+    "rolePhotographer": "Photographe",
+    "rolePhotographerHint": "Je propose des séances",
+    "submitRegister": "Créer le compte",
+    "submitLogin": "Se connecter",
+    "haveAccount": "Déjà un compte ?",
+    "noAccount": "Pas encore de compte ?",
+    "toLogin": "Se connecter",
+    "toRegister": "S'inscrire",
+    "checkEmail": "Confirme ton adresse e-mail pour continuer.",
+    "genericError": "Une erreur est survenue. Réessaie."
+  },
   "shoot": {
     "date": "Date",
     "location": "Lieu",
