@@ -1,21 +1,26 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 
 export function LocaleSwitcher() {
   const locale = useLocale();
-  const router = useRouter();
   const pathname = usePathname();
+
+  // Hard navigation (full reload) rather than a soft router push: switching the
+  // [locale] segment would otherwise re-render the root layout on the client,
+  // and React 19 errors on the inline theme <script> there.
+  function changeLocale(next: string) {
+    if (next === locale) return;
+    window.location.assign(`/${next}${pathname === "/" ? "" : pathname}`);
+  }
 
   return (
     <div className="relative inline-flex items-center">
       <select
         value={locale}
-        onChange={(e) =>
-          router.replace(pathname, { locale: e.target.value as typeof locale })
-        }
+        onChange={(e) => changeLocale(e.target.value)}
         aria-label="Language"
         data-testid="locale-switcher"
         className="label press cursor-pointer appearance-none border border-line bg-paper py-1.5 pl-2.5 pr-7 text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none"

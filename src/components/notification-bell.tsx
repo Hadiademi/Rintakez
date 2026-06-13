@@ -10,6 +10,10 @@ import {
   type NotificationItem,
 } from "@/lib/actions/notifications";
 
+// Unique storage key per realtime client so multiple instances never share an
+// auth-storage lock (which would log "Multiple GoTrueClient instances").
+let rtSeq = 0;
+
 function hrefFor(item: NotificationItem): string {
   // Client (bid_received) → the shoot's offers. Photographer → their bids.
   if (item.type === "bid_received" && item.shootId)
@@ -61,7 +65,16 @@ export function NotificationBell({
     // filters by auth.uid(), which requires the user token, not the anon key).
     const rt = createRealtimeClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      // Realtime-only client — we set the token via setAuth, so it must not
+      // touch the shared auth storage (avoids "multiple GoTrueClient" warnings).
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          storageKey: `sb-rt-notif-${++rtSeq}`,
+        },
+      }
     );
 
     function onInsert(payload: { new: Record<string, unknown> }) {
