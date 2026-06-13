@@ -140,5 +140,25 @@
     "contactTitle": "Contact",
     "contactHint": "Vous êtes connectés. Contactez-vous directement.",
     "byPhotographer": "Photographe"
+  },
+  "bidSheet": {
+    "submitTitle": "Soumettre une offre",
+    "yourPrice": "Ton prix (CHF)",
+    "yourMessage": "Message au client",
+    "messagePlaceholder": "Quel est ton angle ? Décris ton approche.",
+    "send": "Envoyer l'offre",
+    "clientBudget": "Budget du client : {range}",
+    "alreadyBid": "Tu as déjà soumis une offre.",
+    "yourBid": "Ton offre",
+    "edit": "Modifier",
+    "withdraw": "Retirer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "bidStatusPending": "En attente",
+    "bidStatusAccepted": "Acceptée — félicitations !",
+    "bidStatusDeclined": "Refusée",
+    "bidStatusWithdrawn": "Retirée",
+    "errorSubmit": "Échec de l'envoi.",
+    "notOpen": "Cette mission n'accepte plus d'offres."
   }
 }

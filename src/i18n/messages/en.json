@@ -140,5 +140,25 @@
     "contactTitle": "Contact",
     "contactHint": "You're connected. Reach out directly.",
     "byPhotographer": "Photographer"
+  },
+  "bidSheet": {
+    "submitTitle": "Submit an offer",
+    "yourPrice": "Your price (CHF)",
+    "yourMessage": "Message to the client",
+    "messagePlaceholder": "What's your focus? Describe your style.",
+    "send": "Send offer",
+    "clientBudget": "Client budget: {range}",
+    "alreadyBid": "You've already submitted an offer.",
+    "yourBid": "Your bid",
+    "edit": "Edit",
+    "withdraw": "Withdraw",
+    "save": "Save",
+    "cancel": "Cancel",
+    "bidStatusPending": "Pending",
+    "bidStatusAccepted": "Accepted — congrats!",
+    "bidStatusDeclined": "Declined",
+    "bidStatusWithdrawn": "Withdrawn",
+    "errorSubmit": "Could not send.",
+    "notOpen": "This shoot is no longer accepting offers."
   }
 }
