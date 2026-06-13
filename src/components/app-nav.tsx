@@ -36,7 +36,9 @@ export async function AppNav({
 
   const clientLinks = [
     { href: "/home", label: t("home") },
+    { href: "/photographers", label: t("photographers") },
     { href: "/my-shoots", label: t("myShoots") },
+    { href: "/messages", label: t("messages") },
     { href: "/profile", label: t("profile") },
   ] as const;
 
@@ -44,6 +46,7 @@ export async function AppNav({
     { href: "/home", label: t("home") },
     { href: "/shoots", label: t("browseShoots") },
     { href: "/my-bids", label: t("myBids") },
+    { href: "/messages", label: t("messages") },
     { href: "/profile", label: t("profile") },
   ] as const;
 

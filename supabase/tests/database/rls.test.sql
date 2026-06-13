@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(58);
+select plan(67);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -602,6 +602,87 @@ select results_eq(
     where id = '00000000-0000-0000-0000-000000000001'$$,
   array['client'],
   'set_initial_role is a no-op once the role is confirmed'
+);
+reset role;
+
+-- ── 59–67: messaging ─────────────────────────────────────────────────
+-- Shoot 1 was assigned (test 13) → a conversation was auto-created between the
+-- client (01) and the accepted photographer Marko (02).
+select has_table('public', 'conversations', 'conversations exists');
+select has_table('public', 'messages', 'messages exists');
+
+-- 61: the client sees the conversation for the assigned shoot.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.conversations
+    where shoot_id = '10000000-0000-0000-0000-000000000001'$$,
+  array[1],
+  'conversation auto-created on assignment, visible to the client'
+);
+reset role;
+
+-- 62: an unrelated photographer (Anna) sees no conversations.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.conversations$$,
+  array[0],
+  'non-participant cannot see the conversation'
+);
+reset role;
+
+-- 63: the client (participant) posts a message.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select lives_ok(
+  $$insert into public.messages (conversation_id, sender_id, body)
+    values ((select id from public.conversations
+             where shoot_id = '10000000-0000-0000-0000-000000000001'),
+            '00000000-0000-0000-0000-000000000001', 'Hallo, freue mich!')$$,
+  'client can post in the conversation'
+);
+reset role;
+
+-- 64: the photographer (participant) posts a message.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select lives_ok(
+  $$insert into public.messages (conversation_id, sender_id, body)
+    values ((select id from public.conversations
+             where shoot_id = '10000000-0000-0000-0000-000000000001'),
+            '00000000-0000-0000-0000-000000000002', 'Danke, bis bald!')$$,
+  'accepted photographer can post in the conversation'
+);
+reset role;
+
+-- 65: a non-participant cannot post (sees no conversation → cannot target it).
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.messages (conversation_id, sender_id, body)
+    values ((select id from public.conversations
+             where shoot_id = '10000000-0000-0000-0000-000000000001'),
+            '00000000-0000-0000-0000-000000000003', 'Darf ich nicht.')$$,
+  null,
+  null,
+  'non-participant cannot post a message'
+);
+-- 66: and cannot read the messages either.
+select results_eq(
+  $$select count(*)::int from public.messages$$,
+  array[0],
+  'non-participant cannot read the conversation messages'
+);
+reset role;
+
+-- 67: the client sees both messages.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.messages$$,
+  array[2],
+  'participant sees all messages in the conversation'
 );
 reset role;
 

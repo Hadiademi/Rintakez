@@ -24,7 +24,9 @@
     "myBids": "Meine Angebote",
     "create": "Erstellen",
     "searchPlaceholder": "Offene Aufträge",
-    "notifications": "Benachrichtigungen"
+    "notifications": "Benachrichtigungen",
+    "photographers": "Fotograf:innen",
+    "messages": "Nachrichten"
   },
   "landing": {
     "title": "Fotografie. Direkt. Schweizweit.",
@@ -352,5 +354,27 @@
     "newBadge": "Neu",
     "reviews": "Bewertungen",
     "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}"
+  },
+  "directory": {
+    "navPhotographers": "Fotograf:innen",
+    "title": "Fotograf:innen entdecken",
+    "subtitle": "Finde die richtige Fotograf:in für dein Projekt.",
+    "allSpecialties": "Alle Spezialgebiete",
+    "allCantons": "Alle Kantone",
+    "sortLabel": "Sortieren",
+    "sortRating": "Beste Bewertung",
+    "sortPriceAsc": "Preis aufsteigend",
+    "minRating": "Mind. Bewertung",
+    "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
+    "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}"
+  },
+  "messages": {
+    "navMessages": "Nachrichten",
+    "title": "Nachrichten",
+    "empty": "Noch keine Nachrichten. Gespräche öffnen sich, sobald ein Angebot angenommen wurde.",
+    "placeholder": "Nachricht schreiben …",
+    "send": "Senden",
+    "about": "Zu: {title}",
+    "threadEmpty": "Noch keine Nachrichten. Schreib die erste."
   }
 }

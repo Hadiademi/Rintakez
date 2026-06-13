@@ -36,12 +36,12 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
   schema-enforced; verified. — ✅
 
 ## Tier 1 — Core marketplace
-- **T1.1 Photographer directory & search** — public/app list page with filters
-  (specialty, canton, price, rating); clients browse, not just post-and-wait. — ⬜
-- **T1.2 In-app messaging** — `conversations` + `messages` tables, RLS, realtime,
-  thread UI; opened once a bid is accepted. Keeps users on-platform. — ⬜
+- **T1.1 Photographer directory & search** — `/photographers` app page with
+  specialty/canton/rating/price filters + sort; verified. — ✅
+- **T1.2 In-app messaging** — conversations + messages, RLS, auto-open on
+  assignment, realtime thread + list + read markers; verified two-way live. — ✅
 - **T1.3 Booking & cancellation** — formal booking after acceptance with status +
-  cancellation policy; optional deposit hook (ties into payments). — ⬜
+  cancellation policy; optional deposit hook (ties into payments). — 🟦
 
 ## Tier 2 — Production hardening
 - **T2.1 Error monitoring + analytics** — Sentry (gated on DSN) + privacy-first

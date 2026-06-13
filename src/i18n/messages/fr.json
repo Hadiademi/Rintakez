@@ -24,7 +24,9 @@
     "myBids": "Mes offres",
     "create": "Créer",
     "searchPlaceholder": "Missions ouvertes",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "photographers": "Photographes",
+    "messages": "Messages"
   },
   "landing": {
     "title": "Photographie. En direct. Dans toute la Suisse.",
@@ -352,5 +354,27 @@
     "newBadge": "Nouveau",
     "reviews": "Évaluations",
     "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}"
+  },
+  "directory": {
+    "navPhotographers": "Photographes",
+    "title": "Découvrir des photographes",
+    "subtitle": "Trouve le/la photographe qu'il te faut.",
+    "allSpecialties": "Toutes spécialités",
+    "allCantons": "Tous les cantons",
+    "sortLabel": "Trier",
+    "sortRating": "Meilleures notes",
+    "sortPriceAsc": "Prix croissant",
+    "minRating": "Note min.",
+    "empty": "Aucun·e photographe ne correspond à tes filtres.",
+    "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}"
+  },
+  "messages": {
+    "navMessages": "Messages",
+    "title": "Messages",
+    "empty": "Pas encore de messages. Les conversations s'ouvrent dès qu'une offre est acceptée.",
+    "placeholder": "Écrire un message …",
+    "send": "Envoyer",
+    "about": "À propos de : {title}",
+    "threadEmpty": "Pas encore de messages. Écris le premier."
   }
 }

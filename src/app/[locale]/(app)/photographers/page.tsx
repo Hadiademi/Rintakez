@@ -1,0 +1,182 @@
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { formatCHF } from "@/lib/format";
+import { Stars } from "@/components/stars";
+import { PhotographerFilters } from "@/components/photographer-filters";
+
+export const dynamic = "force-dynamic";
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export default async function PhotographersDirectoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    type?: string;
+    canton?: string;
+    minRating?: string;
+    sort?: string;
+  }>;
+}) {
+  const { type, canton, minRating, sort } = await searchParams;
+  const supabase = await createClient();
+  const t = await getTranslations("directory");
+
+  // Filter on the photographer_details (array columns), then enrich.
+  let detailsQuery = supabase
+    .from("photographer_details")
+    .select("profile_id, specialties, coverage_cantons, hourly_rate_chf");
+  if (type) detailsQuery = detailsQuery.contains("specialties", [type]);
+  if (canton) detailsQuery = detailsQuery.contains("coverage_cantons", [canton]);
+  const { data: details } = await detailsQuery;
+
+  const ids = (details ?? []).map((d) => d.profile_id);
+
+  const [{ data: profiles }, { data: ratings }] = await Promise.all([
+    ids.length
+      ? supabase
+          .from("profiles")
+          .select("id, display_name, city, canton, avatar_url")
+          .in("id", ids)
+      : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("photographer_ratings")
+          .select("photographer_id, avg_rating, review_count")
+          .in("photographer_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
+  ]);
+
+  const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const ratingBy = new Map(
+    (ratings ?? []).map((r) => [
+      r.photographer_id,
+      { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
+    ])
+  );
+
+  const minR = minRating ? Number(minRating) : 0;
+
+  let list = (details ?? [])
+    .map((d) => {
+      const profile = profileBy.get(d.profile_id);
+      const rating = ratingBy.get(d.profile_id) ?? { avg: 0, count: 0 };
+      return profile ? { ...d, profile, rating } : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null)
+    .filter((x) => x.rating.avg >= minR);
+
+  list = list.sort((a, b) => {
+    if (sort === "price") {
+      return (a.hourly_rate_chf ?? Infinity) - (b.hourly_rate_chf ?? Infinity);
+    }
+    return b.rating.avg - a.rating.avg;
+  });
+
+  return (
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-semibold tracking-tight text-ink">
+          {t("title")}
+        </h1>
+        <p className="text-mute">{t("subtitle")}</p>
+      </div>
+
+      <PhotographerFilters />
+
+      <p className="label text-mute">{t("count", { count: list.length })}</p>
+
+      {list.length === 0 ? (
+        <p className="text-mute">{t("empty")}</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((x) => {
+            let avatarUrl: string | null = null;
+            if (x.profile.avatar_url) {
+              avatarUrl =
+                x.profile.avatar_url.startsWith("http")
+                  ? x.profile.avatar_url
+                  : supabase.storage
+                      .from("avatars")
+                      .getPublicUrl(x.profile.avatar_url).data.publicUrl;
+            }
+            return (
+              <Link
+                key={x.profile_id}
+                href={`/photographers/${x.profile_id}`}
+                data-testid="photographer-card"
+                className="press group flex flex-col gap-4 border border-line p-5 transition-colors hover:border-mute-2"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-line bg-chip">
+                    {avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={avatarUrl}
+                        alt=""
+                        className="h-full w-full object-cover grayscale"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-[13px] font-medium text-mute">
+                        {initials(x.profile.display_name)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-ink">
+                      {x.profile.display_name}
+                    </p>
+                    {(x.profile.city || x.profile.canton) && (
+                      <p className="truncate text-[13px] text-mute">
+                        {[x.profile.city, x.profile.canton]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {x.specialties.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {x.specialties.slice(0, 3).map((s) => (
+                      <span
+                        key={s}
+                        className="rounded-full bg-chip px-2.5 py-0.5 text-[12px] text-ink"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-auto flex items-center justify-between">
+                  {x.rating.count > 0 ? (
+                    <span className="flex items-center gap-1.5">
+                      <Stars value={x.rating.avg} size={12} />
+                      <span className="tabular text-[12px] text-mute">
+                        {x.rating.avg.toFixed(1)}
+                      </span>
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+                  {x.hourly_rate_chf != null && (
+                    <span className="tabular text-[13px] text-mute">
+                      {formatCHF(x.hourly_rate_chf)}/h
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -264,6 +264,63 @@ export type Database = {
         };
         Relationships: [];
       };
+      conversations: {
+        Row: {
+          id: string;
+          shoot_id: string;
+          client_id: string;
+          photographer_id: string;
+          created_at: string;
+          last_message_at: string;
+          client_last_read_at: string | null;
+          photographer_last_read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          shoot_id: string;
+          client_id: string;
+          photographer_id: string;
+          created_at?: string;
+          last_message_at?: string;
+          client_last_read_at?: string | null;
+          photographer_last_read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          shoot_id?: string;
+          client_id?: string;
+          photographer_id?: string;
+          created_at?: string;
+          last_message_at?: string;
+          client_last_read_at?: string | null;
+          photographer_last_read_at?: string | null;
+        };
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          conversation_id: string;
+          sender_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          conversation_id?: string;
+          sender_id?: string;
+          body?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       photographer_ratings: {
@@ -287,6 +344,10 @@ export type Database = {
       set_initial_role: {
         Args: { p_role: Database["public"]["Enums"]["user_role"] };
         Returns: undefined;
+      };
+      is_conversation_participant: {
+        Args: { p_conversation_id: string };
+        Returns: boolean;
       };
       decline_bid: {
         Args: { p_bid_id: string };

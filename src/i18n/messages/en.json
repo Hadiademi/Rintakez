@@ -24,7 +24,9 @@
     "myBids": "My bids",
     "create": "Create",
     "searchPlaceholder": "Open shoots",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "photographers": "Photographers",
+    "messages": "Messages"
   },
   "landing": {
     "title": "Photography. Direct. Across Switzerland.",
@@ -352,5 +354,27 @@
     "newBadge": "New",
     "reviews": "Reviews",
     "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}"
+  },
+  "directory": {
+    "navPhotographers": "Photographers",
+    "title": "Discover photographers",
+    "subtitle": "Find the right photographer for your project.",
+    "allSpecialties": "All specialties",
+    "allCantons": "All cantons",
+    "sortLabel": "Sort",
+    "sortRating": "Top rated",
+    "sortPriceAsc": "Price: low to high",
+    "minRating": "Min. rating",
+    "empty": "No photographers match your filters.",
+    "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}"
+  },
+  "messages": {
+    "navMessages": "Messages",
+    "title": "Messages",
+    "empty": "No messages yet. Conversations open once an offer is accepted.",
+    "placeholder": "Write a message …",
+    "send": "Send",
+    "about": "About: {title}",
+    "threadEmpty": "No messages yet. Write the first one."
   }
 }
