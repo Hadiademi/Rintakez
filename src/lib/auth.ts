@@ -20,3 +20,22 @@ export const getProfile = cache(async () => {
     .single();
   return data;
 });
+
+/**
+ * Returns true if the current user is a photographer who has not yet
+ * completed onboarding (i.e. has no photographer_details row).
+ * Used by home and other app pages to redirect to /onboarding rather than
+ * doing it in the (app) root layout (which would cause a redirect loop since
+ * the onboarding page itself lives under (app)).
+ */
+export const photographerNeedsOnboarding = cache(async () => {
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer") return false;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("photographer_details")
+    .select("profile_id")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+  return !data;
+});

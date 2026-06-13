@@ -1,6 +1,17 @@
 import { createServerClient } from "@supabase/ssr";
-import { type NextRequest, type NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
+
+const LOCALES = ["de", "fr", "en"] as const;
+const PROTECTED = [
+  "/home",
+  "/profile",
+  "/settings",
+  "/my-shoots",
+  "/my-bids",
+  "/onboarding",
+  "/shoots/new",
+];
 
 export async function updateSession(
   request: NextRequest,
@@ -24,7 +35,27 @@ export async function updateSession(
   );
 
   // Refreshes the auth token if expired. Do not remove.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Route gating: redirect unauthenticated users away from protected paths.
+  const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+  const locale = (LOCALES as readonly string[]).includes(segments[0])
+    ? segments[0]
+    : "de";
+  const rest =
+    "/" +
+    segments.slice((LOCALES as readonly string[]).includes(segments[0]) ? 1 : 0).join("/");
+
+  if (
+    !user &&
+    PROTECTED.some((p) => rest === p || rest.startsWith(p + "/"))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/login`;
+    return NextResponse.redirect(url);
+  }
 
   return response;
 }

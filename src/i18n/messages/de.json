@@ -11,7 +11,12 @@
     "browse": "Aufträge",
     "profile": "Profil",
     "login": "Anmelden",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "signOut": "Abmelden",
+    "createShoot": "Auftrag erstellen",
+    "myShoots": "Meine Aufträge",
+    "browseShoots": "Aufträge",
+    "myBids": "Meine Angebote"
   },
   "landing": {
     "title": "Fotografie. Direkt. Schweizweit.",
@@ -39,6 +44,16 @@
     "toRegister": "Registrieren",
     "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
     "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
+  "home": {
+    "greeting": "Hallo, {name}.",
+    "clientCta": "Erstelle deinen ersten Auftrag.",
+    "clientCtaButton": "Auftrag erstellen",
+    "photographerCta": "Entdecke offene Aufträge.",
+    "photographerCtaButton": "Aufträge",
+    "yourShoots": "Deine Aufträge",
+    "openShoots": "Offene Aufträge",
+    "none": "Noch nichts hier."
   },
   "shoot": {
     "date": "Datum",

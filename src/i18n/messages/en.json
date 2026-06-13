@@ -11,7 +11,12 @@
     "browse": "Shoots",
     "profile": "Profile",
     "login": "Log in",
-    "register": "Sign up"
+    "register": "Sign up",
+    "signOut": "Sign out",
+    "createShoot": "Post a shoot",
+    "myShoots": "My shoots",
+    "browseShoots": "Shoots",
+    "myBids": "My bids"
   },
   "landing": {
     "title": "Photography. Direct. Across Switzerland.",
@@ -39,6 +44,16 @@
     "toRegister": "Sign up",
     "checkEmail": "Confirm your email address to continue.",
     "genericError": "Something went wrong. Please try again."
+  },
+  "home": {
+    "greeting": "Hi, {name}.",
+    "clientCta": "Post your first shoot.",
+    "clientCtaButton": "Post a shoot",
+    "photographerCta": "Browse open shoots.",
+    "photographerCtaButton": "Shoots",
+    "yourShoots": "Your shoots",
+    "openShoots": "Open shoots",
+    "none": "Nothing here yet."
   },
   "shoot": {
     "date": "Date",

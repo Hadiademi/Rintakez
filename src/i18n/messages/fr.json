@@ -11,7 +11,12 @@
     "browse": "Missions",
     "profile": "Profil",
     "login": "Connexion",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "signOut": "Déconnexion",
+    "createShoot": "Créer une mission",
+    "myShoots": "Mes missions",
+    "browseShoots": "Missions",
+    "myBids": "Mes offres"
   },
   "landing": {
     "title": "Photographie. En direct. Dans toute la Suisse.",
@@ -39,6 +44,16 @@
     "toRegister": "S'inscrire",
     "checkEmail": "Confirme ton adresse e-mail pour continuer.",
     "genericError": "Une erreur est survenue. Réessaie."
+  },
+  "home": {
+    "greeting": "Bonjour, {name}.",
+    "clientCta": "Crée ta première mission.",
+    "clientCtaButton": "Créer une mission",
+    "photographerCta": "Découvre les missions ouvertes.",
+    "photographerCtaButton": "Missions",
+    "yourShoots": "Tes missions",
+    "openShoots": "Missions ouvertes",
+    "none": "Rien pour l'instant."
   },
   "shoot": {
     "date": "Date",
