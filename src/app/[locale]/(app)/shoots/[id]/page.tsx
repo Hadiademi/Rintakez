@@ -15,6 +15,7 @@ import { ReviewForm } from "@/components/review-form";
 import { Stars } from "@/components/stars";
 import { BidSheet } from "@/components/bid-sheet";
 import { MyBidPanel } from "@/components/my-bid-panel";
+import { ReportButton } from "@/components/report-button";
 
 export const dynamic = "force-dynamic";
 
@@ -196,6 +197,9 @@ export default async function ShootDetailPage({
         ) : (
           <p className="text-mute">{tBid("notOpen")}</p>
         )}
+        <div className="border-t border-line pt-6">
+          <ReportButton targetType="shoot" targetId={id} />
+        </div>
       </div>
     );
   }

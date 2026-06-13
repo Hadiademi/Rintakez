@@ -267,6 +267,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: Database["public"]["Enums"]["report_target"];
+          target_id: string;
+          reason: string;
+          status: Database["public"]["Enums"]["report_status"];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          target_type: Database["public"]["Enums"]["report_target"];
+          target_id: string;
+          reason: string;
+          status?: Database["public"]["Enums"]["report_status"];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          target_type?: Database["public"]["Enums"]["report_target"];
+          target_id?: string;
+          reason?: string;
+          status?: Database["public"]["Enums"]["report_status"];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       conversations: {
         Row: {
           id: string;
@@ -422,6 +452,8 @@ export type Database = {
         | "bid_accepted"
         | "bid_declined"
         | "shoot_cancelled";
+      report_target: "profile" | "shoot";
+      report_status: "open" | "reviewed" | "dismissed";
     };
     CompositeTypes: Record<string, never>;
   };

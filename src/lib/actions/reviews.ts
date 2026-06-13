@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ErrResult = { ok: false; error: string };
 
@@ -21,6 +22,8 @@ export async function submitReviewAction(
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
+  if (!rateLimit(`review:${user.id}`, 10, 3_600_000))
+    return { ok: false, error: "limit_reached" };
 
   const supabase = await createClient();
 

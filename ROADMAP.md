@@ -44,12 +44,14 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
   the assigned photographer (`shoot_cancelled`); reason shown on detail. Deposit
   hook deferred to payments (#1). — ✅
 
-## Tier 2 — Production hardening
-- **T2.1 Error monitoring + analytics** — Sentry (gated on DSN) + privacy-first
-  analytics. — 🔒/⬜
-- **T2.2 Rate limiting** — throttle bid/signup/message actions beyond defaults. — ⬜
-- **T2.3 Moderation & reporting** — report button on profiles/shoots; `reports`
-  table + admin review. — ⬜
+## Tier 2 — Production hardening ✅
+- **T2.1 Error monitoring + analytics** — `captureError` seam + error/global-error
+  boundaries + `onRequestError` instrumentation; gated Plausible analytics
+  (privacy-first) + gated error webhook. — ✅
+- **T2.2 Rate limiting** — in-process sliding-window limiter on bid/message/
+  shoot/review/report actions. — ✅
+- **T2.3 Moderation & reporting** — `reports` table + RLS (file own / private);
+  report button on profiles & shoots; admin review via service role (T3.2). — ✅
 
 ## Tier 3 — Growth
 - **T3.1 SEO** — sitemap, structured data (Person/LocalBusiness), dynamic OG

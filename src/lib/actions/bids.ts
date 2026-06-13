@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { createBidSchema } from "@/lib/validation/bid";
 import { notifyEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -19,6 +20,8 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   if (!parsed.success) return { ok: false, error: "invalid_input" };
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
+  if (!rateLimit(`bid:${user.id}`, 20, 3_600_000))
+    return { ok: false, error: "limit_reached" };
   const supabase = await createClient();
   const { error } = await supabase.from("bids").insert({
     shoot_id: shootId,

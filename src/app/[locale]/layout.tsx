@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-script";
 import { SwRegister } from "@/components/sw-register";
+import { Analytics } from "@/components/analytics";
 import "../globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -54,6 +55,7 @@ export default async function LocaleLayout({
       <body>
         <ThemeScript />
         <SwRegister />
+        <Analytics />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

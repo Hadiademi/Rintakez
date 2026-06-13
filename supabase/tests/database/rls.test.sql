@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(68);
+select plan(72);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -718,6 +718,39 @@ select results_eq(
     where user_id = auth.uid() and type = 'shoot_cancelled'$$,
   array[1],
   'cancelling an assigned shoot notifies the photographer'
+);
+reset role;
+
+-- ── 69–72: moderation reports ────────────────────────────────────────
+select has_table('public', 'reports', 'reports exists');
+
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+-- 70: a user files a report under their own id.
+select lives_ok(
+  $$insert into public.reports (reporter_id, target_type, target_id, reason)
+    values ('00000000-0000-0000-0000-000000000002', 'profile',
+            '00000000-0000-0000-0000-000000000001', 'Unangemessenes Verhalten.')$$,
+  'a user can file a report'
+);
+-- 71: but cannot file one under someone else's id.
+select throws_ok(
+  $$insert into public.reports (reporter_id, target_type, target_id, reason)
+    values ('00000000-0000-0000-0000-000000000001', 'profile',
+            '00000000-0000-0000-0000-000000000003', 'Spoofed reporter.')$$,
+  '42501',
+  null,
+  'cannot file a report as another user'
+);
+reset role;
+
+-- 72: a different user cannot see that report.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from public.reports$$,
+  array[0],
+  'reports are private to their reporter'
 );
 reset role;
 

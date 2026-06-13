@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
 import { createShootSchema } from "@/lib/validation/shoot";
 import { notifyEmail, type EmailKind } from "@/lib/email";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ErrResult = { ok: false; error: string };
 
@@ -64,6 +65,8 @@ export async function createShootAction(
   const profile = await getProfile();
   if (!profile || profile.role !== "client")
     return { ok: false, error: "forbidden" };
+  if (!rateLimit(`shoot:${user.id}`, 10, 3_600_000))
+    return { ok: false, error: "limit_reached" };
 
   const v = parsed.data;
   const supabase = await createClient();

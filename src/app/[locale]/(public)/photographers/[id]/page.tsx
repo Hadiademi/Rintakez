@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatCHF } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
+import { ReportButton } from "@/components/report-button";
 
 export const dynamic = "force-dynamic";
 
@@ -299,6 +300,10 @@ export default async function PhotographerProfilePage({
             </ul>
           </div>
         )}
+
+        <div className="border-t border-line pt-6">
+          <ReportButton targetType="profile" targetId={profile.id} />
+        </div>
       </div>
     </main>
   );

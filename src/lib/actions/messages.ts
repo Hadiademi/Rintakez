@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
 
 type ErrResult = { ok: false; error: string };
 
@@ -149,6 +150,8 @@ export async function sendMessage(
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
+  if (!rateLimit(`msg:${user.id}`, 30, 60_000))
+    return { ok: false, error: "limit_reached" };
 
   const supabase = await createClient();
   const { error } = await supabase.from("messages").insert({

@@ -381,5 +381,14 @@
     "send": "Senden",
     "about": "Zu: {title}",
     "threadEmpty": "Noch keine Nachrichten. Schreib die erste."
+  },
+  "report": {
+    "report": "Melden",
+    "reportTitle": "Inhalt melden",
+    "reportReason": "Was möchtest du melden?",
+    "reportPlaceholder": "Beschreibe das Problem kurz …",
+    "reportSubmit": "Melden",
+    "reportThanks": "Danke. Wir prüfen deine Meldung.",
+    "cancel": "Abbrechen"
   }
 }

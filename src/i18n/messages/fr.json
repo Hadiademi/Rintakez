@@ -381,5 +381,14 @@
     "send": "Envoyer",
     "about": "À propos de : {title}",
     "threadEmpty": "Pas encore de messages. Écris le premier."
+  },
+  "report": {
+    "report": "Signaler",
+    "reportTitle": "Signaler un contenu",
+    "reportReason": "Que souhaites-tu signaler ?",
+    "reportPlaceholder": "Décris brièvement le problème …",
+    "reportSubmit": "Signaler",
+    "reportThanks": "Merci. Nous examinons ton signalement.",
+    "cancel": "Annuler"
   }
 }
