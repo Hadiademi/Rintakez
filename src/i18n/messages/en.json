@@ -68,6 +68,27 @@
     "finish": "Finish",
     "errorSave": "Could not save."
   },
+  "createShoot": {
+    "title": "Post a shoot",
+    "stepType": "Type of shoot",
+    "stepWhere": "Where and when",
+    "stepDetails": "Details and budget",
+    "fieldTitle": "Title",
+    "fieldBrief": "Brief",
+    "briefPlaceholder": "Describe the flow, style and expectations.",
+    "fieldCity": "City",
+    "fieldPostcode": "Postcode (optional)",
+    "fieldCanton": "Canton",
+    "fieldDate": "Date",
+    "fieldDuration": "Duration (hours)",
+    "fieldBudgetMin": "Budget from (CHF)",
+    "fieldBudgetMax": "Budget to (CHF)",
+    "next": "Next",
+    "back": "Back",
+    "submit": "Publish",
+    "errorCreate": "Could not create.",
+    "stepLabel": "Step {current} of {total}"
+  },
   "shoot": {
     "date": "Date",
     "location": "Location",
@@ -84,6 +105,30 @@
       "architecture": "Architecture",
       "family": "Family",
       "other": "Other"
-    }
+    },
+    "status": {
+      "open": "Open",
+      "assigned": "Assigned",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+  },
+  "myShoots": {
+    "title": "My shoots",
+    "empty": "You haven't posted a shoot yet.",
+    "createCta": "Post a shoot"
+  },
+  "shootDetail": {
+    "brief": "Brief",
+    "details": "Details",
+    "offers": "Offers",
+    "noOffers": "No offers yet. Most shoots get their first offer within a few hours.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "cancelShoot": "Cancel shoot",
+    "contactTitle": "Contact",
+    "contactHint": "You're connected. Reach out directly.",
+    "byPhotographer": "Photographer"
   }
 }

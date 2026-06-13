@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(25);
+select plan(28);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -56,6 +56,21 @@ insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
 values
   ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003',
    '00000000-0000-0000-0000-000000000002', 700, 'Businessportrait, gerne.');
+
+-- A dedicated open shoot + bid for the decline_bid tests, decoupled from the
+-- accept_bid happy-path fixtures so ordering does not matter.
+insert into public.shoots (id, client_id, title, type, brief, location_city,
+                           canton, shoot_date, duration_hours,
+                           budget_min_chf, budget_max_chf)
+values
+  ('19000000-0000-0000-0000-000000000009', '00000000-0000-0000-0000-000000000001',
+   'Familienshooting Luzern', 'family', 'Lockeres Shooting am See.',
+   'Luzern', 'LU', '2027-11-01', 2, 400, 700);
+
+insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
+values
+  ('29000000-0000-0000-0000-000000000009', '19000000-0000-0000-0000-000000000009',
+   '00000000-0000-0000-0000-000000000002', 550, 'Natürliche Familienfotos.');
 
 -- ── 1–5: tables exist ────────────────────────────────────────────────
 select has_table('public', 'profiles', 'profiles exists');
@@ -272,6 +287,33 @@ select is(
   false,
   'anon cannot execute accept_bid'
 );
+
+-- ── 26: non-owner photographer cannot decline a bid ──────────────────
+-- Marko (00...0002) is the bidder but NOT the shoot owner; decline_bid must
+-- reject him with 'not your shoot'.
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
+select throws_ok(
+  $$select public.decline_bid('29000000-0000-0000-0000-000000000009')$$,
+  'P0001',
+  'not your shoot',
+  'non-owner cannot decline a bid'
+);
+reset role;
+
+-- ── 27–28: owner declines a pending bid on own open shoot ────────────
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select lives_ok(
+  $$select public.decline_bid('29000000-0000-0000-0000-000000000009')$$,
+  'owner declines a pending bid'
+);
+select results_eq(
+  $$select status::text from public.bids where id = '29000000-0000-0000-0000-000000000009'$$,
+  array['declined'],
+  'declined bid is declined'
+);
+reset role;
 
 select * from finish();
 rollback;

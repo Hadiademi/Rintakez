@@ -68,6 +68,27 @@
     "finish": "Terminer",
     "errorSave": "Échec de l'enregistrement."
   },
+  "createShoot": {
+    "title": "Créer une mission",
+    "stepType": "Type de séance",
+    "stepWhere": "Où et quand",
+    "stepDetails": "Détails et budget",
+    "fieldTitle": "Titre",
+    "fieldBrief": "Briefing",
+    "briefPlaceholder": "Décris le déroulé, le style et les attentes.",
+    "fieldCity": "Lieu",
+    "fieldPostcode": "NPA (optionnel)",
+    "fieldCanton": "Canton",
+    "fieldDate": "Date",
+    "fieldDuration": "Durée (heures)",
+    "fieldBudgetMin": "Budget de (CHF)",
+    "fieldBudgetMax": "Budget à (CHF)",
+    "next": "Suivant",
+    "back": "Retour",
+    "submit": "Publier",
+    "errorCreate": "La création a échoué.",
+    "stepLabel": "Étape {current} sur {total}"
+  },
   "shoot": {
     "date": "Date",
     "location": "Lieu",
@@ -84,6 +105,30 @@
       "architecture": "Architecture",
       "family": "Famille",
       "other": "Autre"
-    }
+    },
+    "status": {
+      "open": "Ouvert",
+      "assigned": "Attribué",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "bidsCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
+  },
+  "myShoots": {
+    "title": "Mes missions",
+    "empty": "Tu n'as pas encore créé de mission.",
+    "createCta": "Créer une mission"
+  },
+  "shootDetail": {
+    "brief": "Brief",
+    "details": "Détails",
+    "offers": "Offres",
+    "noOffers": "Pas encore d'offres. La plupart des missions reçoivent leur première offre en quelques heures.",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "cancelShoot": "Annuler la mission",
+    "contactTitle": "Contact",
+    "contactHint": "Vous êtes connectés. Contactez-vous directement.",
+    "byPhotographer": "Photographe"
   }
 }
