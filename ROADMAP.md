@@ -68,4 +68,26 @@ Status legend: ⬜ todo · 🟦 in progress · ✅ done · 🔒 gated (needs own
 ---
 
 ## Progress log
-(Updated as work lands on `feat/production-roadmap`.)
+All tiers (T0–T3) landed on `feat/production-roadmap` across 6 commits, each
+verified: typecheck ✓, eslint ✓, 39 unit tests ✓, **79 pgTAP RLS tests** ✓, plus
+Playwright E2E for each feature.
+
+### Before production launch — owner actions required
+- **Legal**: fill the Impressum operator identity + data-protection contact
+  (kept as marked placeholders — must be real). Have the AGB reviewed.
+- **Revenue model (#1)**: still undecided — choose commission (Stripe Connect) /
+  subscription / lead fees. This gates the deposit/payment hook in booking.
+- **Gated integrations** (built, inert until configured):
+  - `RESEND_API_KEY` + `EMAIL_FROM` — email notifications
+  - Google OAuth client (dashboard / config.toml) — Google sign-in
+  - `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` — analytics; `ERROR_WEBHOOK_URL` — error sink
+- **Admin**: grant `is_admin` to real operator accounts
+  (`update profiles set is_admin=true where id=…`).
+- **Known gap**: dynamic OG images (`next/og`) crash in this environment —
+  revisit on the deploy target.
+- Run `next build` on the deploy target as the final pre-launch check.
+
+### Deferred (post-launch, not in this pass)
+- Payments / Stripe Connect (depends on revenue decision)
+- Photographer-initiated booking cancellation
+- Full availability calendar UI (current: blocked-date list)
