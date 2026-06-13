@@ -206,6 +206,13 @@
     "footerImpressum": "Impressum",
     "footerDatenschutz": "Datenschutz"
   },
+  "states": {
+    "errorTitle": "Etwas ist schiefgelaufen.",
+    "errorRetry": "Erneut versuchen",
+    "notFoundTitle": "Seite nicht gefunden.",
+    "notFoundHome": "Zur Startseite",
+    "loading": "Wird geladen…"
+  },
   "bidSheet": {
     "submitTitle": "Angebot abgeben",
     "yourPrice": "Dein Preis (CHF)",

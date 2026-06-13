@@ -206,6 +206,13 @@
     "footerImpressum": "Mentions légales",
     "footerDatenschutz": "Confidentialité"
   },
+  "states": {
+    "errorTitle": "Une erreur est survenue.",
+    "errorRetry": "Réessayer",
+    "notFoundTitle": "Page introuvable.",
+    "notFoundHome": "Accueil",
+    "loading": "Chargement…"
+  },
   "bidSheet": {
     "submitTitle": "Soumettre une offre",
     "yourPrice": "Ton prix (CHF)",

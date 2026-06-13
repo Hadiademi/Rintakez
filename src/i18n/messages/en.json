@@ -206,6 +206,13 @@
     "footerImpressum": "Legal notice",
     "footerDatenschutz": "Privacy"
   },
+  "states": {
+    "errorTitle": "Something went wrong.",
+    "errorRetry": "Try again",
+    "notFoundTitle": "Page not found.",
+    "notFoundHome": "Home",
+    "loading": "Loading…"
+  },
   "bidSheet": {
     "submitTitle": "Submit an offer",
     "yourPrice": "Your price (CHF)",
