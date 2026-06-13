@@ -1,0 +1,63 @@
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SignOutButton } from "@/components/sign-out-button";
+
+interface AppNavProps {
+  role: "client" | "photographer";
+  displayName: string;
+}
+
+export async function AppNav({ role, displayName }: AppNavProps) {
+  const t = await getTranslations("nav");
+
+  const clientLinks = [
+    { href: "/home", label: t("home") },
+    { href: "/shoots/new", label: t("createShoot") },
+    { href: "/my-shoots", label: t("myShoots") },
+    { href: "/profile", label: t("profile") },
+  ] as const;
+
+  const photographerLinks = [
+    { href: "/home", label: t("home") },
+    { href: "/shoots", label: t("browseShoots") },
+    { href: "/my-bids", label: t("myBids") },
+    { href: "/profile", label: t("profile") },
+  ] as const;
+
+  const links = role === "client" ? clientLinks : photographerLinks;
+
+  return (
+    <nav className="border-b border-line bg-paper">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        {/* Left: brand + nav links */}
+        <div className="flex items-center gap-6">
+          <Link
+            href="/home"
+            className="text-base font-medium tracking-tight text-ink"
+          >
+            Rintakez
+          </Link>
+          <div className="flex items-center gap-4">
+            {links.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="label text-mute hover:text-ink"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: locale switcher + display name + sign out */}
+        <div className="flex items-center gap-4">
+          <LocaleSwitcher />
+          <span className="label text-mute-2">{displayName}</span>
+          <SignOutButton />
+        </div>
+      </div>
+    </nav>
+  );
+}

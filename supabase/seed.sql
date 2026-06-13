@@ -4,25 +4,49 @@
 -- Count tests in rls.test.sql are scoped to fixture UUIDs (10000000-...) and
 -- are unaffected by this seed data.
 
+-- Token columns are set to '' (not NULL): newer GoTrue scans them as non-null
+-- strings during password sign-in, so NULLs cause "Database error querying
+-- schema". Each user also needs a matching row in auth.identities for the
+-- email provider, otherwise sign-in fails.
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
-                        email_confirmed_at, raw_user_meta_data, created_at, updated_at)
+                        email_confirmed_at, raw_user_meta_data, created_at, updated_at,
+                        confirmation_token, recovery_token, email_change,
+                        email_change_token_new, email_change_token_current)
 values
   ('a0000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'lena@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
-   '{"role":"client","display_name":"Lena & Tobias K.","locale":"de"}', now(), now()),
+   '{"role":"client","display_name":"Lena & Tobias K.","locale":"de"}', now(), now(),
+   '', '', '', '', ''),
   ('a0000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'vitra@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
-   '{"role":"client","display_name":"Vitra AG","locale":"de"}', now(), now()),
+   '{"role":"client","display_name":"Vitra AG","locale":"de"}', now(), now(),
+   '', '', '', '', ''),
   ('a0000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'marko@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
-   '{"role":"photographer","display_name":"Marko Brunner","locale":"de"}', now(), now()),
+   '{"role":"photographer","display_name":"Marko Brunner","locale":"de"}', now(), now(),
+   '', '', '', '', ''),
   ('a0000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000',
    'authenticated', 'authenticated', 'claire@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
-   '{"role":"photographer","display_name":"Claire Dubois","locale":"fr"}', now(), now());
+   '{"role":"photographer","display_name":"Claire Dubois","locale":"fr"}', now(), now(),
+   '', '', '', '', '');
+
+-- Identities for the email provider (required for password sign-in).
+insert into auth.identities (id, user_id, provider_id, provider, identity_data,
+                             last_sign_in_at, created_at, updated_at)
+select u.id, u.id, u.id::text, 'email',
+       jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+       now(), now(), now()
+from auth.users u
+where u.id in (
+  'a0000000-0000-0000-0000-000000000001',
+  'a0000000-0000-0000-0000-000000000002',
+  'a0000000-0000-0000-0000-000000000003',
+  'a0000000-0000-0000-0000-000000000004'
+);
 
 update public.profiles set city = 'Zürich', canton = 'ZH'
   where id = 'a0000000-0000-0000-0000-000000000003';

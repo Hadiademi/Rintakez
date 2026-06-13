@@ -11,7 +11,12 @@
     "browse": "Shoots",
     "profile": "Profile",
     "login": "Log in",
-    "register": "Sign up"
+    "register": "Sign up",
+    "signOut": "Sign out",
+    "createShoot": "Post a shoot",
+    "myShoots": "My shoots",
+    "browseShoots": "Shoots",
+    "myBids": "My bids"
   },
   "landing": {
     "title": "Photography. Direct. Across Switzerland.",
@@ -19,6 +24,49 @@
     "cta": "Post a shoot",
     "latestShoots": "Open shoots",
     "offersCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+  },
+  "auth": {
+    "registerTitle": "Create account",
+    "loginTitle": "Log in",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Name or studio",
+    "roleQuestion": "I am …",
+    "roleClient": "Client",
+    "roleClientHint": "I'm hiring a photographer",
+    "rolePhotographer": "Photographer",
+    "rolePhotographerHint": "I offer shoots",
+    "submitRegister": "Create account",
+    "submitLogin": "Log in",
+    "haveAccount": "Already have an account?",
+    "noAccount": "No account yet?",
+    "toLogin": "Log in",
+    "toRegister": "Sign up",
+    "checkEmail": "Confirm your email address to continue.",
+    "genericError": "Something went wrong. Please try again."
+  },
+  "home": {
+    "greeting": "Hi, {name}.",
+    "clientCta": "Post your first shoot.",
+    "clientCtaButton": "Post a shoot",
+    "photographerCta": "Browse open shoots.",
+    "photographerCtaButton": "Shoots",
+    "yourShoots": "Your shoots",
+    "openShoots": "Open shoots",
+    "none": "Nothing here yet."
+  },
+  "onboarding": {
+    "title": "Complete your profile",
+    "subtitle": "So clients can find you.",
+    "specialties": "Specialties",
+    "cantons": "Coverage areas",
+    "hourlyRate": "Hourly rate (CHF, optional)",
+    "website": "Website (optional)",
+    "instagram": "Instagram (optional)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Add photos",
+    "finish": "Finish",
+    "errorSave": "Could not save."
   },
   "shoot": {
     "date": "Date",

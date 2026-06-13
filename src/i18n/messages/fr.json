@@ -11,7 +11,12 @@
     "browse": "Missions",
     "profile": "Profil",
     "login": "Connexion",
-    "register": "S'inscrire"
+    "register": "S'inscrire",
+    "signOut": "Déconnexion",
+    "createShoot": "Créer une mission",
+    "myShoots": "Mes missions",
+    "browseShoots": "Missions",
+    "myBids": "Mes offres"
   },
   "landing": {
     "title": "Photographie. En direct. Dans toute la Suisse.",
@@ -19,6 +24,49 @@
     "cta": "Créer une mission",
     "latestShoots": "Missions ouvertes",
     "offersCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
+  },
+  "auth": {
+    "registerTitle": "Créer un compte",
+    "loginTitle": "Connexion",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "displayName": "Nom ou studio",
+    "roleQuestion": "Je suis …",
+    "roleClient": "Client·e",
+    "roleClientHint": "Je cherche un·e photographe",
+    "rolePhotographer": "Photographe",
+    "rolePhotographerHint": "Je propose des séances",
+    "submitRegister": "Créer le compte",
+    "submitLogin": "Se connecter",
+    "haveAccount": "Déjà un compte ?",
+    "noAccount": "Pas encore de compte ?",
+    "toLogin": "Se connecter",
+    "toRegister": "S'inscrire",
+    "checkEmail": "Confirme ton adresse e-mail pour continuer.",
+    "genericError": "Une erreur est survenue. Réessaie."
+  },
+  "home": {
+    "greeting": "Bonjour, {name}.",
+    "clientCta": "Crée ta première mission.",
+    "clientCtaButton": "Créer une mission",
+    "photographerCta": "Découvre les missions ouvertes.",
+    "photographerCtaButton": "Missions",
+    "yourShoots": "Tes missions",
+    "openShoots": "Missions ouvertes",
+    "none": "Rien pour l'instant."
+  },
+  "onboarding": {
+    "title": "Compléter le profil",
+    "subtitle": "Pour que les clients te trouvent.",
+    "specialties": "Spécialités",
+    "cantons": "Régions couvertes",
+    "hourlyRate": "Tarif horaire (CHF, optionnel)",
+    "website": "Site web (optionnel)",
+    "instagram": "Instagram (optionnel)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Ajouter des photos",
+    "finish": "Terminer",
+    "errorSave": "Échec de l'enregistrement."
   },
   "shoot": {
     "date": "Date",

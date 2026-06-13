@@ -11,7 +11,12 @@
     "browse": "Aufträge",
     "profile": "Profil",
     "login": "Anmelden",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "signOut": "Abmelden",
+    "createShoot": "Auftrag erstellen",
+    "myShoots": "Meine Aufträge",
+    "browseShoots": "Aufträge",
+    "myBids": "Meine Angebote"
   },
   "landing": {
     "title": "Fotografie. Direkt. Schweizweit.",
@@ -19,6 +24,49 @@
     "cta": "Auftrag erstellen",
     "latestShoots": "Offene Aufträge",
     "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
+  },
+  "auth": {
+    "registerTitle": "Konto erstellen",
+    "loginTitle": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "displayName": "Name oder Studio",
+    "roleQuestion": "Ich bin …",
+    "roleClient": "Auftraggeber:in",
+    "roleClientHint": "Ich suche Fotograf:innen",
+    "rolePhotographer": "Fotograf:in",
+    "rolePhotographerHint": "Ich biete Shootings an",
+    "submitRegister": "Konto erstellen",
+    "submitLogin": "Anmelden",
+    "haveAccount": "Schon ein Konto?",
+    "noAccount": "Noch kein Konto?",
+    "toLogin": "Anmelden",
+    "toRegister": "Registrieren",
+    "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
+  },
+  "home": {
+    "greeting": "Hallo, {name}.",
+    "clientCta": "Erstelle deinen ersten Auftrag.",
+    "clientCtaButton": "Auftrag erstellen",
+    "photographerCta": "Entdecke offene Aufträge.",
+    "photographerCtaButton": "Aufträge",
+    "yourShoots": "Deine Aufträge",
+    "openShoots": "Offene Aufträge",
+    "none": "Noch nichts hier."
+  },
+  "onboarding": {
+    "title": "Profil vervollständigen",
+    "subtitle": "Damit Auftraggeber dich finden.",
+    "specialties": "Spezialgebiete",
+    "cantons": "Einsatzgebiete",
+    "hourlyRate": "Stundensatz (CHF, optional)",
+    "website": "Website (optional)",
+    "instagram": "Instagram (optional)",
+    "portfolio": "Portfolio",
+    "addPhotos": "Fotos hinzufügen",
+    "finish": "Fertig",
+    "errorSave": "Konnte nicht gespeichert werden."
   },
   "shoot": {
     "date": "Datum",
