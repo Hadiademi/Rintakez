@@ -105,6 +105,18 @@
       "architecture": "Architecture",
       "family": "Famille",
       "other": "Autre"
-    }
+    },
+    "status": {
+      "open": "Ouvert",
+      "assigned": "Attribué",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "bidsCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
+  },
+  "myShoots": {
+    "title": "Mes missions",
+    "empty": "Tu n'as pas encore créé de mission.",
+    "createCta": "Créer une mission"
   }
 }

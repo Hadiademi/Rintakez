@@ -105,6 +105,18 @@
       "architecture": "Architecture",
       "family": "Family",
       "other": "Other"
-    }
+    },
+    "status": {
+      "open": "Open",
+      "assigned": "Assigned",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+  },
+  "myShoots": {
+    "title": "My shoots",
+    "empty": "You haven't posted a shoot yet.",
+    "createCta": "Post a shoot"
   }
 }

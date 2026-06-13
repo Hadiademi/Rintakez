@@ -105,6 +105,18 @@
       "architecture": "Architektur",
       "family": "Familie",
       "other": "Andere"
-    }
+    },
+    "status": {
+      "open": "Offen",
+      "assigned": "Vergeben",
+      "completed": "Abgeschlossen",
+      "cancelled": "Storniert"
+    },
+    "bidsCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
+  },
+  "myShoots": {
+    "title": "Meine Aufträge",
+    "empty": "Du hast noch keinen Auftrag erstellt.",
+    "createCta": "Auftrag erstellen"
   }
 }
