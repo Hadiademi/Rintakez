@@ -26,25 +26,6 @@ function HomeIcon() {
   );
 }
 
-function PlusIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v8M8 12h8" />
-    </svg>
-  );
-}
-
 function ListIcon() {
   return (
     <svg
@@ -125,8 +106,8 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
 
   const clientTabs = [
     { href: "/home" as const, label: t("home"), icon: <HomeIcon /> },
+    { href: "/photographers" as const, label: t("photographers"), icon: <CameraIcon /> },
     { href: "/my-shoots" as const, label: t("myShoots"), icon: <ListIcon /> },
-    { href: "/shoots/new" as const, label: t("createShoot"), icon: <PlusIcon /> },
     { href: "/messages" as const, label: t("messages"), icon: <ChatIcon /> },
     { href: "/profile" as const, label: t("profile"), icon: <UserIcon /> },
   ];

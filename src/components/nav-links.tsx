@@ -16,7 +16,7 @@ export function NavLinks({ links }: { links: readonly NavLink[] }) {
           <Link
             key={href}
             href={href}
-            className={`relative py-1 text-sm tracking-tight transition-colors ${
+            className={`relative whitespace-nowrap py-1 text-sm tracking-tight transition-colors ${
               active ? "text-ink" : "text-mute hover:text-ink"
             }`}
           >
