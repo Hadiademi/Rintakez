@@ -14,14 +14,14 @@ export async function ContactReveal({ shootId }: { shootId: string }) {
   return (
     <section
       data-testid="contact-reveal"
-      className="border border-line bg-surface p-5"
+      className="border border-line bg-surface p-6"
     >
       <h2 className="label text-mute">{t("contactTitle")}</h2>
       <p className="mt-2 text-sm text-mute">{t("contactHint")}</p>
       <a
         href={`mailto:${data}`}
         data-testid="contact-email"
-        className="mt-3 inline-block font-medium text-ink hover:text-accent"
+        className="mt-4 inline-block text-lg font-semibold tracking-tight text-ink hover:text-accent"
       >
         {data}
       </a>

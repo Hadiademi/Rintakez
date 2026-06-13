@@ -88,27 +88,30 @@ export function MyBidPanel({
   }
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5">
-      <h2 className="text-lg font-medium tracking-tight">{t("yourBid")}</h2>
+    <section className="border border-line bg-surface p-6">
+      <h2 className="label text-mute">{t("yourBid")}</h2>
 
       {editing ? (
-        <div className="mt-5 space-y-5">
-          <div className="space-y-1.5">
+        <div className="mt-6 space-y-8">
+          <div className="space-y-2">
             <label htmlFor="mybid-amount-input" className="label text-mute">
               {t("yourPrice")}
             </label>
-            <input
-              id="mybid-amount-input"
-              data-testid="mybid-amount"
-              type="number"
-              inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink focus:outline-none focus:border-ink"
-            />
+            <div className="flex items-baseline gap-3 border-b border-ink pb-2">
+              <span className="text-2xl font-medium text-mute">CHF</span>
+              <input
+                id="mybid-amount-input"
+                data-testid="mybid-amount"
+                type="number"
+                inputMode="numeric"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="tabular w-full bg-transparent text-4xl font-semibold tracking-tight text-ink focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label htmlFor="mybid-message-input" className="label text-mute">
               {t("yourMessage")}
             </label>
@@ -118,7 +121,7 @@ export function MyBidPanel({
               rows={5}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-ink focus:outline-none focus:border-ink"
+              className="w-full border border-line bg-surface px-3.5 py-2.5 text-ink focus:border-ink focus:outline-none"
             />
           </div>
 
@@ -128,7 +131,7 @@ export function MyBidPanel({
               data-testid="mybid-save"
               onClick={onSave}
               disabled={isPending}
-              className="press bg-ink px-4 py-2.5 text-paper disabled:opacity-50"
+              className="press bg-ink px-4 py-2.5 label text-paper disabled:opacity-50"
             >
               {t("save")}
             </button>
@@ -144,16 +147,16 @@ export function MyBidPanel({
         </div>
       ) : (
         <>
-          <p className="mt-3 tabular text-lg font-medium text-ink">
+          <p className="mt-4 tabular text-4xl font-semibold tracking-tight text-ink">
             {formatCHF(bid.amount_chf)}
           </p>
-          <p className="mt-3 whitespace-pre-line text-sm text-mute">
+          <p className="mt-4 whitespace-pre-line leading-relaxed text-mute">
             {bid.message}
           </p>
 
           <div
             data-testid="mybid-status"
-            className={`mt-4 flex items-center gap-2 text-sm ${statusTextClass}`}
+            className={`mt-6 flex items-center gap-2 border-t border-line pt-4 text-sm ${statusTextClass}`}
           >
             <span className={`h-2 w-2 rounded-full ${dotClass}`} />
             {statusLabel}
@@ -166,7 +169,7 @@ export function MyBidPanel({
                 data-testid="mybid-edit"
                 onClick={() => setEditing(true)}
                 disabled={isPending}
-                className="press border border-line px-3 py-1.5 label text-ink disabled:opacity-50"
+                className="press border border-line px-4 py-2 label text-ink disabled:opacity-50"
               >
                 {t("edit")}
               </button>
@@ -175,7 +178,7 @@ export function MyBidPanel({
                 data-testid="mybid-withdraw"
                 onClick={onWithdraw}
                 disabled={isPending}
-                className="press border border-line px-3 py-1.5 label text-mute disabled:opacity-50"
+                className="press border border-line px-4 py-2 label text-mute disabled:opacity-50"
               >
                 {t("withdraw")}
               </button>

@@ -35,7 +35,7 @@ export function CancelShootButton({ shootId }: { shootId: string }) {
         data-testid="cancel-shoot"
         onClick={onCancel}
         disabled={isPending}
-        className="press border border-line px-3 py-1.5 label text-mute disabled:opacity-50"
+        className="press border border-line px-4 py-2 label text-mute disabled:opacity-50"
       >
         {t("cancelShoot")}
       </button>
