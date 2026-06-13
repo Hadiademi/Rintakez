@@ -3,6 +3,7 @@ import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHF, formatSwissDate } from "@/lib/format";
+import { PageHeading } from "@/components/section-label";
 import type { Database } from "@/lib/supabase/database.types";
 
 export const dynamic = "force-dynamic";
@@ -80,32 +81,22 @@ export default async function MyBidsPage() {
   );
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <h1 className="text-3xl font-medium tracking-tight">
-        {tMyBids("title")}
-      </h1>
+    <div className="space-y-10">
+      <PageHeading title={tMyBids("title")} count={list.length} />
 
-      {/* Empty state */}
       {list.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <div className="flex flex-col items-center gap-5 border border-line bg-surface py-20 text-center">
           <p className="text-mute">{tMyBids("empty")}</p>
           {browseCtaLink}
         </div>
       ) : (
-        /* Bids list */
         <div
           data-testid="my-bids-list"
-          className="grid gap-4 sm:grid-cols-2"
+          className="divide-y divide-line border-y border-line"
         >
           {list.map((bid) => {
-            // Supabase embedded many-to-one may be typed as array; normalise.
-            const shoot = Array.isArray(bid.shoot)
-              ? bid.shoot[0]
-              : bid.shoot;
-
+            const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;
             if (!shoot) return null;
-
             const dotClass = statusDotClass[bid.status] ?? "text-mute";
 
             return (
@@ -113,47 +104,29 @@ export default async function MyBidsPage() {
                 key={bid.id}
                 href={`/shoots/${shoot.id}`}
                 data-testid={`my-bid-${bid.id}`}
-                className="block border border-line bg-surface p-5 hover:bg-paper transition-colors"
+                className="press flex items-center justify-between gap-4 py-5"
               >
-                {/* Shoot type label */}
-                <span className="label text-mute">
-                  {tShoot(`types.${shoot.type}`)}
-                </span>
-
-                {/* Shoot title */}
-                <h2 className="mt-2 text-lg font-medium tracking-tight text-ink">
-                  {shoot.title}
-                </h2>
-
-                {/* Location and date */}
-                <dl className="mt-3 space-y-1 text-sm text-mute">
-                  <div className="flex justify-between">
-                    <dt>{tShoot("location")}</dt>
-                    <dd className="text-ink">
-                      {shoot.location_city}, {shoot.canton}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between">
-                    <dt>{tShoot("date")}</dt>
-                    <dd className="tabular text-ink">
-                      {formatSwissDate(shoot.shoot_date)}
-                    </dd>
-                  </div>
-                </dl>
-
-                {/* Bid amount and status row */}
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="tabular text-ink font-medium">
+                <div className="min-w-0">
+                  <p className="label uppercase text-mute">
+                    {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
+                    {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
+                  </p>
+                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
+                    {shoot.title}
+                  </h2>
+                  <p className="mt-0.5 tabular text-sm text-ink">
                     {formatCHF(bid.amount_chf)}
-                  </span>
-                  <span className={`flex items-center gap-1.5 label ${dotClass}`}>
-                    <span
-                      aria-hidden="true"
-                      className="inline-block h-1.5 w-1.5 rounded-full bg-current"
-                    />
-                    {tBid(`status.${bid.status}`)}
-                  </span>
+                  </p>
                 </div>
+                <span
+                  className={`flex shrink-0 items-center gap-1.5 label ${dotClass}`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="inline-block h-1.5 w-1.5 rounded-full bg-current"
+                  />
+                  {tBid(`status.${bid.status}`)}
+                </span>
               </Link>
             );
           })}

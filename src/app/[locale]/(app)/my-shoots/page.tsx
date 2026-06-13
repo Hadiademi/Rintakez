@@ -4,6 +4,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
+import { PageHeading } from "@/components/section-label";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,6 @@ export default async function MyShootsPage() {
     redirect({ href: "/login", locale });
     return null;
   }
-
   if (profile.role !== "client") {
     redirect({ href: "/home", locale });
     return null;
@@ -34,7 +34,6 @@ export default async function MyShootsPage() {
 
   const shootList = shoots ?? [];
 
-  // Fetch bid counts in parallel (n+1 is acceptable for this list)
   const bidCounts = await Promise.all(
     shootList.map(async (shoot) => {
       const { data, error } = await supabase.rpc("shoot_bid_count", {
@@ -47,78 +46,50 @@ export default async function MyShootsPage() {
   const createCtaLink = (
     <Link
       href="/shoots/new"
-      className="press inline-block bg-ink text-paper px-4 py-2 label"
+      className="press inline-block bg-ink text-paper px-5 py-2.5 label"
     >
       {tMyShoots("createCta")}
     </Link>
   );
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-medium tracking-tight">
-          {tMyShoots("title")}
-        </h1>
-        {createCtaLink}
+    <div className="space-y-10">
+      <div className="flex items-end justify-between gap-4">
+        <PageHeading title={tMyShoots("title")} count={shootList.length} />
+        <div className="hidden shrink-0 pb-1 sm:block">{createCtaLink}</div>
       </div>
 
-      {/* Empty state */}
       {shootList.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <div className="flex flex-col items-center gap-5 border border-line bg-surface py-20 text-center">
           <p className="text-mute">{tMyShoots("empty")}</p>
           {createCtaLink}
         </div>
       ) : (
-        /* Shoot list */
         <div
           data-testid="my-shoots-list"
-          className="grid gap-4 sm:grid-cols-2"
+          className="divide-y divide-line border-y border-line"
         >
           {shootList.map((shoot, i) => (
             <Link
               key={shoot.id}
               href={`/shoots/${shoot.id}`}
               data-testid={`my-shoot-${shoot.id}`}
-              className="block border border-line bg-surface p-5 hover:bg-paper transition-colors"
+              className="press flex items-center justify-between gap-4 py-5"
             >
-              {/* Type + Status row */}
-              <div className="flex items-center justify-between">
-                <span className="label text-mute">
-                  {tShoot(`types.${shoot.type}`)}
-                </span>
-                <ShootStatusBadge status={shoot.status} />
+              <div className="min-w-0">
+                <p className="label uppercase text-mute">
+                  {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
+                  {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
+                </p>
+                <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
+                  {shoot.title}
+                </h2>
+                <p className="mt-0.5 tabular text-sm text-mute">
+                  {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)} ·{" "}
+                  {tShoot("bidsCount", { count: bidCounts[i] })}
+                </p>
               </div>
-
-              {/* Title */}
-              <h2 className="mt-2 text-lg font-medium tracking-tight text-ink">
-                {shoot.title}
-              </h2>
-
-              {/* Details row */}
-              <dl className="mt-3 space-y-1 text-sm text-mute">
-                <div className="flex justify-between">
-                  <dt>{tShoot("location")}</dt>
-                  <dd className="text-ink">
-                    {shoot.location_city}, {shoot.canton}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt>{tShoot("date")}</dt>
-                  <dd className="tabular text-ink">
-                    {formatSwissDate(shoot.shoot_date)}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt>{tShoot("budget")}</dt>
-                  <dd className="tabular text-ink">
-                    {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)}
-                  </dd>
-                </div>
-              </dl>
-              <p className="mt-2 tabular text-sm text-mute">
-                {tShoot("bidsCount", { count: bidCounts[i] })}
-              </p>
+              <ShootStatusBadge status={shoot.status} />
             </Link>
           ))}
         </div>
