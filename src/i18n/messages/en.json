@@ -141,6 +141,19 @@
     "contactHint": "You're connected. Reach out directly.",
     "byPhotographer": "Photographer"
   },
+  "myBids": {
+    "title": "My bids",
+    "empty": "You haven't placed a bid yet.",
+    "browseCta": "Browse shoots"
+  },
+  "bid": {
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    }
+  },
   "bidSheet": {
     "submitTitle": "Submit an offer",
     "yourPrice": "Your price (CHF)",

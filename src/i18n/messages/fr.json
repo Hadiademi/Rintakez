@@ -141,6 +141,19 @@
     "contactHint": "Vous êtes connectés. Contactez-vous directement.",
     "byPhotographer": "Photographe"
   },
+  "myBids": {
+    "title": "Mes offres",
+    "empty": "Tu n'as pas encore soumis d'offre.",
+    "browseCta": "Parcourir les missions"
+  },
+  "bid": {
+    "status": {
+      "pending": "En attente",
+      "accepted": "Acceptée",
+      "declined": "Refusée",
+      "withdrawn": "Retirée"
+    }
+  },
   "bidSheet": {
     "submitTitle": "Soumettre une offre",
     "yourPrice": "Ton prix (CHF)",
