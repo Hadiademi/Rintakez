@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -28,6 +28,7 @@ export async function addUnavailableDate(
     return { ok: false, error: error.message };
 
   revalidatePath("/[locale]/(app)/profile", "page");
+  revalidateTag(`photographer:${profile.id}`, "max");
   return { ok: true };
 }
 
@@ -46,5 +47,6 @@ export async function removeUnavailableDate(
   if (error) return { ok: false, error: error.message };
 
   revalidatePath("/[locale]/(app)/profile", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
   return { ok: true };
 }

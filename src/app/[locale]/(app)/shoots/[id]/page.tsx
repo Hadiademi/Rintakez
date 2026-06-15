@@ -1,6 +1,6 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { redirect, Link } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
@@ -25,12 +25,8 @@ export default async function ShootDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [profile, locale] = await Promise.all([getProfile(), getLocale()]);
-
-  if (!profile) {
-    redirect({ href: "/login", locale });
-    return null;
-  }
+  // Public read-only access for anonymous visitors; actions require login.
+  const profile = await getProfile();
 
   const supabase = await createClient();
   const { data: shoot } = await supabase
@@ -41,18 +37,25 @@ export default async function ShootDetailPage({
 
   if (!shoot) notFound();
 
-  // Reference images (visible whenever the shoot is — enforced by RLS).
+  // Reference images live in a PRIVATE bucket; mint short-lived signed URLs.
+  // RLS on storage.objects mirrors shoot visibility, so a viewer who cannot see
+  // the shoot also cannot get a signed URL.
   const { data: rawRefs } = await supabase
     .from("shoot_images")
     .select("id, storage_path")
     .eq("shoot_id", id)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
-  const refImages = (rawRefs ?? []).map((r) => ({
-    id: r.id,
-    url: supabase.storage.from("shoot-refs").getPublicUrl(r.storage_path).data
-      .publicUrl,
-  }));
+  const refPaths = (rawRefs ?? []).map((r) => r.storage_path);
+  const { data: signedRefs } = refPaths.length
+    ? await supabase.storage.from("shoot-refs").createSignedUrls(refPaths, 3600)
+    : { data: [] };
+  const signedByPath = new Map(
+    (signedRefs ?? []).map((s) => [s.path, s.signedUrl])
+  );
+  const refImages = (rawRefs ?? [])
+    .map((r) => ({ id: r.id, url: signedByPath.get(r.storage_path) }))
+    .filter((r): r is { id: string; url: string } => !!r.url);
 
   // Conversation for this shoot (RLS returns it only to the two participants).
   const { data: conversation } = await supabase
@@ -64,6 +67,7 @@ export default async function ShootDetailPage({
   const tShoot = await getTranslations("shoot");
   const t = await getTranslations("shootDetail");
   const tMsg = await getTranslations("messages");
+  const tMarket = await getTranslations("marketplace");
 
   const messageLink = conversation ? (
     <Link
@@ -78,7 +82,7 @@ export default async function ShootDetailPage({
     </Link>
   ) : null;
 
-  const isOwner = shoot.client_id === profile.id;
+  const isOwner = !!profile && shoot.client_id === profile.id;
   const location = `${shoot.location_city}${
     shoot.location_postcode ? ` ${shoot.location_postcode}` : ""
   }, ${shoot.canton}`;
@@ -186,6 +190,24 @@ export default async function ShootDetailPage({
       </section>
     </div>
   );
+
+  // ── Anonymous visitor ─────────────────────────────────────────────
+  // Public read-only view; the bid wall is the login CTA.
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-10">
+        {summary}
+        <div className="border-t border-line pt-6">
+          <Link
+            href="/login"
+            className="press inline-flex w-fit items-center bg-ink px-5 py-3 text-sm font-medium text-paper"
+          >
+            {tMarket("loginToBid")}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // ── Photographer view ─────────────────────────────────────────────
   // Photographers never own shoots. They may read only their OWN bid.

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
 import {
@@ -54,6 +54,7 @@ export async function savePhotographerDetails(
 
   revalidatePath("/[locale]/(app)/onboarding", "page");
   revalidatePath("/[locale]/(app)/home", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
 
   return { ok: true };
 }
@@ -134,6 +135,8 @@ export async function addPortfolioImage(
     .from("portfolio")
     .getPublicUrl(path);
 
+  revalidateTag(`photographer:${user.id}`, "max");
+
   return { ok: true, id: inserted.id, path, url: urlData.publicUrl };
 }
 
@@ -171,6 +174,8 @@ export async function removePortfolioImage(
     .eq("photographer_id", user.id);
 
   if (deleteError) return { ok: false, error: deleteError.message };
+
+  revalidateTag(`photographer:${user.id}`, "max");
 
   return { ok: true };
 }

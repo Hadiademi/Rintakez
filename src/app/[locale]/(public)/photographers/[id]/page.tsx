@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { getSessionUser } from "@/lib/auth";
 import { formatCHF } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
@@ -57,73 +59,105 @@ export default async function PhotographerProfilePage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
 
-  // Fetch profile — public via RLS
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, display_name, role, city, canton, bio, avatar_url")
-    .eq("id", id)
-    .maybeSingle();
+  // All public, viewer-independent profile data is cached at the data layer
+  // (revalidate 5 min + per-photographer tag) so repeat views don't re-query the
+  // DB. Per-viewer state (save button) is fetched separately below and stays
+  // dynamic, so a cached page is never served with another user's state.
+  const data = await unstable_cache(
+    async () => {
+      const supabase = createPublicClient();
 
-  if (!profile || profile.role !== "photographer") notFound();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, display_name, role, city, canton, bio, avatar_url")
+        .eq("id", id)
+        .maybeSingle();
 
-  // Fetch photographer details
-  const { data: details } = await supabase
-    .from("photographer_details")
-    .select(
-      "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
-    )
-    .eq("profile_id", id)
-    .maybeSingle();
+      if (!profile || profile.role !== "photographer") return null;
 
-  // Fetch portfolio images ordered by sort_order, then created_at
-  const { data: rawImages } = await supabase
-    .from("portfolio_images")
-    .select("id, storage_path")
-    .eq("photographer_id", id)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+      const { data: details } = await supabase
+        .from("photographer_details")
+        .select(
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+        )
+        .eq("profile_id", id)
+        .maybeSingle();
 
-  // Build portfolio image URLs
-  const portfolioImages = (rawImages ?? []).map((img) => ({
-    id: img.id,
-    url: supabase.storage
-      .from("portfolio")
-      .getPublicUrl(img.storage_path).data.publicUrl,
-  }));
+      const { data: rawImages } = await supabase
+        .from("portfolio_images")
+        .select("id, storage_path")
+        .eq("photographer_id", id)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
 
-  // Build avatar URL
-  let avatarUrl: string | null = null;
-  if (profile.avatar_url) {
-    const raw = profile.avatar_url;
-    if (raw.startsWith("http://") || raw.startsWith("https://")) {
-      avatarUrl = raw;
-    } else {
-      avatarUrl = supabase.storage
-        .from("avatars")
-        .getPublicUrl(raw).data.publicUrl;
-    }
-  }
+      const portfolioImages = (rawImages ?? []).map((img) => ({
+        id: img.id,
+        url: supabase.storage
+          .from("portfolio")
+          .getPublicUrl(img.storage_path).data.publicUrl,
+      }));
 
-  // Ratings & reviews (public).
-  const { data: rating } = await supabase
-    .from("photographer_ratings")
-    .select("avg_rating, review_count")
-    .eq("photographer_id", id)
-    .maybeSingle();
+      let avatarUrl: string | null = null;
+      if (profile.avatar_url) {
+        const raw = profile.avatar_url;
+        avatarUrl =
+          raw.startsWith("http://") || raw.startsWith("https://")
+            ? raw
+            : supabase.storage.from("avatars").getPublicUrl(raw).data.publicUrl;
+      }
 
-  const { data: reviewRows } = await supabase
-    .from("reviews")
-    .select("id, rating, comment, created_at")
-    .eq("photographer_id", id)
-    .order("created_at", { ascending: false })
-    .limit(10);
+      const { data: rating } = await supabase
+        .from("photographer_ratings")
+        .select("avg_rating, review_count")
+        .eq("photographer_id", id)
+        .maybeSingle();
 
-  // Viewer context: can a logged-in client save this photographer?
+      const { data: reviewRows } = await supabase
+        .from("reviews")
+        .select("id, rating, comment, created_at")
+        .eq("photographer_id", id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      const { data: unavailableRows } = await supabase
+        .from("photographer_unavailable")
+        .select("date")
+        .eq("photographer_id", id)
+        .gte("date", new Date().toISOString().split("T")[0])
+        .order("date", { ascending: true });
+
+      return {
+        profile,
+        details,
+        portfolioImages,
+        avatarUrl,
+        rating,
+        reviewRows: reviewRows ?? [],
+        unavailableDates: (unavailableRows ?? []).map((r) => r.date),
+      };
+    },
+    ["photographer-public", id],
+    { revalidate: 300, tags: [`photographer:${id}`] }
+  )();
+
+  if (!data) notFound();
+
+  const {
+    profile,
+    details,
+    portfolioImages,
+    avatarUrl,
+    rating,
+    reviewRows,
+    unavailableDates,
+  } = data;
+
+  // Per-viewer state (dynamic): can a logged-in client save this photographer?
   const viewer = await getSessionUser();
   let isSaved = false;
   if (viewer && viewer.id !== id) {
+    const supabase = await createClient();
     const { data: fav } = await supabase
       .from("favorites")
       .select("photographer_id")
@@ -132,14 +166,6 @@ export default async function PhotographerProfilePage({
       .maybeSingle();
     isSaved = !!fav;
   }
-
-  const { data: unavailableRows } = await supabase
-    .from("photographer_unavailable")
-    .select("date")
-    .eq("photographer_id", id)
-    .gte("date", new Date().toISOString().split("T")[0])
-    .order("date", { ascending: true });
-  const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
 
   const t = await getTranslations("profile");
   const tShoot = await getTranslations("shoot");

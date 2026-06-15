@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { captureError } from "@/lib/observability";
+import { reportClientError } from "@/lib/actions/observability";
 
 // Root error boundary — catches failures in the root layout itself (above the
 // locale provider), so it cannot use next-intl. Kept intentionally minimal.
@@ -13,7 +13,12 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    captureError(error, { digest: error.digest, boundary: "global" });
+    void reportClientError({
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+      source: "boundary:global",
+    });
   }, [error]);
 
   return (

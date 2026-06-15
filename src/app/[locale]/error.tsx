@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { captureError } from "@/lib/observability";
+import { reportClientError } from "@/lib/actions/observability";
 
 export default function Error({
   error,
@@ -13,7 +13,12 @@ export default function Error({
   const t = useTranslations("states");
 
   useEffect(() => {
-    captureError(error, { digest: error.digest, boundary: "locale" });
+    void reportClientError({
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+      source: "boundary:locale",
+    });
   }, [error]);
   return (
     <main className="min-h-[60vh] flex flex-col items-center justify-center gap-4 bg-paper text-ink px-6 text-center">

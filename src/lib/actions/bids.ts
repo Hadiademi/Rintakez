@@ -20,7 +20,7 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   if (!parsed.success) return { ok: false, error: "invalid_input" };
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
-  if (!rateLimit(`bid:${user.id}`, 20, 3_600_000))
+  if (!(await rateLimit(`bid:${user.id}`, 20, 3_600_000)))
     return { ok: false, error: "limit_reached" };
   const supabase = await createClient();
   const { error } = await supabase.from("bids").insert({

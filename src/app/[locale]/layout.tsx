@@ -7,6 +7,7 @@ import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-script";
 import { SwRegister } from "@/components/sw-register";
 import { Analytics } from "@/components/analytics";
+import { ClientErrorReporter } from "@/components/client-error-reporter";
 import "../globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
         <ThemeScript />
         <SwRegister />
         <Analytics />
+        <ClientErrorReporter />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
       </body>
     </html>

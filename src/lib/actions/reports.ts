@@ -21,7 +21,7 @@ export async function submitReport(
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
-  if (!rateLimit(`report:${user.id}`, 10, 3_600_000))
+  if (!(await rateLimit(`report:${user.id}`, 10, 3_600_000)))
     return { ok: false, error: "limit_reached" };
 
   const supabase = await createClient();

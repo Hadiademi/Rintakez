@@ -1,20 +1,28 @@
-import { getLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
+import { PublicNav } from "@/components/public-nav";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [profile, locale] = await Promise.all([getProfile(), getLocale()]);
+  const profile = await getProfile();
 
+  // Anonymous visitors may browse the public marketplace pages in this group
+  // (open shoots, shoot detail, photographer directory). Private pages
+  // (home, my-shoots, my-bids, profile, onboarding, messages, admin, shoots/new)
+  // are gated by middleware, so an anon request never reaches them here.
   if (!profile) {
-    redirect({ href: "/login", locale });
-    // redirect() never returns; this satisfies TypeScript
-    return null;
+    return (
+      <div className="min-h-screen bg-paper">
+        <PublicNav />
+        <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">
+          {children}
+        </div>
+      </div>
+    );
   }
 
   // Resolve avatar (stored path or external URL) to a public URL for the nav.

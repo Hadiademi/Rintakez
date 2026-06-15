@@ -16,6 +16,7 @@ export function PhotographerFilters() {
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value);
     else next.delete(key);
+    next.delete("page"); // any filter change returns to the first page
     router.push(`${pathname}?${next.toString()}`);
   }
 

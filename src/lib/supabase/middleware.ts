@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./database.types";
 
 const LOCALES = ["de", "fr", "en"] as const;
+// Routes that require a session. Public marketplace browsing (/shoots,
+// /shoots/[id], /photographers) is intentionally NOT listed — anyone may browse;
+// the login wall is at the moment of action (post/bid/message/save/contact).
 const PROTECTED = [
   "/home",
   "/profile",
@@ -11,6 +14,8 @@ const PROTECTED = [
   "/my-bids",
   "/onboarding",
   "/shoots/new",
+  "/messages",
+  "/admin",
 ];
 
 export async function updateSession(

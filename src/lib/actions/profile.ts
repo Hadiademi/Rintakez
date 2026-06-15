@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
@@ -85,6 +85,7 @@ export async function uploadAvatar(
 
   revalidatePath("/[locale]/(app)/profile", "page");
   revalidatePath("/[locale]/(app)/home", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
 
   return { ok: true, url: urlData.publicUrl };
 }
@@ -148,6 +149,7 @@ export async function removeAvatar(): Promise<{ ok: true } | ErrResult> {
 
   revalidatePath("/[locale]/(app)/profile", "page");
   revalidatePath("/[locale]/(app)/home", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
 
   return { ok: true };
 }

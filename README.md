@@ -79,3 +79,12 @@ docs/superpowers/    design spec + per-plan implementation plans + launch runboo
 **Deployment** is documented in [`docs/superpowers/plans/2026-06-13-plan-6-launch-runbook.md`](docs/superpowers/plans/2026-06-13-plan-6-launch-runbook.md) — it needs the owner's GitHub / Supabase / Vercel accounts.
 
 **Deferred by design** (post-launch backlog): payments/commission (Stripe Connect, TWINT), ratings & reviews, real-time chat, notifications, password-reset flow, native apps (Expo against the same backend).
+
+## License
+
+Copyright © 2026 Rintakez. All rights reserved.
+
+This is **proprietary, closed-source software** — see [`LICENSE`](LICENSE). It is
+**not** open source. No permission is granted to use, copy, modify, or
+distribute the code or design without the prior written authorization of
+Rintakez. "Rintakez" and its logo are trademarks of the Owner.

@@ -417,5 +417,16 @@
     "target": "Target",
     "reason": "Reason",
     "viewTarget": "View"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "prev": "Previous page",
+    "next": "Next page",
+    "status": "Page {page} of {total}"
+  },
+  "marketplace": {
+    "loginToBid": "Log in to place a bid",
+    "loginToPost": "Log in to post a shoot",
+    "browseAll": "Browse all shoots"
   }
 }

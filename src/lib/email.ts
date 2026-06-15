@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureError } from "@/lib/observability";
 
 // Email is an optional, gated feature: with no RESEND_API_KEY the whole module
 // is a no-op, so local/dev runs behave exactly as before. When the key is set
@@ -23,8 +24,10 @@ async function sendEmail(to: string, subject: string, html: string) {
       },
       body: JSON.stringify({ from: EMAIL_FROM, to, subject, html }),
     });
-  } catch {
-    // Email must never break the originating action.
+  } catch (err) {
+    // Email must never break the originating action, but the failure should be
+    // visible in observability rather than silently swallowed.
+    captureError(err, { scope: "email.send", subject });
   }
 }
 
@@ -154,7 +157,8 @@ export async function notifyEmail(opts: {
     );
 
     await sendEmail(email, subject, html);
-  } catch {
-    // Swallow — notifications are best-effort.
+  } catch (err) {
+    // Best-effort — never throw into the caller, but surface to observability.
+    captureError(err, { scope: "email.notify", kind: opts.kind });
   }
 }

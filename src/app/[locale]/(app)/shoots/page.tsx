@@ -1,13 +1,16 @@
-import { getLocale, getTranslations } from "next-intl/server";
-import { redirect, Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
 import { ShootCard } from "@/components/shoot-card";
 import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
+import { Pagination } from "@/components/pagination";
 
 export const dynamic = "force-dynamic";
+
+const PER_PAGE = 12;
 
 export default async function BrowseShootsPage({
   searchParams,
@@ -17,20 +20,18 @@ export default async function BrowseShootsPage({
     type?: string;
     budgetMax?: string;
     q?: string;
+    page?: string;
   }>;
 }) {
-  const [profile, locale] = await Promise.all([getProfile(), getLocale()]);
-
-  if (!profile) {
-    redirect({ href: "/login", locale });
-    return null;
-  }
+  // Public browse: anon visitors see open shoots; the "post" CTA is client-only.
+  const profile = await getProfile();
 
   const sp = await searchParams;
   const canton = sp.canton;
   const type = sp.type;
   const budgetMax = sp.budgetMax;
   const q = sp.q?.trim();
+  const page = Math.max(1, Number(sp.page) || 1);
 
   const t = await getTranslations("browse");
   const tNav = await getTranslations("nav");
@@ -39,7 +40,8 @@ export default async function BrowseShootsPage({
   let query = supabase
     .from("shoots")
     .select(
-      "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf"
+      "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
+      { count: "exact" }
     )
     .eq("status", "open");
 
@@ -60,17 +62,21 @@ export default async function BrowseShootsPage({
     query = query.ilike("title", `%${q}%`);
   }
 
-  query = query.order("created_at", { ascending: false });
+  query = query
+    .order("created_at", { ascending: false })
+    .range((page - 1) * PER_PAGE, page * PER_PAGE - 1);
 
-  const { data: shoots } = await query;
+  const { data: shoots, count } = await query;
   const list = shoots ?? [];
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <div className="space-y-10">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <PageHeading title={t("title")} count={list.length} />
-        {profile.role === "client" && (
+        <PageHeading title={t("title")} count={total} />
+        {profile?.role === "client" && (
           <Link
             href="/shoots/new"
             className="press mt-2 hidden shrink-0 items-center gap-1.5 bg-ink px-5 py-3 text-sm font-medium text-paper sm:inline-flex"
@@ -102,6 +108,13 @@ export default async function BrowseShootsPage({
               ))}
             </div>
           )}
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            params={{ canton, type, budgetMax, q }}
+            basePath="/shoots"
+          />
         </div>
       </div>
     </div>

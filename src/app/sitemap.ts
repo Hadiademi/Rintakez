@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
+import { captureError } from "@/lib/observability";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -39,8 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         });
       }
     }
-  } catch {
-    // DB unreachable at build time — static entries still emitted
+  } catch (err) {
+    // DB unreachable at build time — static entries still emitted, but record it.
+    captureError(err, { scope: "sitemap.photographers" });
   }
   return entries;
 }

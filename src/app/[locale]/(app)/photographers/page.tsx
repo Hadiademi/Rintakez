@@ -5,8 +5,11 @@ import { getSessionUser } from "@/lib/auth";
 import { formatCHF } from "@/lib/format";
 import { Stars } from "@/components/stars";
 import { PhotographerFilters } from "@/components/photographer-filters";
+import { Pagination } from "@/components/pagination";
 
 export const dynamic = "force-dynamic";
+
+const PER_PAGE = 12;
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -24,9 +27,12 @@ export default async function PhotographersDirectoryPage({
     minRating?: string;
     sort?: string;
     saved?: string;
+    page?: string;
   }>;
 }) {
-  const { type, canton, minRating, sort, saved } = await searchParams;
+  const { type, canton, minRating, sort, saved, page: pageParam } =
+    await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
   const supabase = await createClient();
   const t = await getTranslations("directory");
 
@@ -97,6 +103,14 @@ export default async function PhotographersDirectoryPage({
     return b.rating.avg - a.rating.avg;
   });
 
+  // Ranking (rating filter + sort + "saved only") spans tables, so it is
+  // computed in memory; pagination then slices the assembled list. The
+  // directory dataset (photographers) is naturally small. If it grows large,
+  // promote ranking into a denormalized/materialized view and paginate in SQL.
+  const total = list.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const pageItems = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -108,13 +122,13 @@ export default async function PhotographersDirectoryPage({
 
       <PhotographerFilters />
 
-      <p className="label text-mute">{t("count", { count: list.length })}</p>
+      <p className="label text-mute">{t("count", { count: total })}</p>
 
-      {list.length === 0 ? (
+      {total === 0 ? (
         <p className="text-mute">{t("empty")}</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((x) => {
+          {pageItems.map((x) => {
             let avatarUrl: string | null = null;
             if (x.profile.avatar_url) {
               avatarUrl =
@@ -195,6 +209,13 @@ export default async function PhotographersDirectoryPage({
           })}
         </div>
       )}
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        params={{ type, canton, minRating, sort, saved }}
+        basePath="/photographers"
+      />
     </div>
   );
 }

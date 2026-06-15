@@ -417,5 +417,16 @@
     "target": "Ziel",
     "reason": "Grund",
     "viewTarget": "Ansehen"
+  },
+  "pagination": {
+    "label": "Seitennavigation",
+    "prev": "Vorherige Seite",
+    "next": "Nächste Seite",
+    "status": "Seite {page} von {total}"
+  },
+  "marketplace": {
+    "loginToBid": "Anmelden, um ein Angebot abzugeben",
+    "loginToPost": "Anmelden, um einen Auftrag zu posten",
+    "browseAll": "Alle Aufträge ansehen"
   }
 }

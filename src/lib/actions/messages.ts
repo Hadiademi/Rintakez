@@ -150,7 +150,7 @@ export async function sendMessage(
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
-  if (!rateLimit(`msg:${user.id}`, 30, 60_000))
+  if (!(await rateLimit(`msg:${user.id}`, 30, 60_000)))
     return { ok: false, error: "limit_reached" };
 
   const supabase = await createClient();

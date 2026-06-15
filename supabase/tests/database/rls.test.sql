@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(79);
+select plan(83);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -811,6 +811,56 @@ select throws_ok(
   '42501',
   null,
   'a non-photographer cannot block availability'
+);
+reset role;
+
+-- ── 80–83: storage.objects RLS for the private shoot-refs bucket ─────
+-- Reading a reference-image object must mirror shoot visibility: anyone may see
+-- objects on an open shoot, only the owner/accepted photographer otherwise.
+reset role;
+insert into public.shoot_images (id, shoot_id, storage_path) values
+  ('31000000-0000-0000-0000-0000000000aa',
+   '10000000-0000-0000-0000-000000000003', 'refs/open-aa.jpg'),
+  ('31000000-0000-0000-0000-0000000000bb',
+   '10000000-0000-0000-0000-000000000002', 'refs/cancelled-bb.jpg');
+insert into storage.objects (bucket_id, name) values
+  ('shoot-refs', 'refs/open-aa.jpg'),
+  ('shoot-refs', 'refs/cancelled-bb.jpg');
+
+-- 80: anon sees a reference object on an open shoot
+set local role anon;
+set local request.jwt.claims to '';
+select results_eq(
+  $$select count(*)::int from storage.objects where name = 'refs/open-aa.jpg'$$,
+  array[1],
+  'anon sees a reference object on an open shoot'
+);
+
+-- 81: anon cannot see a reference object on a cancelled shoot
+select results_eq(
+  $$select count(*)::int from storage.objects where name = 'refs/cancelled-bb.jpg'$$,
+  array[0],
+  'anon cannot see a reference object on a cancelled shoot'
+);
+reset role;
+
+-- 82: the shoot owner sees the object on their own cancelled shoot
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from storage.objects where name = 'refs/cancelled-bb.jpg'$$,
+  array[1],
+  'shoot owner sees the reference object on their cancelled shoot'
+);
+reset role;
+
+-- 83: an unrelated photographer cannot see a cancelled shoot's object
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000003","role":"authenticated"}';
+select results_eq(
+  $$select count(*)::int from storage.objects where name = 'refs/cancelled-bb.jpg'$$,
+  array[0],
+  'an unrelated photographer cannot see a cancelled shoot reference object'
 );
 reset role;
 

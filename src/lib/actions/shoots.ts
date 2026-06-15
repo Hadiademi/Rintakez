@@ -65,7 +65,7 @@ export async function createShootAction(
   const profile = await getProfile();
   if (!profile || profile.role !== "client")
     return { ok: false, error: "forbidden" };
-  if (!rateLimit(`shoot:${user.id}`, 10, 3_600_000))
+  if (!(await rateLimit(`shoot:${user.id}`, 10, 3_600_000)))
     return { ok: false, error: "limit_reached" };
 
   const v = parsed.data;
@@ -152,13 +152,14 @@ export async function addShootImage(
     return { ok: false, error: insertError?.message ?? "insert_failed" };
   }
 
-  const { data: urlData } = supabase.storage
+  // Private bucket: return a short-lived signed URL for the immediate preview.
+  const { data: signed } = await supabase.storage
     .from("shoot-refs")
-    .getPublicUrl(path);
+    .createSignedUrl(path, 3600);
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
 
-  return { ok: true, id: inserted.id, url: urlData.publicUrl };
+  return { ok: true, id: inserted.id, url: signed?.signedUrl ?? "" };
 }
 
 export async function removeShootImage(

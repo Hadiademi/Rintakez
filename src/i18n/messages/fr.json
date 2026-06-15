@@ -417,5 +417,16 @@
     "target": "Cible",
     "reason": "Motif",
     "viewTarget": "Voir"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "prev": "Page précédente",
+    "next": "Page suivante",
+    "status": "Page {page} sur {total}"
+  },
+  "marketplace": {
+    "loginToBid": "Connectez-vous pour faire une offre",
+    "loginToPost": "Connectez-vous pour publier une demande",
+    "browseAll": "Voir toutes les demandes"
   }
 }
