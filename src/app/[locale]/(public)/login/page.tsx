@@ -3,6 +3,7 @@ import { redirect } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { AuthShell } from "@/components/auth-shell";
+import { DemoBanner } from "@/components/demo-banner";
 import { GoogleButton } from "@/components/google-button";
 import LoginForm from "./login-form";
 
@@ -62,6 +63,8 @@ export default async function LoginPage({
           {errorNotice}
         </p>
       )}
+
+      <DemoBanner />
 
       <GoogleButton />
 

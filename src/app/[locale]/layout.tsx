@@ -8,6 +8,7 @@ import { ThemeScript } from "@/components/theme-script";
 import { SwRegister } from "@/components/sw-register";
 import { Analytics } from "@/components/analytics";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
+import { DemoReset } from "@/components/demo-reset";
 import "../globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -59,6 +60,7 @@ export default async function LocaleLayout({
         <Analytics />
         <ClientErrorReporter />
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <DemoReset />
       </body>
     </html>
   );
