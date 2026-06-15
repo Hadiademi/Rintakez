@@ -201,23 +201,23 @@ export class MockQuery implements PromiseLike<any> {
   private result() {
     const rows = this.shape(this.affected());
     return {
-      data: this.headOnly ? null : rows,
+      data: (this.headOnly ? null : rows) as any,
       count: this.countMode ? rows.length : null,
       error: null as null | { message: string },
     };
   }
 
-  single() {
+  single(): Promise<{ data: any; error: { message: string } | null }> {
     const rows = this.shape(this.affected());
     return Promise.resolve(
       rows[0]
-        ? { data: rows[0], error: null }
+        ? { data: rows[0] as any, error: null }
         : { data: null, error: { message: "no rows", code: "PGRST116" } }
     );
   }
-  maybeSingle() {
+  maybeSingle(): Promise<{ data: any; error: null }> {
     const rows = this.shape(this.affected());
-    return Promise.resolve({ data: rows[0] ?? null, error: null });
+    return Promise.resolve({ data: (rows[0] ?? null) as any, error: null });
   }
   then<TResult1 = any, TResult2 = never>(
     onfulfilled?: ((value: any) => TResult1 | PromiseLike<TResult1>) | null,

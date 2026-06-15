@@ -1,5 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { isDemo } from "@/lib/demo/flag";
+import { createMockClient } from "@/lib/demo/mock-client";
 import type { Database } from "./database.types";
 
 /**
@@ -9,6 +11,8 @@ import type { Database } from "./database.types";
  * so callers degrade gracefully.
  */
 export function createAdminClient() {
+  if (isDemo())
+    return createMockClient() as unknown as ReturnType<typeof createClient<Database>>;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;

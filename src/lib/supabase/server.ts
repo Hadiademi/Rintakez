@@ -1,8 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isDemo } from "@/lib/demo/flag";
+import { createMockClient } from "@/lib/demo/mock-client";
 import type { Database } from "./database.types";
 
 export async function createClient() {
+  if (isDemo())
+    return createMockClient() as unknown as ReturnType<
+      typeof createServerClient<Database>
+    >;
+
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

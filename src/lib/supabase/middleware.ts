@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDemo } from "@/lib/demo/flag";
 import type { Database } from "./database.types";
 
 const LOCALES = ["de", "fr", "en"] as const;
@@ -22,27 +23,32 @@ export async function updateSession(
   request: NextRequest,
   response: NextResponse
 ) {
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  // In demo mode there is no real auth backend — the logged-in persona lives in
+  // the `demo_user` cookie, so gate routes on its presence and skip Supabase.
+  let user: unknown = null;
+  if (isDemo()) {
+    user = request.cookies.get("demo_user")?.value ?? null;
+  } else {
+    const supabase = createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+      }
+    );
 
-  // Refreshes the auth token if expired. Do not remove.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Refreshes the auth token if expired. Do not remove.
+    user = (await supabase.auth.getUser()).data.user;
+  }
 
   // Route gating: redirect unauthenticated users away from protected paths.
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);

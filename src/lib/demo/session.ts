@@ -8,7 +8,8 @@ const COOKIE = "demo_user";
 export async function setDemoUser(id: string): Promise<void> {
   const store = await cookies();
   store.set(COOKIE, id, {
-    httpOnly: true,
+    // Readable by the browser mock auth (it is a persona id, not a secret).
+    httpOnly: false,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 7,

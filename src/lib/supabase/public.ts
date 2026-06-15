@@ -1,5 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
+import { isDemo } from "@/lib/demo/flag";
+import { createMockClient } from "@/lib/demo/mock-client";
 import type { Database } from "./database.types";
 
 /**
@@ -11,6 +13,8 @@ import type { Database } from "./database.types";
  * reviews, photographer_ratings, photographer_unavailable, open shoots).
  */
 export function createPublicClient() {
+  if (isDemo())
+    return createMockClient() as unknown as ReturnType<typeof createClient<Database>>;
   return createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
