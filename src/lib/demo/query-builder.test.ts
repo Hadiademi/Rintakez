@@ -103,3 +103,29 @@ describe("MockQuery", () => {
     expect(data.hourly_rate_chf).toBe(999);
   });
 });
+
+describe("MockQuery embedded relations", () => {
+  beforeEach(() => reseed());
+
+  it("resolves an aliased FK-hint embedded select (to-one)", async () => {
+    const { data } = await from("bids")
+      .select(
+        "id,amount_chf,message,status,photographer:profiles!bids_photographer_id_fkey(id,display_name,city,canton)"
+      )
+      .eq("id", "a0000000-0000-0000-0002-000000000001")
+      .single();
+    expect(data.photographer).not.toBeNull();
+    expect(data.photographer.display_name).toBe("Marko Brunner");
+  });
+
+  it("resolves multiple embeds and keeps plain columns", async () => {
+    const { data } = await from("bids")
+      .select(
+        "id,amount_chf,shoot:shoots!bids_shoot_id_fkey(id,title),photographer:profiles!bids_photographer_id_fkey(display_name)"
+      )
+      .eq("id", "a0000000-0000-0000-0002-000000000002");
+    expect(data[0].amount_chf).toBe(5600);
+    expect(data[0].shoot.title).toBe("Editorial — Vitra Sommerkollektion");
+    expect(data[0].photographer.display_name).toBe("Claire Dubois");
+  });
+});

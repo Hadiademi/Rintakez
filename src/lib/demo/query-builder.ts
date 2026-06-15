@@ -176,9 +176,26 @@ export class MockQuery implements PromiseLike<any> {
   }
   private lastRows: Row[] = [];
 
-  /** Hook for subclasses (embedded-relation resolution). */
+  /**
+   * Resolve embedded relations in the select string. The app uses the form
+   * `alias:table!sourcetable_localcol_fkey(cols)` (e.g.
+   * `shoot:shoots!bids_shoot_id_fkey(...)`). The local FK column is derived
+   * from the hint, and each row gets `row[alias]` set to the matching target
+   * row (to-one) or null. Plain column lists pass through unchanged.
+   */
   protected shape(rows: Row[]): Row[] {
-    return rows;
+    const embeds = parseEmbeds(this.selectCols, this.table);
+    if (embeds.length === 0) return rows;
+    const store = getStore() as any;
+    return rows.map((row) => {
+      const shaped: Row = { ...row };
+      for (const e of embeds) {
+        const targetRows: Row[] = store[e.table] ?? [];
+        shaped[e.alias] =
+          targetRows.find((t) => t[e.foreignKey] === row[e.localKey]) ?? null;
+      }
+      return shaped;
+    });
   }
 
   private result() {
@@ -208,6 +225,44 @@ export class MockQuery implements PromiseLike<any> {
   ): PromiseLike<TResult1 | TResult2> {
     return Promise.resolve(this.result()).then(onfulfilled, onrejected);
   }
+}
+
+type Embed = { alias: string; table: string; localKey: string; foreignKey: string };
+
+/** Split a select string at top-level commas (ignoring commas inside parens). */
+function splitTopLevel(s: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let buf = "";
+  for (const ch of s) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) {
+      parts.push(buf.trim());
+      buf = "";
+    } else {
+      buf += ch;
+    }
+  }
+  if (buf.trim()) parts.push(buf.trim());
+  return parts;
+}
+
+function parseEmbeds(selectCols: string, sourceTable: string): Embed[] {
+  const embeds: Embed[] = [];
+  for (const part of splitTopLevel(selectCols)) {
+    // alias:table!sourcetable_localcol_fkey(cols)
+    const m = part.match(/^(\w+):(\w+)!(\w+)\(.*\)$/);
+    if (!m) continue;
+    const [, alias, table, hint] = m;
+    // Derive the local FK column from `<sourceTable>_<localKey>_fkey`.
+    let localKey = hint;
+    if (hint.startsWith(`${sourceTable}_`) && hint.endsWith("_fkey")) {
+      localKey = hint.slice(sourceTable.length + 1, -"_fkey".length);
+    }
+    embeds.push({ alias, table, localKey, foreignKey: "id" });
+  }
+  return embeds;
 }
 
 function escapeRe(s: string): string {
