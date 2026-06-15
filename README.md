@@ -99,6 +99,34 @@ npm run dev                   # http://localhost:3000 → redirects to /de
 | `marko@example.ch` | Photographer |
 | `claire@example.ch` | Photographer |
 
+## Demo mode (backend-free)
+
+For showing the app without provisioning a backend, set `NEXT_PUBLIC_DEMO_MODE=true`.
+All Supabase access is then served by an in-memory mock seeded with realistic
+Swiss sample data — photographers with portfolios, shoots, bids, conversations,
+reviews — and writes are interactive within the session (a **Reset demo** control
+restores the seed). No database is required.
+
+```bash
+NEXT_PUBLIC_DEMO_MODE=true \
+NEXT_PUBLIC_SUPABASE_URL=https://demo.supabase.co \
+NEXT_PUBLIC_SUPABASE_ANON_KEY=demo-anon-key \
+npm run dev
+```
+
+The login screen accepts two demo accounts (shown on the page):
+
+| Role | Email | Password |
+|---|---|---|
+| Photographer | `fotograf@demo.ch` | `demo1234` |
+| Client | `klient@demo.ch` | `demo1234` |
+
+**Deploying the demo to Vercel:** push the `feat/demo-mode` branch, then in the
+Vercel project set `NEXT_PUBLIC_DEMO_MODE=true` (plus the two dummy
+`NEXT_PUBLIC_SUPABASE_*` values) for that deployment. Optionally add Vercel
+password protection on top. State is a server-side singleton: it is shared
+across visitors and resets on cold start — fine for a single-client demo.
+
 ## Scripts
 
 | Script | What it does |
