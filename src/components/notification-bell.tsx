@@ -171,9 +171,11 @@ export function NotificationBell({
         )}
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — on mobile it is a viewport-anchored panel with side margins
+          so the 320px width can never overflow off the left edge; on lg+ it is
+          a normal dropdown anchored under the bell. */}
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 border border-line bg-paper shadow-lg">
+        <div className="fixed inset-x-3 top-16 z-50 w-auto border border-line bg-paper shadow-lg lg:absolute lg:inset-x-auto lg:right-0 lg:top-full lg:mt-2 lg:w-80">
           <div className="border-b border-line px-4 py-3">
             <p className="label text-mute">{t("title")}</p>
           </div>
