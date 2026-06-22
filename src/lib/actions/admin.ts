@@ -171,3 +171,53 @@ export async function setPhotographerVerification(
   revalidatePath("/[locale]/(app)/admin", "page");
   return { ok: true };
 }
+
+export async function setUserAdmin(
+  userId: string,
+  makeAdmin: boolean
+): Promise<Ok | ErrResult> {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false, error: "forbidden" };
+  // An admin must not revoke their own admin (avoids locking out the last one).
+  if (userId === admin.id && !makeAdmin)
+    return { ok: false, error: "cannot_revoke_self" };
+
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "generic" };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_admin: makeAdmin })
+    .eq("id", userId);
+  if (error) return { ok: false, error: error.message };
+
+  await writeAudit(
+    supabase,
+    admin.id,
+    makeAdmin ? "admin_granted" : "admin_revoked",
+    "profile",
+    userId
+  );
+
+  revalidatePath("/[locale]/(app)/admin/users", "page");
+  return { ok: true };
+}
+
+export async function retryFailedEmail(id: number): Promise<Ok | ErrResult> {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false, error: "forbidden" };
+
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "generic" };
+
+  // Reset a failed row so the next cron run picks it up again.
+  const { error } = await supabase
+    .from("email_outbox")
+    .update({ status: "pending", attempts: 0, last_error: null })
+    .eq("id", id)
+    .eq("status", "failed");
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/admin/email", "page");
+  return { ok: true };
+}
