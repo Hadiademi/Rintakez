@@ -247,8 +247,9 @@ export default async function PhotographerProfilePage({
 
       <div className="mx-auto max-w-5xl px-6 pb-20">
         <div className="lg:grid lg:grid-cols-[300px_1fr] lg:gap-12">
-          {/* Identity card — overlaps the cover, sticky on desktop */}
-          <aside className="-mt-16 space-y-6 lg:sticky lg:top-8 lg:self-start">
+          {/* Identity card — overlaps the cover, sticky on desktop. relative+z
+              keeps it above the cover band (which is position:relative). */}
+          <aside className="relative z-10 -mt-16 space-y-6 lg:sticky lg:top-8 lg:self-start">
             <div className="space-y-4">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
