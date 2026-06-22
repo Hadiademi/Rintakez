@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Rintakez — Fotografie-Marktplatz Schweiz",
-    "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen aus deiner Region.",
-    "ogTitle": "Rintakez — Fotografie-Marktplatz Schweiz"
+    "title": "Rintakez — Foto- & Video-Marktplatz Schweiz",
+    "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
+    "ogTitle": "Rintakez — Foto- & Video-Marktplatz Schweiz"
   },
   "common": {
     "appName": "Rintakez",
@@ -30,8 +30,8 @@
     "admin": "Admin"
   },
   "landing": {
-    "title": "Fotografie. Direkt. Schweizweit.",
-    "subtitle": "Beschreibe deinen Shoot, erhalte Angebote von professionellen Fotograf:innen aus deiner Region.",
+    "title": "Foto & Video. Direkt. Schweizweit.",
+    "subtitle": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
     "cta": "Auftrag erstellen",
     "latestShoots": "Offene Aufträge",
     "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
@@ -44,7 +44,7 @@
     "displayName": "Name oder Studio",
     "roleQuestion": "Ich bin …",
     "roleClient": "Auftraggeber:in",
-    "roleClientHint": "Ich suche Fotograf:innen",
+    "roleClientHint": "Ich suche Foto- & Video-Profis",
     "rolePhotographer": "Fotograf:in",
     "rolePhotographerHint": "Ich biete Shootings an",
     "submitRegister": "Konto erstellen",
@@ -57,7 +57,7 @@
     "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
     "loginSubtitle": "Willkommen zurück. Melde dich an, um fortzufahren.",
     "registerSubtitle": "Erstelle dein Konto in wenigen Sekunden.",
-    "tagline": "Fotografie. Direkt. In der ganzen Schweiz.",
+    "tagline": "Foto & Video. Direkt. In der ganzen Schweiz.",
     "registeredSuccess": "Konto erstellt — bitte melde dich an.",
     "continueWithGoogle": "Mit Google fortfahren",
     "orDivider": "oder",
@@ -74,7 +74,10 @@
     "resetLinkInvalid": "Der Link ist ungültig oder abgelaufen.",
     "termsAgree": "Ich akzeptiere die <agb>AGB</agb> und <privacy>Datenschutzerklärung</privacy>.",
     "errorAcceptTerms": "Bitte akzeptiere die AGB und Datenschutzerklärung.",
-    "googleConsent": "Mit der Fortsetzung akzeptierst du unsere AGB und Datenschutzerklärung."
+    "googleConsent": "Mit der Fortsetzung akzeptierst du unsere AGB und Datenschutzerklärung.",
+    "roleProTitle": "Fotograf:in / Videograf:in",
+    "roleVideographer": "Videograf:in",
+    "rolePhotoVideo": "Fotograf:in & Videograf:in"
   },
   "home": {
     "greeting": "Guten Tag, {name}.",
@@ -123,7 +126,8 @@
     "errorSave": "Konnte nicht gespeichert werden.",
     "editTitle": "Profil bearbeiten",
     "editSubtitle": "Aktualisiere deine Angaben und dein Portfolio.",
-    "save": "Speichern"
+    "save": "Speichern",
+    "disciplines": "Disziplin"
   },
   "createShoot": {
     "title": "Auftrag erstellen",
@@ -146,7 +150,9 @@
     "errorCreate": "Konnte nicht erstellt werden.",
     "stepLabel": "Schritt {current} von {total}",
     "fieldReferences": "Referenzen (optional)",
-    "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6."
+    "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6.",
+    "editTitle": "Auftrag bearbeiten",
+    "saveChanges": "Änderungen speichern"
   },
   "shoot": {
     "date": "Datum",
@@ -180,7 +186,14 @@
       "completed": "Abgeschlossen",
       "cancelled": "Storniert"
     },
-    "bidsCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
+    "bidsCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}",
+    "discipline": "Medium",
+    "disciplines": {
+      "photo": "Foto",
+      "video": "Video"
+    },
+    "edit": "Bearbeiten",
+    "addToCalendar": "Zum Kalender hinzufügen"
   },
   "myShoots": {
     "title": "Meine Aufträge",
@@ -196,7 +209,8 @@
     "filterBudget": "Budget bis",
     "all": "Alle",
     "clear": "Zurücksetzen",
-    "empty": "Keine offenen Aufträge passen zu deinen Filtern."
+    "empty": "Keine offenen Aufträge passen zu deinen Filtern.",
+    "filterDiscipline": "Medium"
   },
   "shootDetail": {
     "brief": "Briefing",
@@ -286,7 +300,8 @@
     "notifyShootUpdatesLabel": "Shooting-Updates",
     "notifyShootUpdatesHint": "Absagen und Änderungen an deinen Shootings",
     "prefsSaved": "Gespeichert.",
-    "termsAccepted": "Bedingungen akzeptiert"
+    "termsAccepted": "Bedingungen akzeptiert",
+    "disciplines": "Disziplin"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -421,7 +436,8 @@
     "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",
     "savedOnly": "Nur gespeicherte",
     "verified": "Verifiziert",
-    "verifiedOnly": "Nur verifizierte"
+    "verifiedOnly": "Nur verifizierte",
+    "allDisciplines": "Alle Disziplinen"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -510,7 +526,12 @@
       "all": "Alle",
       "active": "Aktiv",
       "suspended": "Gesperrt"
-    }
+    },
+    "tabDisputes": "Streitfälle",
+    "disputes": "Streitfälle",
+    "noDisputes": "Keine offenen Streitfälle.",
+    "disputeResolve": "Als gelöst markieren",
+    "disputeDismiss": "Abweisen"
   },
   "pagination": {
     "label": "Seitennavigation",
@@ -525,5 +546,18 @@
   },
   "account": {
     "suspendedBanner": "Dein Konto wurde gesperrt. Du kannst vorübergehend keine neuen Inhalte erstellen."
+  },
+  "dispute": {
+    "open": "Problem melden",
+    "placeholder": "Beschreibe das Problem…",
+    "submit": "Streitfall öffnen",
+    "cancel": "Abbrechen",
+    "error": "Etwas ist schiefgelaufen.",
+    "existing": "Streitfall",
+    "status": {
+      "open": "Offen",
+      "resolved": "Gelöst",
+      "dismissed": "Abgewiesen"
+    }
   }
 }

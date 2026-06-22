@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
-import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
+import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 
@@ -15,7 +15,7 @@ const MAX_REF_IMAGES = 6;
 
 // Fields per step — used for per-step validation gating
 const STEP_FIELDS: Array<Array<keyof CreateShootInput>> = [
-  ["type"],
+  ["discipline", "type"],
   ["locationCity", "locationPostcode", "canton", "shootDate", "durationHours"],
   ["title", "brief", "budgetMinChf", "budgetMaxChf"],
 ];
@@ -68,11 +68,12 @@ export default function NewShootForm() {
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createShootSchema) as any,
-    defaultValues: { type: undefined, durationHours: 4 },
+    defaultValues: { type: undefined, discipline: "photo", durationHours: 4 },
     mode: "onTouched",
   });
 
   const selectedType = useWatch({ control, name: "type" });
+  const selectedDiscipline = useWatch({ control, name: "discipline" });
 
   async function handleNext() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -136,6 +137,31 @@ export default function NewShootForm() {
         {/* ── Step 0: Type of shoot — editorial option rows ── */}
         {step === 0 && (
           <div className="flex flex-col gap-3">
+            {/* Discipline: photo or video */}
+            <div className="mb-2 flex gap-2">
+              {DISCIPLINES.map((d) => {
+                const active = selectedDiscipline === d;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    data-testid={`shoot-discipline-${d}`}
+                    onClick={() =>
+                      setValue("discipline", d, { shouldValidate: true })
+                    }
+                    aria-pressed={active}
+                    className={`press flex-1 border px-5 py-3 text-sm font-medium transition-colors ${
+                      active
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line text-ink hover:border-mute-2"
+                    }`}
+                  >
+                    {tShoot(`disciplines.${d}`)}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex flex-col gap-3">
               {SHOOT_TYPES.map((v) => {
                 const active = selectedType === v;

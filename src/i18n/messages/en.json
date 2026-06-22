@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Rintakez — Swiss photography marketplace",
-    "description": "Describe your shoot and get offers from professional photographers in your region.",
-    "ogTitle": "Rintakez — Swiss photography marketplace"
+    "title": "Rintakez — Photo & Video Marketplace Switzerland",
+    "description": "Describe your shoot and get offers from professional photographers and videographers in your area.",
+    "ogTitle": "Rintakez — Photo & Video Marketplace Switzerland"
   },
   "common": {
     "appName": "Rintakez",
@@ -30,8 +30,8 @@
     "admin": "Admin"
   },
   "landing": {
-    "title": "Photography. Direct. Across Switzerland.",
-    "subtitle": "Describe your shoot and receive offers from professional photographers in your region.",
+    "title": "Photo & video. Direct. Across Switzerland.",
+    "subtitle": "Describe your shoot and get offers from professional photographers and videographers in your area.",
     "cta": "Post a shoot",
     "latestShoots": "Open shoots",
     "offersCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
@@ -44,7 +44,7 @@
     "displayName": "Name or studio",
     "roleQuestion": "I am …",
     "roleClient": "Client",
-    "roleClientHint": "I'm hiring a photographer",
+    "roleClientHint": "I’m hiring a photographer or videographer",
     "rolePhotographer": "Photographer",
     "rolePhotographerHint": "I offer shoots",
     "submitRegister": "Create account",
@@ -57,7 +57,7 @@
     "genericError": "Something went wrong. Please try again.",
     "loginSubtitle": "Welcome back. Sign in to continue.",
     "registerSubtitle": "Create your account in seconds.",
-    "tagline": "Photography. Direct. Across Switzerland.",
+    "tagline": "Photo & video. Direct. Across Switzerland.",
     "registeredSuccess": "Account created — please sign in.",
     "continueWithGoogle": "Continue with Google",
     "orDivider": "or",
@@ -74,7 +74,10 @@
     "resetLinkInvalid": "The link is invalid or expired.",
     "termsAgree": "I accept the <agb>Terms</agb> and <privacy>Privacy Policy</privacy>.",
     "errorAcceptTerms": "Please accept the Terms and Privacy Policy.",
-    "googleConsent": "By continuing you accept our Terms and Privacy Policy."
+    "googleConsent": "By continuing you accept our Terms and Privacy Policy.",
+    "roleProTitle": "Photographer / Videographer",
+    "roleVideographer": "Videographer",
+    "rolePhotoVideo": "Photographer & Videographer"
   },
   "home": {
     "greeting": "Hi, {name}.",
@@ -123,7 +126,8 @@
     "errorSave": "Could not save.",
     "editTitle": "Edit profile",
     "editSubtitle": "Update your details and portfolio.",
-    "save": "Save"
+    "save": "Save",
+    "disciplines": "Discipline"
   },
   "createShoot": {
     "title": "Post a shoot",
@@ -146,7 +150,9 @@
     "errorCreate": "Could not create.",
     "stepLabel": "Step {current} of {total}",
     "fieldReferences": "References (optional)",
-    "referencesHint": "Images that show the style you want. Max 6."
+    "referencesHint": "Images that show the style you want. Max 6.",
+    "editTitle": "Edit shoot",
+    "saveChanges": "Save changes"
   },
   "shoot": {
     "date": "Date",
@@ -180,7 +186,14 @@
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
-    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}",
+    "discipline": "Medium",
+    "disciplines": {
+      "photo": "Photo",
+      "video": "Video"
+    },
+    "edit": "Edit",
+    "addToCalendar": "Add to calendar"
   },
   "myShoots": {
     "title": "My shoots",
@@ -196,7 +209,8 @@
     "filterBudget": "Budget up to",
     "all": "All",
     "clear": "Clear",
-    "empty": "No open shoots match your filters."
+    "empty": "No open shoots match your filters.",
+    "filterDiscipline": "Medium"
   },
   "shootDetail": {
     "brief": "Brief",
@@ -286,7 +300,8 @@
     "notifyShootUpdatesLabel": "Shoot updates",
     "notifyShootUpdatesHint": "Cancellations and changes to your shoots",
     "prefsSaved": "Saved.",
-    "termsAccepted": "Terms accepted"
+    "termsAccepted": "Terms accepted",
+    "disciplines": "Discipline"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -421,7 +436,8 @@
     "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}",
     "savedOnly": "Saved only",
     "verified": "Verified",
-    "verifiedOnly": "Verified only"
+    "verifiedOnly": "Verified only",
+    "allDisciplines": "All disciplines"
   },
   "messages": {
     "navMessages": "Messages",
@@ -510,7 +526,12 @@
       "all": "All",
       "active": "Active",
       "suspended": "Suspended"
-    }
+    },
+    "tabDisputes": "Disputes",
+    "disputes": "Disputes",
+    "noDisputes": "No open disputes.",
+    "disputeResolve": "Mark resolved",
+    "disputeDismiss": "Dismiss"
   },
   "pagination": {
     "label": "Pagination",
@@ -525,5 +546,18 @@
   },
   "account": {
     "suspendedBanner": "Your account has been suspended. You can’t create new content for now."
+  },
+  "dispute": {
+    "open": "Report a problem",
+    "placeholder": "Describe the problem…",
+    "submit": "Open dispute",
+    "cancel": "Cancel",
+    "error": "Something went wrong.",
+    "existing": "Dispute",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    }
   }
 }

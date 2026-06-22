@@ -9,13 +9,14 @@ import {
   addPortfolioImage,
   removePortfolioImage,
 } from "@/lib/actions/photographer";
-import { SHOOT_TYPES, CANTONS } from "@/lib/validation/photographer";
+import { SHOOT_TYPES, CANTONS, DISCIPLINES } from "@/lib/validation/photographer";
 import { errorKey } from "@/lib/error-messages";
 
 type PortfolioItem = { id: string; url: string };
 
 type InitialDetails = {
   specialties: string[];
+  disciplines: string[];
   cantons: string[];
   hourlyRate: string;
   website: string;
@@ -25,6 +26,7 @@ type InitialDetails = {
 
 const EMPTY_INITIAL: InitialDetails = {
   specialties: [],
+  disciplines: ["photo"],
   cantons: [],
   hourlyRate: "",
   website: "",
@@ -45,6 +47,7 @@ export default function OnboardingForm({
   const router = useRouter();
 
   const [specialties, setSpecialties] = useState<string[]>(initial.specialties);
+  const [disciplines, setDisciplines] = useState<string[]>(initial.disciplines);
   const [cantons, setCantons] = useState<string[]>(initial.cantons);
   const [hourlyRate, setHourlyRate] = useState(initial.hourlyRate);
   const [website, setWebsite] = useState(initial.website);
@@ -64,6 +67,11 @@ export default function OnboardingForm({
   }));
 
   const cantonOptions = CANTONS.map((v) => ({ value: v, label: v }));
+
+  const disciplineOptions = DISCIPLINES.map((v) => ({
+    value: v,
+    label: tShoot(`disciplines.${v}`),
+  }));
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -95,6 +103,7 @@ export default function OnboardingForm({
     setSaving(true);
     const result = await savePhotographerDetails({
       specialties,
+      disciplines,
       coverageCantons: cantons,
       hourlyRateChf: hourlyRate ? Number(hourlyRate) : undefined,
       websiteUrl: website,
@@ -109,10 +118,22 @@ export default function OnboardingForm({
     }
   }
 
-  const canFinish = specialties.length > 0 && cantons.length > 0;
+  const canFinish =
+    specialties.length > 0 && disciplines.length > 0 && cantons.length > 0;
 
   return (
     <div className="flex flex-col gap-8 max-w-2xl">
+      {/* Disciplines (photo / video) */}
+      <div className="flex flex-col gap-3">
+        <label className="label text-mute">{t("disciplines")}</label>
+        <ChipMultiSelect
+          options={disciplineOptions}
+          value={disciplines}
+          onChange={setDisciplines}
+          data-testid="onboarding-disciplines"
+        />
+      </div>
+
       {/* Specialties */}
       <div className="flex flex-col gap-3">
         <label className="label text-mute">{t("specialties")}</label>

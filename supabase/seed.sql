@@ -66,12 +66,14 @@ update public.profiles set city = 'Lausanne', canton = 'VD'
   where id = 'a0000000-0000-0000-0000-000000000004';
 
 insert into public.photographer_details
-  (profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status)
+  (profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status,
+   disciplines)
 values
   ('a0000000-0000-0000-0000-000000000003',
-   '{wedding,portrait}', '{ZH,ZG,SZ,VS}', 280, 'verified'),
+   '{wedding,portrait}', '{ZH,ZG,SZ,VS}', 280, 'verified', '{photo}'),
   ('a0000000-0000-0000-0000-000000000004',
-   '{commercial,architecture,portrait}', '{VD,GE,FR}', 320, 'verified');
+   '{commercial,architecture,portrait}', '{VD,GE,FR}', 320, 'verified',
+   '{photo,video}');
 
 -- ── Shoots: 3 open + 1 assigned + 1 cancelled ────────────────────────────────
 -- All inserted as 'open' (default); assigned/cancelled updated below via valid FSM path.

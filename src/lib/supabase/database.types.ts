@@ -84,6 +84,7 @@ export type Database = {
           instagram_url: string | null;
           created_at: string;
           verification_status: Database["public"]["Enums"]["verification_status"];
+          disciplines: Database["public"]["Enums"]["discipline"][];
         };
         Insert: {
           profile_id: string;
@@ -94,6 +95,7 @@ export type Database = {
           instagram_url?: string | null;
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
+          disciplines?: Database["public"]["Enums"]["discipline"][];
         };
         Update: {
           profile_id?: string;
@@ -104,6 +106,7 @@ export type Database = {
           instagram_url?: string | null;
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
+          disciplines?: Database["public"]["Enums"]["discipline"][];
         };
         Relationships: [];
       };
@@ -175,6 +178,7 @@ export type Database = {
           cancellation_reason: string | null;
           is_suspended: boolean;
           suspended_reason: string | null;
+          discipline: Database["public"]["Enums"]["discipline"];
         };
         Insert: {
           id?: string;
@@ -195,6 +199,7 @@ export type Database = {
           cancellation_reason?: string | null;
           is_suspended?: boolean;
           suspended_reason?: string | null;
+          discipline?: Database["public"]["Enums"]["discipline"];
         };
         Update: {
           id?: string;
@@ -215,6 +220,7 @@ export type Database = {
           cancellation_reason?: string | null;
           is_suspended?: boolean;
           suspended_reason?: string | null;
+          discipline?: Database["public"]["Enums"]["discipline"];
         };
         Relationships: [];
       };
@@ -377,6 +383,42 @@ export type Database = {
           reviewed_by?: string | null;
           reviewed_at?: string | null;
           admin_note?: string | null;
+        };
+        Relationships: [];
+      };
+      disputes: {
+        Row: {
+          id: string;
+          shoot_id: string;
+          opened_by: string;
+          reason: string;
+          status: Database["public"]["Enums"]["dispute_status"];
+          resolution_note: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shoot_id: string;
+          opened_by: string;
+          reason: string;
+          status?: Database["public"]["Enums"]["dispute_status"];
+          resolution_note?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          shoot_id?: string;
+          opened_by?: string;
+          reason?: string;
+          status?: Database["public"]["Enums"]["dispute_status"];
+          resolution_note?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -637,6 +679,8 @@ export type Database = {
       report_target: "profile" | "shoot";
       report_status: "open" | "reviewed" | "dismissed";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
+      discipline: "photo" | "video";
+      dispute_status: "open" | "resolved" | "dismissed";
     };
     CompositeTypes: Record<string, never>;
   };

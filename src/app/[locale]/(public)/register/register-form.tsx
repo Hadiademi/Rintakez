@@ -147,7 +147,7 @@ export default function RegisterForm() {
             ].join(" ")}
           >
             <span className="text-[14px] font-medium text-ink">
-              {t("rolePhotographer")}
+              {t("roleProTitle")}
             </span>
             <span className="text-[12px] text-mute">
               {t("rolePhotographerHint")}

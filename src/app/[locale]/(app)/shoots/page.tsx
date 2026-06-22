@@ -18,6 +18,7 @@ export default async function BrowseShootsPage({
   searchParams: Promise<{
     canton?: string;
     type?: string;
+    discipline?: string;
     budgetMax?: string;
     q?: string;
     page?: string;
@@ -29,6 +30,7 @@ export default async function BrowseShootsPage({
   const sp = await searchParams;
   const canton = sp.canton;
   const type = sp.type;
+  const discipline = sp.discipline;
   const budgetMax = sp.budgetMax;
   const q = sp.q?.trim();
   const page = Math.max(1, Number(sp.page) || 1);
@@ -43,7 +45,7 @@ export default async function BrowseShootsPage({
   let query = supabase
     .from("shoots")
     .select(
-      "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
+      "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
       { count: "exact" }
     )
     .eq("status", "open")
@@ -55,6 +57,10 @@ export default async function BrowseShootsPage({
 
   if (type && (SHOOT_TYPES as readonly string[]).includes(type)) {
     query = query.eq("type", type as (typeof SHOOT_TYPES)[number]);
+  }
+
+  if (discipline === "photo" || discipline === "video") {
+    query = query.eq("discipline", discipline);
   }
 
   const budgetMaxNum = budgetMax ? Number(budgetMax) : NaN;
@@ -116,7 +122,7 @@ export default async function BrowseShootsPage({
           <Pagination
             page={page}
             totalPages={totalPages}
-            params={{ canton, type, budgetMax, q }}
+            params={{ canton, type, discipline, budgetMax, q }}
             basePath="/shoots"
           />
         </div>

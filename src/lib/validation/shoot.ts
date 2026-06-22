@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { CANTONS, SHOOT_TYPES } from "./photographer";
+import { CANTONS, DISCIPLINES, SHOOT_TYPES } from "./photographer";
 
 export const createShootSchema = z
   .object({
     title: z.string().min(3).max(120),
     type: z.enum(SHOOT_TYPES),
+    discipline: z.enum(DISCIPLINES),
     brief: z.string().min(10).max(4000),
     locationCity: z.string().min(1).max(120),
     locationPostcode: z.string().regex(/^[0-9]{4}$/).optional().or(z.literal("")),

@@ -62,6 +62,7 @@ export default async function AdminDashboardPage() {
     pendingVerifications,
     suspendedUsers,
     failedEmails,
+    openDisputes,
     signups7,
     signups30,
   ] = await Promise.all([
@@ -76,6 +77,7 @@ export default async function AdminDashboardPage() {
       .eq("verification_status", "pending"),
     admin.from("profiles").select("id", head).eq("is_suspended", true),
     admin.from("email_outbox").select("id", head).eq("status", "failed"),
+    admin.from("disputes").select("id", head).eq("status", "open"),
     admin.from("profiles").select("id", head).gte("created_at", days(7)),
     admin.from("profiles").select("id", head).gte("created_at", days(30)),
   ]);
@@ -118,6 +120,11 @@ export default async function AdminDashboardPage() {
             value={failedEmails.count ?? 0}
             label={t("failedEmails")}
             href="/admin/email"
+          />
+          <Attention
+            value={openDisputes.count ?? 0}
+            label={t("disputes")}
+            href="/admin/disputes"
           />
         </div>
       </section>
