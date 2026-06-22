@@ -209,71 +209,114 @@ export default async function PhotographerProfilePage({
       : {}),
   };
 
+  const coverUrl = portfolioImages[0]?.url ?? null;
+
   return (
     <main className="bg-paper min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
-        {/* Back link */}
+
+      {/* Cover band — first portfolio image, else a monogram band */}
+      <div className="relative h-48 w-full overflow-hidden border-b border-line bg-chip sm:h-60">
+        {coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverUrl}
+            alt=""
+            className="h-full w-full object-cover grayscale"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-chip to-surface">
+            <span className="select-none text-[110px] font-semibold leading-none tracking-tight text-mute-2/40">
+              {initials}
+            </span>
+          </div>
+        )}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-[13px] text-mute hover:text-ink transition-colors"
+          className="absolute left-5 top-5 inline-flex items-center gap-1 rounded-full border border-line bg-paper/85 px-3 py-1.5 text-[13px] text-ink backdrop-blur transition-opacity hover:opacity-80"
         >
           ← Rintakez
         </Link>
+      </div>
 
-        {/* Header */}
-        <div className="flex items-start gap-5">
-          {/* Avatar */}
-          <div className="shrink-0">
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={avatarUrl}
-                alt={profile.display_name}
-                className="w-16 h-16 rounded-full object-cover border border-line"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-chip border border-line flex items-center justify-center">
-                <span className="text-[18px] font-medium text-mute">
-                  {initials}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Name & location */}
-          <div className="flex flex-col gap-1 pt-1">
-            <h1 className="flex items-center gap-2 text-2xl font-medium tracking-tight text-ink">
-              {profile.display_name}
-              {details?.verification_status === "verified" && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
-                  ✓ {t("verified")}
-                </span>
+      <div className="mx-auto max-w-5xl px-6 pb-20">
+        <div className="lg:grid lg:grid-cols-[300px_1fr] lg:gap-12">
+          {/* Identity card — overlaps the cover, sticky on desktop */}
+          <aside className="-mt-16 space-y-6 lg:sticky lg:top-8 lg:self-start">
+            <div className="space-y-4">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt={profile.display_name}
+                  className="h-28 w-28 rounded-full border-4 border-paper object-cover shadow-sm"
+                />
+              ) : (
+                <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-paper bg-chip shadow-sm">
+                  <span className="text-[30px] font-medium text-mute">
+                    {initials}
+                  </span>
+                </div>
               )}
-            </h1>
-            {(profile.city || profile.canton) && (
-              <p className="text-[14px] text-mute">
-                {[profile.city, profile.canton].filter(Boolean).join(", ")}
-              </p>
-            )}
-            {rating && rating.review_count ? (
-              <div className="mt-1 flex items-center gap-2">
-                <Stars value={rating.avg_rating ?? 0} />
-                <span className="tabular text-[13px] text-mute">
-                  {rating.avg_rating?.toFixed(1)} ·{" "}
-                  {tReview("count", { count: rating.review_count })}
-                </span>
-              </div>
-            ) : null}
-          </div>
-        </div>
 
-        {viewer && viewer.id !== profile.id && (
-          <SaveButton photographerId={profile.id} initialSaved={isSaved} />
-        )}
+              <div className="space-y-1">
+                <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight text-ink">
+                  {profile.display_name}
+                  {details?.verification_status === "verified" && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
+                      ✓ {t("verified")}
+                    </span>
+                  )}
+                </h1>
+                {(profile.city || profile.canton) && (
+                  <p className="text-[14px] text-mute">
+                    {[profile.city, profile.canton].filter(Boolean).join(", ")}
+                  </p>
+                )}
+                {rating && rating.review_count ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Stars value={rating.avg_rating ?? 0} />
+                    <span className="tabular text-[13px] text-mute">
+                      {rating.avg_rating?.toFixed(1)} ·{" "}
+                      {tReview("count", { count: rating.review_count })}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {details?.hourly_rate_chf != null && (
+              <div className="border-t border-line pt-4">
+                <p className="label text-mute">{t("hourlyRate")}</p>
+                <p className="tabular mt-1 text-2xl font-semibold text-ink">
+                  {t("hourlyFrom", {
+                    amount: formatCHF(details.hourly_rate_chf),
+                  })}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-3">
+              {viewer && viewer.id !== profile.id && (
+                <SaveButton photographerId={profile.id} initialSaved={isSaved} />
+              )}
+              <Link
+                href="/shoots/new"
+                className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
+              >
+                {t("postShootCta")}
+              </Link>
+              <div className="pt-1">
+                <ReportButton targetType="profile" targetId={profile.id} />
+              </div>
+            </div>
+          </aside>
+
+          {/* Main column */}
+          <div className="mt-10 min-w-0 space-y-10 lg:mt-2">
 
         {unavailableDates.length > 0 && (
           <div className="space-y-2">
@@ -356,16 +399,6 @@ export default async function PhotographerProfilePage({
               </div>
             )}
 
-            {/* Hourly rate */}
-            {details?.hourly_rate_chf != null && (
-              <div className="space-y-1">
-                <p className="label text-mute">{t("hourlyRate")}</p>
-                <p className="text-[15px] text-ink tabular">
-                  {t("hourlyFrom", { amount: formatCHF(details.hourly_rate_chf) })}
-                </p>
-              </div>
-            )}
-
             {/* Links */}
             {(details?.website_url || details?.instagram_url) && (
               <div className="flex flex-wrap gap-4">
@@ -400,31 +433,55 @@ export default async function PhotographerProfilePage({
           {portfolioImages.length > 0 ? (
             <PortfolioGrid images={portfolioImages} />
           ) : (
-            <p className="text-[14px] text-mute">{t("noPortfolio")}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex aspect-square items-center justify-center border border-dashed border-line bg-chip/40 text-mute-2"
+                  aria-hidden
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="1" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+              ))}
+              <p className="col-span-full text-[14px] text-mute">
+                {t("noPortfolio")}
+              </p>
+            </div>
           )}
         </div>
 
-        {/* Reviews */}
-        {reviewRows && reviewRows.length > 0 && (
+          {/* Reviews */}
           <div className="space-y-5 border-t border-line pt-8">
             <p className="label text-mute">{tReview("reviews")}</p>
-            <ul className="space-y-5">
-              {reviewRows.map((r) => (
-                <li key={r.id} className="space-y-1.5">
-                  <Stars value={r.rating} />
-                  {r.comment ? (
-                    <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">
-                      {r.comment}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+            {reviewRows && reviewRows.length > 0 ? (
+              <ul className="space-y-5">
+                {reviewRows.map((r) => (
+                  <li key={r.id} className="space-y-1.5">
+                    <Stars value={r.rating} />
+                    {r.comment ? (
+                      <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">
+                        {r.comment}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[14px] text-mute">{tReview("noReviews")}</p>
+            )}
           </div>
-        )}
-
-        <div className="border-t border-line pt-6">
-          <ReportButton targetType="profile" targetId={profile.id} />
+        </div>
         </div>
       </div>
     </main>
