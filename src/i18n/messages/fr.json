@@ -150,7 +150,9 @@
     "errorCreate": "La création a échoué.",
     "stepLabel": "Étape {current} sur {total}",
     "fieldReferences": "Références (optionnel)",
-    "referencesHint": "Images illustrant le style souhaité. Max. 6."
+    "referencesHint": "Images illustrant le style souhaité. Max. 6.",
+    "editTitle": "Modifier l’annonce",
+    "saveChanges": "Enregistrer les modifications"
   },
   "shoot": {
     "date": "Date",
@@ -189,7 +191,9 @@
     "disciplines": {
       "photo": "Photo",
       "video": "Vidéo"
-    }
+    },
+    "edit": "Modifier",
+    "addToCalendar": "Ajouter au calendrier"
   },
   "myShoots": {
     "title": "Mes missions",
@@ -522,7 +526,12 @@
       "all": "Tous",
       "active": "Actifs",
       "suspended": "Suspendus"
-    }
+    },
+    "tabDisputes": "Litiges",
+    "disputes": "Litiges",
+    "noDisputes": "Aucun litige ouvert.",
+    "disputeResolve": "Marquer résolu",
+    "disputeDismiss": "Rejeter"
   },
   "pagination": {
     "label": "Pagination",
@@ -537,5 +546,18 @@
   },
   "account": {
     "suspendedBanner": "Votre compte a été suspendu. Vous ne pouvez temporairement pas créer de nouveau contenu."
+  },
+  "dispute": {
+    "open": "Signaler un problème",
+    "placeholder": "Décris le problème…",
+    "submit": "Ouvrir un litige",
+    "cancel": "Annuler",
+    "error": "Une erreur s’est produite.",
+    "existing": "Litige",
+    "status": {
+      "open": "Ouvert",
+      "resolved": "Résolu",
+      "dismissed": "Rejeté"
+    }
   }
 }

@@ -150,7 +150,9 @@
     "errorCreate": "Could not create.",
     "stepLabel": "Step {current} of {total}",
     "fieldReferences": "References (optional)",
-    "referencesHint": "Images that show the style you want. Max 6."
+    "referencesHint": "Images that show the style you want. Max 6.",
+    "editTitle": "Edit shoot",
+    "saveChanges": "Save changes"
   },
   "shoot": {
     "date": "Date",
@@ -189,7 +191,9 @@
     "disciplines": {
       "photo": "Photo",
       "video": "Video"
-    }
+    },
+    "edit": "Edit",
+    "addToCalendar": "Add to calendar"
   },
   "myShoots": {
     "title": "My shoots",
@@ -522,7 +526,12 @@
       "all": "All",
       "active": "Active",
       "suspended": "Suspended"
-    }
+    },
+    "tabDisputes": "Disputes",
+    "disputes": "Disputes",
+    "noDisputes": "No open disputes.",
+    "disputeResolve": "Mark resolved",
+    "disputeDismiss": "Dismiss"
   },
   "pagination": {
     "label": "Pagination",
@@ -537,5 +546,18 @@
   },
   "account": {
     "suspendedBanner": "Your account has been suspended. You can’t create new content for now."
+  },
+  "dispute": {
+    "open": "Report a problem",
+    "placeholder": "Describe the problem…",
+    "submit": "Open dispute",
+    "cancel": "Cancel",
+    "error": "Something went wrong.",
+    "existing": "Dispute",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    }
   }
 }

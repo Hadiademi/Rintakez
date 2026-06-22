@@ -203,6 +203,37 @@ export async function setUserAdmin(
   return { ok: true };
 }
 
+export async function resolveDispute(
+  id: string,
+  status: "resolved" | "dismissed",
+  note?: string
+): Promise<Ok | ErrResult> {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false, error: "forbidden" };
+
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "generic" };
+
+  const trimmedNote = note?.trim() ? note.trim().slice(0, 2000) : null;
+  const { error } = await supabase
+    .from("disputes")
+    .update({
+      status,
+      resolution_note: trimmedNote,
+      resolved_by: admin.id,
+      resolved_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  await writeAudit(supabase, admin.id, `dispute_${status}`, "dispute", id, {
+    note: trimmedNote,
+  });
+
+  revalidatePath("/[locale]/(app)/admin/disputes", "page");
+  return { ok: true };
+}
+
 export async function retryFailedEmail(id: number): Promise<Ok | ErrResult> {
   const admin = await requireAdmin();
   if (!admin) return { ok: false, error: "forbidden" };

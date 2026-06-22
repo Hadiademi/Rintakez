@@ -386,6 +386,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      disputes: {
+        Row: {
+          id: string;
+          shoot_id: string;
+          opened_by: string;
+          reason: string;
+          status: Database["public"]["Enums"]["dispute_status"];
+          resolution_note: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          shoot_id: string;
+          opened_by: string;
+          reason: string;
+          status?: Database["public"]["Enums"]["dispute_status"];
+          resolution_note?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          shoot_id?: string;
+          opened_by?: string;
+          reason?: string;
+          status?: Database["public"]["Enums"]["dispute_status"];
+          resolution_note?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       user_blocks: {
         Row: {
           blocker_id: string;
@@ -644,6 +680,7 @@ export type Database = {
       report_status: "open" | "reviewed" | "dismissed";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
       discipline: "photo" | "video";
+      dispute_status: "open" | "resolved" | "dismissed";
     };
     CompositeTypes: Record<string, never>;
   };

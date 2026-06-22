@@ -16,6 +16,7 @@ import { Stars } from "@/components/stars";
 import { BidSheet } from "@/components/bid-sheet";
 import { MyBidPanel } from "@/components/my-bid-panel";
 import { ReportButton } from "@/components/report-button";
+import { DisputePanel } from "@/components/dispute-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +87,19 @@ export default async function ShootDetailPage({
   const location = `${shoot.location_city}${
     shoot.location_postcode ? ` ${shoot.location_postcode}` : ""
   }, ${shoot.canton}`;
+
+  // Latest dispute on this shoot (RLS exposes it only to participants).
+  let disputeStatus: "open" | "resolved" | "dismissed" | null = null;
+  if (shoot.status === "assigned" || shoot.status === "completed") {
+    const { data: latestDispute } = await supabase
+      .from("disputes")
+      .select("status")
+      .eq("shoot_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    disputeStatus = latestDispute?.status ?? null;
+  }
 
   const specRows: { label: string; value: string; tabular?: boolean }[] = [
     { label: tShoot("date"), value: formatSwissDate(shoot.shoot_date), tabular: true },
@@ -245,6 +259,12 @@ export default async function ShootDetailPage({
           <p className="text-mute">{tBid("notOpen")}</p>
         )}
         {messageLink}
+        {(shoot.status === "assigned" || shoot.status === "completed") &&
+        myBid?.status === "accepted" ? (
+          <div className="border-t border-line pt-6">
+            <DisputePanel shootId={id} existingStatus={disputeStatus} />
+          </div>
+        ) : null}
         <div className="border-t border-line pt-6">
           <ReportButton targetType="shoot" targetId={id} />
         </div>
@@ -289,7 +309,15 @@ export default async function ShootDetailPage({
         {summary}
 
         {shoot.status === "open" ? (
-          <CancelShootButton shootId={shoot.id} />
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href={`/shoots/${shoot.id}/edit`}
+              className="press border border-line px-5 py-2.5 text-sm text-ink"
+            >
+              {tShoot("edit")}
+            </Link>
+            <CancelShootButton shootId={shoot.id} />
+          </div>
         ) : null}
 
         {shoot.status === "assigned" ? (
@@ -301,6 +329,15 @@ export default async function ShootDetailPage({
         <div className="space-y-4">
           <ContactReveal shootId={id} />
           {messageLink}
+          <a
+            href={`/api/shoots/${id}/ics`}
+            className="press inline-flex items-center gap-2 text-sm text-accent hover:opacity-70"
+          >
+            {tShoot("addToCalendar")} ↓
+          </a>
+          <div className="border-t border-line pt-4">
+            <DisputePanel shootId={id} existingStatus={disputeStatus} />
+          </div>
         </div>
       ) : null}
 

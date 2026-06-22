@@ -100,6 +100,47 @@ export async function createShootAction(
 // ---------------------------------------------------------------------------
 // Reference images — optional inspiration photos attached to a shoot brief.
 // ---------------------------------------------------------------------------
+export async function updateShootAction(
+  shootId: string,
+  raw: unknown
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = createShootSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const v = parsed.data;
+  const supabase = await createClient();
+  // Owner-scoped, open-only edit. RLS enforces ownership too; the status guard
+  // keeps it open→open. A 0-row result means not-owner or no longer open.
+  const { data, error } = await supabase
+    .from("shoots")
+    .update({
+      title: v.title,
+      type: v.type,
+      discipline: v.discipline,
+      brief: v.brief,
+      location_city: v.locationCity,
+      location_postcode: v.locationPostcode || null,
+      canton: v.canton,
+      shoot_date: v.shootDate,
+      duration_hours: v.durationHours,
+      budget_min_chf: v.budgetMinChf,
+      budget_max_chf: v.budgetMaxChf,
+    })
+    .eq("id", shootId)
+    .eq("client_id", user.id)
+    .eq("status", "open")
+    .select("id");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "forbidden" };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
+
 export async function addShootImage(
   shootId: string,
   formData: FormData

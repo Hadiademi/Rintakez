@@ -150,7 +150,9 @@
     "errorCreate": "Konnte nicht erstellt werden.",
     "stepLabel": "Schritt {current} von {total}",
     "fieldReferences": "Referenzen (optional)",
-    "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6."
+    "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6.",
+    "editTitle": "Auftrag bearbeiten",
+    "saveChanges": "Änderungen speichern"
   },
   "shoot": {
     "date": "Datum",
@@ -189,7 +191,9 @@
     "disciplines": {
       "photo": "Foto",
       "video": "Video"
-    }
+    },
+    "edit": "Bearbeiten",
+    "addToCalendar": "Zum Kalender hinzufügen"
   },
   "myShoots": {
     "title": "Meine Aufträge",
@@ -522,7 +526,12 @@
       "all": "Alle",
       "active": "Aktiv",
       "suspended": "Gesperrt"
-    }
+    },
+    "tabDisputes": "Streitfälle",
+    "disputes": "Streitfälle",
+    "noDisputes": "Keine offenen Streitfälle.",
+    "disputeResolve": "Als gelöst markieren",
+    "disputeDismiss": "Abweisen"
   },
   "pagination": {
     "label": "Seitennavigation",
@@ -537,5 +546,18 @@
   },
   "account": {
     "suspendedBanner": "Dein Konto wurde gesperrt. Du kannst vorübergehend keine neuen Inhalte erstellen."
+  },
+  "dispute": {
+    "open": "Problem melden",
+    "placeholder": "Beschreibe das Problem…",
+    "submit": "Streitfall öffnen",
+    "cancel": "Abbrechen",
+    "error": "Etwas ist schiefgelaufen.",
+    "existing": "Streitfall",
+    "status": {
+      "open": "Offen",
+      "resolved": "Gelöst",
+      "dismissed": "Abgewiesen"
+    }
   }
 }
