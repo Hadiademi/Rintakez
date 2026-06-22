@@ -386,6 +386,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      email_outbox: {
+        Row: {
+          id: number;
+          recipient_id: string;
+          kind: string;
+          shoot_id: string | null;
+          shoot_title: string | null;
+          status: string;
+          attempts: number;
+          last_error: string | null;
+          created_at: string;
+          sent_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          recipient_id: string;
+          kind: string;
+          shoot_id?: string | null;
+          shoot_title?: string | null;
+          status?: string;
+          attempts?: number;
+          last_error?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          recipient_id?: string;
+          kind?: string;
+          shoot_id?: string | null;
+          shoot_title?: string | null;
+          status?: string;
+          attempts?: number;
+          last_error?: string | null;
+          created_at?: string;
+          sent_at?: string | null;
+        };
+        Relationships: [];
+      };
       audit_log: {
         Row: {
           id: number;

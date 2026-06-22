@@ -268,9 +268,28 @@ export async function cancelShootAction(
     })
     .eq("id", shootId)
     .eq("client_id", user.id)
-    .select("id");
+    .select("id, title, accepted_bid_id");
   if (error) return { ok: false, error: error.message };
   if (!data || data.length === 0) return { ok: false, error: "forbidden" };
+
+  // If a photographer was assigned, email them the cancellation (in-app
+  // notification is already created by the shoot_cancelled DB trigger).
+  const cancelled = data[0];
+  if (cancelled.accepted_bid_id) {
+    const { data: bid } = await supabase
+      .from("bids")
+      .select("photographer_id")
+      .eq("id", cancelled.accepted_bid_id)
+      .maybeSingle();
+    if (bid) {
+      await notifyEmail({
+        kind: "shoot_cancelled",
+        recipientId: bid.photographer_id,
+        shootId,
+        shootTitle: cancelled.title,
+      });
+    }
+  }
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");

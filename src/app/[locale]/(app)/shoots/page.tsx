@@ -37,13 +37,17 @@ export default async function BrowseShootsPage({
   const tNav = await getTranslations("nav");
   const supabase = await createClient();
 
+  // Only open shoots whose date hasn't passed — stale past-date shoots are inert
+  // (they can no longer receive bids, enforced in RLS) so they leave the browse.
+  const today = new Date().toISOString().slice(0, 10);
   let query = supabase
     .from("shoots")
     .select(
       "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
       { count: "exact" }
     )
-    .eq("status", "open");
+    .eq("status", "open")
+    .gte("shoot_date", today);
 
   if (canton && (CANTONS as readonly string[]).includes(canton)) {
     query = query.eq("canton", canton as (typeof CANTONS)[number]);
