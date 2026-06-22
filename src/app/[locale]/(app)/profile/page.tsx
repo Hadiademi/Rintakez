@@ -7,6 +7,9 @@ import { AvatarUploader } from "@/components/avatar-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
 import { VerificationRequest } from "@/components/verification-request";
+import { ChangePasswordForm } from "@/components/change-password-form";
+import { ChangeEmailForm } from "@/components/change-email-form";
+import { NotificationPrefs } from "@/components/notification-prefs";
 import { DataExportButton } from "@/components/data-export-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
@@ -25,7 +28,9 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, role, city, canton, bio, avatar_url")
+    .select(
+      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates"
+    )
     .eq("id", user.id)
     .single();
 
@@ -147,6 +152,30 @@ export default async function ProfilePage() {
             <dd className="text-[15px] text-ink">{roleLabel}</dd>
           </div>
         </dl>
+      </div>
+
+      {/* Security */}
+      <div className="space-y-8 border-t border-line pt-8">
+        <p className="label text-mute">{t("securityTitle")}</p>
+        <div className="space-y-4">
+          <h3 className="text-[15px] font-medium text-ink">
+            {t("passwordTitle")}
+          </h3>
+          <ChangePasswordForm email={user.email ?? ""} />
+        </div>
+        <div className="space-y-4">
+          <h3 className="text-[15px] font-medium text-ink">{t("emailTitle")}</h3>
+          <ChangeEmailForm currentEmail={user.email ?? ""} />
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="space-y-3 border-t border-line pt-8">
+        <p className="label text-mute">{t("notificationsTitle")}</p>
+        <NotificationPrefs
+          notifyBids={profile.notify_bids}
+          notifyShootUpdates={profile.notify_shoot_updates}
+        />
       </div>
 
       {/* Photographer details */}

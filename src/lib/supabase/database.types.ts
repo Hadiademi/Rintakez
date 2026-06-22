@@ -27,6 +27,8 @@ export type Database = {
           is_suspended: boolean;
           suspension_reason: string | null;
           suspended_at: string | null;
+          notify_bids: boolean;
+          notify_shoot_updates: boolean;
         };
         Insert: {
           id: string;
@@ -43,6 +45,8 @@ export type Database = {
           is_suspended?: boolean;
           suspension_reason?: string | null;
           suspended_at?: string | null;
+          notify_bids?: boolean;
+          notify_shoot_updates?: boolean;
         };
         Update: {
           id?: string;
@@ -59,6 +63,8 @@ export type Database = {
           is_suspended?: boolean;
           suspension_reason?: string | null;
           suspended_at?: string | null;
+          notify_bids?: boolean;
+          notify_shoot_updates?: boolean;
         };
         Relationships: [];
       };

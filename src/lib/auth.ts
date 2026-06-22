@@ -16,7 +16,7 @@ export const getProfile = cache(async () => {
   const { data } = await supabase
     .from("profiles")
     .select(
-      "id, role, display_name, avatar_url, city, canton, locale, is_admin, is_suspended, suspension_reason"
+      "id, role, display_name, avatar_url, city, canton, locale, is_admin, is_suspended, suspension_reason, notify_bids, notify_shoot_updates"
     )
     .eq("id", user.id)
     .single();

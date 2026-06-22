@@ -23,9 +23,18 @@ export type EmailKind =
   | "shoot_cancelled";
 type Locale = "de" | "fr" | "en";
 
+// Which notification-preference column gates each email kind (null = always send).
+const PREF_COLUMN: Record<EmailKind, "notify_bids" | "notify_shoot_updates"> = {
+  bid_received: "notify_bids",
+  bid_accepted: "notify_bids",
+  bid_declined: "notify_bids",
+  shoot_cancelled: "notify_shoot_updates",
+};
+
 /**
  * Enqueue the email mirror of an in-app notification. Fast, non-blocking, and a
- * no-op when the service role is not configured. Never throws into the caller.
+ * no-op when the service role is not configured. Respects the recipient's
+ * notification preferences. Never throws into the caller.
  */
 export async function notifyEmail(opts: {
   kind: EmailKind;
@@ -36,6 +45,18 @@ export async function notifyEmail(opts: {
   const admin = createAdminClient();
   if (!admin) return;
   try {
+    // Honour the recipient's preference for this category before enqueuing.
+    const prefColumn = PREF_COLUMN[opts.kind];
+    if (prefColumn) {
+      const { data: pref } = await admin
+        .from("profiles")
+        .select(prefColumn)
+        .eq("id", opts.recipientId)
+        .maybeSingle();
+      const enabled = (pref as Record<string, boolean> | null)?.[prefColumn];
+      if (enabled === false) return;
+    }
+
     await admin.from("email_outbox").insert({
       recipient_id: opts.recipientId,
       kind: opts.kind,
