@@ -18,6 +18,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Fail the build on known high/critical dependency vulnerabilities.
+      - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run typecheck
       - run: npx vitest run
