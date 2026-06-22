@@ -6,6 +6,7 @@ import { formatCHF } from "@/lib/format";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
+import { VerificationRequest } from "@/components/verification-request";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 
@@ -39,7 +40,7 @@ export default async function ProfilePage() {
     ? await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status"
         )
         .eq("profile_id", profile.id)
         .maybeSingle()
@@ -150,7 +151,12 @@ export default async function ProfilePage() {
       {/* Photographer details */}
       {isPhotographer && (
         <>
-          <div className="flex items-center justify-end gap-4 border-t border-line pt-8">
+          <div className="border-t border-line pt-8">
+            <VerificationRequest
+              status={details?.verification_status ?? "unverified"}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-4">
             <Link
               href="/onboarding"
               data-testid="profile-edit-details"

@@ -253,7 +253,16 @@
     "availSub": "Markiere Tage, an denen du nicht verfügbar bist.",
     "availAdd": "Tag blockieren",
     "availEmpty": "Keine blockierten Tage.",
-    "availUnavailable": "Nicht verfügbar"
+    "availUnavailable": "Nicht verfügbar",
+    "verified": "Verifiziert",
+    "verificationLabel": "Verifizierung",
+    "requestVerification": "Verifizierung anfragen",
+    "verificationStatus": {
+      "unverified": "Nicht verifiziert",
+      "pending": "In Prüfung",
+      "verified": "Verifiziert",
+      "rejected": "Abgelehnt"
+    }
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -380,7 +389,9 @@
     "minRating": "Mind. Bewertung",
     "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
     "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",
-    "savedOnly": "Nur gespeicherte"
+    "savedOnly": "Nur gespeicherte",
+    "verified": "Verifiziert",
+    "verifiedOnly": "Nur verifizierte"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -422,7 +433,11 @@
     "suspendUser": "Nutzer:in sperren",
     "unsuspendUser": "Sperre aufheben",
     "suspendShoot": "Auftrag sperren",
-    "unsuspendShoot": "Sperre aufheben"
+    "unsuspendShoot": "Sperre aufheben",
+    "verifications": "Verifizierungen",
+    "noVerifications": "Keine offenen Verifizierungen.",
+    "approveVerification": "Verifizieren",
+    "rejectVerification": "Ablehnen"
   },
   "pagination": {
     "label": "Seitennavigation",

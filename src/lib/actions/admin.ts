@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
@@ -135,6 +135,39 @@ export async function setShootSuspension(
     { reason: trimmedReason }
   );
 
+  revalidatePath("/[locale]/(app)/admin", "page");
+  return { ok: true };
+}
+
+export async function setPhotographerVerification(
+  photographerId: string,
+  status: "verified" | "rejected",
+  note?: string
+): Promise<Ok | ErrResult> {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false, error: "forbidden" };
+
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "generic" };
+
+  const { error } = await supabase
+    .from("photographer_details")
+    .update({ verification_status: status })
+    .eq("profile_id", photographerId);
+  if (error) return { ok: false, error: error.message };
+
+  await writeAudit(
+    supabase,
+    admin.id,
+    `photographer_${status}`,
+    "profile",
+    photographerId,
+    { note: note?.trim() ? note.trim().slice(0, 1000) : null }
+  );
+
+  // The public profile is cached per-photographer; refresh it so the badge
+  // updates immediately.
+  revalidateTag(`photographer:${photographerId}`, "max");
   revalidatePath("/[locale]/(app)/admin", "page");
   return { ok: true };
 }

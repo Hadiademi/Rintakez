@@ -71,6 +71,7 @@ export type Database = {
           website_url: string | null;
           instagram_url: string | null;
           created_at: string;
+          verification_status: Database["public"]["Enums"]["verification_status"];
         };
         Insert: {
           profile_id: string;
@@ -80,6 +81,7 @@ export type Database = {
           website_url?: string | null;
           instagram_url?: string | null;
           created_at?: string;
+          verification_status?: Database["public"]["Enums"]["verification_status"];
         };
         Update: {
           profile_id?: string;
@@ -89,6 +91,7 @@ export type Database = {
           website_url?: string | null;
           instagram_url?: string | null;
           created_at?: string;
+          verification_status?: Database["public"]["Enums"]["verification_status"];
         };
         Relationships: [];
       };
@@ -508,6 +511,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      request_verification: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: "client" | "photographer";
@@ -556,6 +563,7 @@ export type Database = {
         | "shoot_cancelled";
       report_target: "profile" | "shoot";
       report_status: "open" | "reviewed" | "dismissed";
+      verification_status: "unverified" | "pending" | "verified" | "rejected";
     };
     CompositeTypes: Record<string, never>;
   };

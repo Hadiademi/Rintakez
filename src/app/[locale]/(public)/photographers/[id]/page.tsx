@@ -79,7 +79,7 @@ export default async function PhotographerProfilePage({
       const { data: details } = await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status"
         )
         .eq("profile_id", id)
         .maybeSingle();
@@ -246,8 +246,13 @@ export default async function PhotographerProfilePage({
 
           {/* Name & location */}
           <div className="flex flex-col gap-1 pt-1">
-            <h1 className="text-2xl font-medium tracking-tight text-ink">
+            <h1 className="flex items-center gap-2 text-2xl font-medium tracking-tight text-ink">
               {profile.display_name}
+              {details?.verification_status === "verified" && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
+                  ✓ {t("verified")}
+                </span>
+              )}
             </h1>
             {(profile.city || profile.canton) && (
               <p className="text-[14px] text-mute">

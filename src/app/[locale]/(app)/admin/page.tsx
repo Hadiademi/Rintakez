@@ -3,6 +3,7 @@ import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminReportRow } from "@/components/admin-report-row";
+import { AdminVerifyRow } from "@/components/admin-verify-row";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function AdminPage() {
     openShoots,
     openReports,
     { data: reports },
+    { data: pendingDetails },
   ] = await Promise.all([
     admin.from("profiles").select("id", head),
     admin
@@ -61,7 +63,21 @@ export default async function AdminPage() {
       .eq("status", "open")
       .order("created_at", { ascending: false })
       .limit(50),
+    admin
+      .from("photographer_details")
+      .select("profile_id")
+      .eq("verification_status", "pending")
+      .limit(50),
   ]);
+
+  // Resolve names for photographers awaiting verification.
+  const pendingIds = (pendingDetails ?? []).map((d) => d.profile_id);
+  const { data: pendingProfiles } = pendingIds.length
+    ? await admin
+        .from("profiles")
+        .select("id, display_name, city")
+        .in("id", pendingIds)
+    : { data: [] as { id: string; display_name: string; city: string | null }[] };
 
   // Resolve reporter names + target labels.
   const list = reports ?? [];
@@ -124,6 +140,26 @@ export default async function AdminPage() {
         <Metric value={openShoots.count ?? 0} label={t("metricOpenShoots")} />
         <Metric value={openReports.count ?? 0} label={t("metricReports")} />
       </div>
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold tracking-tight text-ink">
+          {t("verifications")}
+        </h2>
+        {(pendingProfiles ?? []).length === 0 ? (
+          <p className="text-mute">{t("noVerifications")}</p>
+        ) : (
+          <div className="space-y-3">
+            {(pendingProfiles ?? []).map((p) => (
+              <AdminVerifyRow
+                key={p.id}
+                id={p.id}
+                name={p.display_name}
+                city={p.city}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold tracking-tight text-ink">

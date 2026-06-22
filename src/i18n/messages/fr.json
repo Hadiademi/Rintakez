@@ -253,7 +253,16 @@
     "availSub": "Marque les jours où tu n'es pas disponible.",
     "availAdd": "Bloquer un jour",
     "availEmpty": "Aucun jour bloqué.",
-    "availUnavailable": "Indisponible"
+    "availUnavailable": "Indisponible",
+    "verified": "Vérifié",
+    "verificationLabel": "Vérification",
+    "requestVerification": "Demander la vérification",
+    "verificationStatus": {
+      "unverified": "Non vérifié",
+      "pending": "En cours d’examen",
+      "verified": "Vérifié",
+      "rejected": "Refusé"
+    }
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -380,7 +389,9 @@
     "minRating": "Note min.",
     "empty": "Aucun·e photographe ne correspond à tes filtres.",
     "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}",
-    "savedOnly": "Enregistrés uniquement"
+    "savedOnly": "Enregistrés uniquement",
+    "verified": "Vérifié",
+    "verifiedOnly": "Vérifiés uniquement"
   },
   "messages": {
     "navMessages": "Messages",
@@ -422,7 +433,11 @@
     "suspendUser": "Suspendre l’utilisateur",
     "unsuspendUser": "Lever la suspension",
     "suspendShoot": "Suspendre l’annonce",
-    "unsuspendShoot": "Lever la suspension"
+    "unsuspendShoot": "Lever la suspension",
+    "verifications": "Vérifications",
+    "noVerifications": "Aucune vérification en attente.",
+    "approveVerification": "Vérifier",
+    "rejectVerification": "Refuser"
   },
   "pagination": {
     "label": "Pagination",
