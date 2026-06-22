@@ -154,6 +154,17 @@ export async function sendMessage(
     return { ok: false, error: "limit_reached" };
 
   const supabase = await createClient();
+  // Defense-in-depth: confirm the caller actually belongs to the conversation
+  // before inserting. RLS enforces this too, but checking here returns a clear
+  // "forbidden" instead of a raw database error and avoids a wasted insert.
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("client_id, photographer_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conv || (conv.client_id !== user.id && conv.photographer_id !== user.id))
+    return { ok: false, error: "forbidden" };
+
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: user.id,
