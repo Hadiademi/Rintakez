@@ -29,7 +29,7 @@ export default async function ProfilePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates"
+      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, terms_accepted_at, terms_version"
     )
     .eq("id", user.id)
     .single();
@@ -151,6 +151,15 @@ export default async function ProfilePage() {
             <dt className="text-[13px] text-mute-2">{t("role")}</dt>
             <dd className="text-[15px] text-ink">{roleLabel}</dd>
           </div>
+          {profile.terms_accepted_at && (
+            <div className="space-y-1">
+              <dt className="text-[13px] text-mute-2">{t("termsAccepted")}</dt>
+              <dd className="text-[15px] text-ink">
+                {profile.terms_accepted_at.slice(0, 10)}
+                {profile.terms_version ? ` · v${profile.terms_version}` : ""}
+              </dd>
+            </div>
+          )}
         </dl>
       </div>
 

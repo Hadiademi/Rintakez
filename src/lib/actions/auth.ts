@@ -4,6 +4,7 @@ import { redirect } from "@/i18n/navigation";
 import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { loginSchema, registerSchema } from "@/lib/validation/auth";
+import { TERMS_VERSION } from "@/lib/legal";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -19,7 +20,9 @@ export async function registerAction(raw: unknown): Promise<RegisterResult> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: displayName, role, locale } },
+    options: {
+      data: { display_name: displayName, role, locale, terms_version: TERMS_VERSION },
+    },
   });
   if (error) return { ok: false, error: error.message };
   // When local confirmations are disabled, signUp returns a live session and

@@ -285,7 +285,8 @@
     "notifyBidsHint": "Neue Angebote und Entscheidungen zu Angeboten",
     "notifyShootUpdatesLabel": "Shooting-Updates",
     "notifyShootUpdatesHint": "Absagen und Änderungen an deinen Shootings",
-    "prefsSaved": "Gespeichert."
+    "prefsSaved": "Gespeichert.",
+    "termsAccepted": "Bedingungen akzeptiert"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",

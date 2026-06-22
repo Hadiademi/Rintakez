@@ -65,6 +65,26 @@ or compliance investigations.
    within 72h and affected users without undue delay.
 4. Write a post-mortem; file follow-up hardening tasks.
 
+## Pre-launch auth hardening (production)
+
+Signup is intentionally minimal (name, email, password, role) — keep it. Harden
+the mechanics in the production Supabase project, not the form:
+
+- **Email confirmation: turn ON.** Local dev runs with `enable_confirmations = false`
+  ([auth.email] in supabase/config.toml) for convenience. In production set it to
+  `true` (or via the dashboard) so users confirm their address before sign-in.
+  The app already handles both modes (registerAction routes on whether a session
+  was returned), so no code change is needed.
+- **Bot protection.** Enable a CAPTCHA provider ([auth.captcha], hcaptcha or
+  turnstile) to stop automated signups on the public marketplace.
+- **Password policy.** App enforces ≥8 chars (Zod); align `minimum_password_length`
+  (currently 6) and consider `password_requirements` for complexity.
+- **SMTP.** Configure a real SMTP/Resend sender so confirmation, recovery, and
+  email-change messages actually deliver.
+- **Terms consent** is recorded automatically on signup (`profiles.terms_accepted_at`
+  + `terms_version`, set by the handle_new_user trigger). Bump `TERMS_VERSION`
+  (src/lib/legal.ts) whenever the AGB/Datenschutz text materially changes.
+
 ## Routine operator tasks
 
 - **Grant admin:** `update profiles set is_admin = true where id = '<uuid>';`
