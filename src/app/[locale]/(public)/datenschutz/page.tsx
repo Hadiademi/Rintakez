@@ -42,6 +42,23 @@ export default async function DatenschutzPage() {
         </section>
 
         <section className="space-y-3">
+          <h2 className="label text-mute">{t("dsSubprocessorsTitle")}</h2>
+          <p className="text-sm text-mute leading-relaxed">
+            {t("dsSubprocessors")}
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="label text-mute">{t("dsRetentionTitle")}</h2>
+          <p className="text-sm text-mute leading-relaxed">{t("dsRetention")}</p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="label text-mute">{t("dsCookiesTitle")}</h2>
+          <p className="text-sm text-mute leading-relaxed">{t("dsCookies")}</p>
+        </section>
+
+        <section className="space-y-3">
           <h2 className="label text-mute">{t("dsRightsTitle")}</h2>
           <p className="text-sm text-mute leading-relaxed">{t("dsRights")}</p>
         </section>

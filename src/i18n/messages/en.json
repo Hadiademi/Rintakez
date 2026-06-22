@@ -262,7 +262,10 @@
       "pending": "Under review",
       "verified": "Verified",
       "rejected": "Rejected"
-    }
+    },
+    "dataPrivacy": "Data & privacy",
+    "exportData": "Download my data",
+    "exportDataHint": "Download a copy of all data we hold about you as a JSON file."
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -324,7 +327,13 @@
     "agbS9B": "Rintakez is not liable for the photography service itself. Liability is limited, to the extent permitted by law, to intent and gross negligence.",
     "agbS10T": "10. Termination, changes & law",
     "agbS10B": "You may delete your account at any time. We may amend these terms and will inform you in good time. Swiss law applies; place of jurisdiction is the operator's seat.",
-    "footerAgb": "Terms"
+    "footerAgb": "Terms",
+    "dsSubprocessorsTitle": "Sub-processors in detail",
+    "dsSubprocessors": "We share data with carefully selected providers that help us run the platform: Supabase (database, authentication, file storage), Vercel (hosting), Resend (sending notification emails), and Plausible Analytics (anonymous, cookieless usage statistics) where enabled. These providers process data solely on our behalf.",
+    "dsRetentionTitle": "Retention & deletion",
+    "dsRetention": "We keep personal data only as long as needed to operate the marketplace. You can delete your account at any time; your profile data, shoots, bids, messages and files are removed. Reviews may remain in anonymised form.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "We use only technically necessary cookies for sign-in (session). No tracking or advertising cookies are set; the optional usage analytics (Plausible) works without cookies."
   },
   "states": {
     "errorTitle": "Something went wrong.",

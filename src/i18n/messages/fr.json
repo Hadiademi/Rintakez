@@ -262,7 +262,10 @@
       "pending": "En cours d’examen",
       "verified": "Vérifié",
       "rejected": "Refusé"
-    }
+    },
+    "dataPrivacy": "Données & confidentialité",
+    "exportData": "Télécharger mes données",
+    "exportDataHint": "Télécharge une copie de toutes les données te concernant au format JSON."
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -324,7 +327,13 @@
     "agbS9B": "Rintakez n'est pas responsable de la prestation photographique elle-même. La responsabilité est limitée, dans les limites légales, au dol et à la faute grave.",
     "agbS10T": "10. Résiliation, modifications & droit",
     "agbS10B": "Tu peux supprimer ton compte à tout moment. Nous pouvons adapter ces conditions et t'informons à temps. Le droit suisse s'applique ; le for est au siège de l'exploitant.",
-    "footerAgb": "CGU"
+    "footerAgb": "CGU",
+    "dsSubprocessorsTitle": "Sous-traitants en détail",
+    "dsSubprocessors": "Nous transmettons des données à des prestataires soigneusement sélectionnés qui nous aident à exploiter la plateforme : Supabase (base de données, authentification, stockage de fichiers), Vercel (hébergement), Resend (envoi des e-mails de notification) ainsi que Plausible Analytics (statistiques d’usage anonymes et sans cookies), si activé. Ces prestataires traitent les données uniquement pour notre compte.",
+    "dsRetentionTitle": "Conservation & suppression",
+    "dsRetention": "Nous ne conservons les données personnelles que le temps nécessaire à l’exploitation de la plateforme. Tu peux supprimer ton compte à tout moment ; tes données de profil, annonces, offres, messages et fichiers sont alors supprimés. Les évaluations peuvent subsister sous forme anonymisée.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "Nous utilisons uniquement des cookies techniquement nécessaires à la connexion (session). Aucun cookie de suivi ou publicitaire n’est utilisé ; la statistique d’usage optionnelle (Plausible) fonctionne sans cookies."
   },
   "states": {
     "errorTitle": "Une erreur est survenue.",

@@ -7,6 +7,7 @@ import { AvatarUploader } from "@/components/avatar-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
 import { VerificationRequest } from "@/components/verification-request";
+import { DataExportButton } from "@/components/data-export-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 
@@ -255,6 +256,12 @@ export default async function ProfilePage() {
           <AvailabilityManager initial={unavailableDates} />
         </>
       )}
+
+      <div className="space-y-2 border-t border-line pt-8">
+        <p className="label text-mute">{t("dataPrivacy")}</p>
+        <p className="text-[14px] text-mute">{t("exportDataHint")}</p>
+        <DataExportButton />
+      </div>
 
       <DeleteAccountButton />
     </div>

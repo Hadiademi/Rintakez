@@ -262,7 +262,10 @@
       "pending": "In Prüfung",
       "verified": "Verifiziert",
       "rejected": "Abgelehnt"
-    }
+    },
+    "dataPrivacy": "Daten & Datenschutz",
+    "exportData": "Meine Daten herunterladen",
+    "exportDataHint": "Lade eine Kopie aller über dich gespeicherten Daten als JSON-Datei herunter."
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -324,7 +327,13 @@
     "agbS9B": "Rintakez haftet nicht für die Erbringung der Fotodienstleistung selbst. Die Haftung ist im gesetzlich zulässigen Rahmen auf Vorsatz und grobe Fahrlässigkeit beschränkt.",
     "agbS10T": "10. Kündigung, Änderungen & Recht",
     "agbS10B": "Du kannst dein Konto jederzeit löschen. Wir können diese AGB anpassen und informieren rechtzeitig. Es gilt schweizerisches Recht; Gerichtsstand ist der Sitz des Betreibers.",
-    "footerAgb": "AGB"
+    "footerAgb": "AGB",
+    "dsSubprocessorsTitle": "Auftragsverarbeiter im Detail",
+    "dsSubprocessors": "Wir geben Daten an sorgfältig ausgewählte Dienstleister weiter, die uns beim Betrieb unterstützen: Supabase (Datenbank, Authentifizierung, Dateispeicher), Vercel (Hosting), Resend (Versand von Benachrichtigungs-E-Mails) sowie Plausible Analytics (anonyme, cookielose Nutzungsstatistik), sofern aktiviert. Diese Anbieter verarbeiten Daten ausschliesslich in unserem Auftrag.",
+    "dsRetentionTitle": "Aufbewahrung & Löschung",
+    "dsRetention": "Wir bewahren personenbezogene Daten nur so lange auf, wie es für den Betrieb des Marktplatzes erforderlich ist. Du kannst dein Konto jederzeit löschen; dabei werden deine Profildaten, Aufträge, Angebote, Nachrichten und Dateien entfernt. Bewertungen können in anonymisierter Form bestehen bleiben.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "Wir verwenden ausschliesslich technisch notwendige Cookies für die Anmeldung (Session). Es werden keine Tracking- oder Werbe-Cookies gesetzt; die optionale Nutzungsstatistik (Plausible) funktioniert ohne Cookies."
   },
   "states": {
     "errorTitle": "Etwas ist schiefgelaufen.",
