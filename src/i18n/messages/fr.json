@@ -302,7 +302,12 @@
     "prefsSaved": "Enregistré.",
     "termsAccepted": "Conditions acceptées",
     "disciplines": "Discipline",
-    "postShootCta": "Publier une annonce"
+    "postShootCta": "Publier une annonce",
+    "publicProfileTitle": "Profil public",
+    "coverTitle": "Photo de couverture",
+    "coverUpload": "Téléverser la couverture",
+    "coverReplace": "Remplacer la couverture",
+    "coverRemove": "Supprimer"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",

@@ -302,7 +302,12 @@
     "prefsSaved": "Saved.",
     "termsAccepted": "Terms accepted",
     "disciplines": "Discipline",
-    "postShootCta": "Post a shoot"
+    "postShootCta": "Post a shoot",
+    "publicProfileTitle": "Public profile",
+    "coverTitle": "Cover photo",
+    "coverUpload": "Upload cover",
+    "coverReplace": "Replace cover",
+    "coverRemove": "Remove"
   },
   "errors": {
     "invalid_input": "Please check your input.",

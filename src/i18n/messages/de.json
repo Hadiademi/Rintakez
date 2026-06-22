@@ -302,7 +302,12 @@
     "prefsSaved": "Gespeichert.",
     "termsAccepted": "Bedingungen akzeptiert",
     "disciplines": "Disziplin",
-    "postShootCta": "Auftrag ausschreiben"
+    "postShootCta": "Auftrag ausschreiben",
+    "publicProfileTitle": "Öffentliches Profil",
+    "coverTitle": "Titelbild",
+    "coverUpload": "Titelbild hochladen",
+    "coverReplace": "Titelbild ersetzen",
+    "coverRemove": "Entfernen"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",

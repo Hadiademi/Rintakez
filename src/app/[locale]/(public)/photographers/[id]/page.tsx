@@ -79,7 +79,7 @@ export default async function PhotographerProfilePage({
       const { data: details } = await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines, cover_path"
         )
         .eq("profile_id", id)
         .maybeSingle();
@@ -127,10 +127,16 @@ export default async function PhotographerProfilePage({
         .gte("date", new Date().toISOString().split("T")[0])
         .order("date", { ascending: true });
 
+      const coverUrl = details?.cover_path
+        ? supabase.storage.from("portfolio").getPublicUrl(details.cover_path).data
+            .publicUrl
+        : (portfolioImages[0]?.url ?? null);
+
       return {
         profile,
         details,
         portfolioImages,
+        coverUrl,
         avatarUrl,
         rating,
         reviewRows: reviewRows ?? [],
@@ -147,6 +153,7 @@ export default async function PhotographerProfilePage({
     profile,
     details,
     portfolioImages,
+    coverUrl,
     avatarUrl,
     rating,
     reviewRows,
@@ -209,8 +216,6 @@ export default async function PhotographerProfilePage({
       : {}),
   };
 
-  const coverUrl = portfolioImages[0]?.url ?? null;
-
   return (
     <main className="bg-paper min-h-screen">
       <script
@@ -228,11 +233,9 @@ export default async function PhotographerProfilePage({
             className="h-full w-full object-cover grayscale"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-chip to-surface">
-            <span className="select-none text-[110px] font-semibold leading-none tracking-tight text-mute-2/40">
-              {initials}
-            </span>
-          </div>
+          // No portfolio cover: a clean diagonal-tinted band (identity lives in
+          // the avatar below, so we don't repeat the initials here).
+          <div className="h-full w-full bg-gradient-to-br from-surface via-chip to-surface" />
         )}
         <Link
           href="/"
