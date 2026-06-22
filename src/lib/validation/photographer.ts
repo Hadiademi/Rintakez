@@ -10,8 +10,11 @@ export const SHOOT_TYPES = [
   "wedding", "portrait", "commercial", "event", "architecture", "family", "other",
 ] as const;
 
+export const DISCIPLINES = ["photo", "video"] as const;
+
 export const photographerDetailsSchema = z.object({
   specialties: z.array(z.enum(SHOOT_TYPES)).min(1).max(7),
+  disciplines: z.array(z.enum(DISCIPLINES)).min(1),
   coverageCantons: z.array(z.enum(CANTONS)).min(1),
   hourlyRateChf: z
     .number()

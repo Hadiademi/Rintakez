@@ -46,7 +46,7 @@ export default async function ProfilePage() {
     ? await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines"
         )
         .eq("profile_id", profile.id)
         .maybeSingle()
@@ -101,9 +101,18 @@ export default async function ProfilePage() {
 
   const specialties = details?.specialties ?? [];
   const coverageCantons = details?.coverage_cantons ?? [];
-  const roleLabel = isPhotographer
-    ? tAuth("rolePhotographer")
-    : tAuth("roleClient");
+  // Discipline-aware professional label: video-only → Videographer, both →
+  // Photographer & Videographer, else Photographer.
+  const proDisciplines = details?.disciplines ?? [];
+  const hasVideo = proDisciplines.includes("video");
+  const hasPhoto = proDisciplines.includes("photo");
+  const roleLabel = !isPhotographer
+    ? tAuth("roleClient")
+    : hasVideo && hasPhoto
+      ? tAuth("rolePhotoVideo")
+      : hasVideo
+        ? tAuth("roleVideographer")
+        : tAuth("rolePhotographer");
 
   return (
     <div className="mx-auto max-w-3xl space-y-12">
@@ -210,6 +219,22 @@ export default async function ProfilePage() {
             details?.website_url ||
             details?.instagram_url) && (
             <div className="space-y-6">
+              {(details?.disciplines ?? []).length > 0 && (
+                <div className="space-y-2">
+                  <p className="label text-mute">{t("disciplines")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(details?.disciplines ?? []).map((d) => (
+                      <span
+                        key={d}
+                        className="rounded-full border border-line px-3 py-1 text-[13px] text-ink"
+                      >
+                        {tShoot(`disciplines.${d}`)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {specialties.length > 0 && (
                 <div className="space-y-2">
                   <p className="label text-mute">{t("specialties")}</p>

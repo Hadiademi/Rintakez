@@ -30,6 +30,7 @@ export async function savePhotographerDetails(
 
   const {
     specialties,
+    disciplines,
     coverageCantons,
     hourlyRateChf,
     websiteUrl,
@@ -42,6 +43,7 @@ export async function savePhotographerDetails(
     {
       profile_id: user.id,
       specialties,
+      disciplines,
       coverage_cantons: coverageCantons,
       hourly_rate_chf: hourlyRateChf ?? null,
       website_url: websiteUrl || null,

@@ -7,6 +7,7 @@ export type ShootCardData = {
   id: string;
   title: string;
   type: string;
+  discipline?: string;
   location_city: string;
   canton: string;
   shoot_date: string;
@@ -27,6 +28,7 @@ export async function ShootCard({
   const tShoot = await getTranslations("shoot");
 
   const meta = [
+    shoot.discipline ? tShoot(`disciplines.${shoot.discipline}`) : null,
     shoot.location_city,
     formatSwissDate(shoot.shoot_date),
     shoot.duration_hours ? `${shoot.duration_hours} STD` : null,

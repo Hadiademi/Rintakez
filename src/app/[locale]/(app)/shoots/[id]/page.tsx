@@ -101,6 +101,10 @@ export default async function ShootDetailPage({
       tabular: true,
     },
     { label: tShoot("type"), value: tShoot(`types.${shoot.type}`) },
+    {
+      label: tShoot("discipline"),
+      value: tShoot(`disciplines.${shoot.discipline}`),
+    },
   ];
 
   const detailsGrid = (

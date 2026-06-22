@@ -76,6 +76,7 @@ export async function createShootAction(
       client_id: user.id,
       title: v.title,
       type: v.type,
+      discipline: v.discipline,
       brief: v.brief,
       location_city: v.locationCity,
       location_postcode: v.locationPostcode || null,

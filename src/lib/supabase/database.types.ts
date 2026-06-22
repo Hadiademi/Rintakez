@@ -84,6 +84,7 @@ export type Database = {
           instagram_url: string | null;
           created_at: string;
           verification_status: Database["public"]["Enums"]["verification_status"];
+          disciplines: Database["public"]["Enums"]["discipline"][];
         };
         Insert: {
           profile_id: string;
@@ -94,6 +95,7 @@ export type Database = {
           instagram_url?: string | null;
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
+          disciplines?: Database["public"]["Enums"]["discipline"][];
         };
         Update: {
           profile_id?: string;
@@ -104,6 +106,7 @@ export type Database = {
           instagram_url?: string | null;
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
+          disciplines?: Database["public"]["Enums"]["discipline"][];
         };
         Relationships: [];
       };
@@ -175,6 +178,7 @@ export type Database = {
           cancellation_reason: string | null;
           is_suspended: boolean;
           suspended_reason: string | null;
+          discipline: Database["public"]["Enums"]["discipline"];
         };
         Insert: {
           id?: string;
@@ -195,6 +199,7 @@ export type Database = {
           cancellation_reason?: string | null;
           is_suspended?: boolean;
           suspended_reason?: string | null;
+          discipline?: Database["public"]["Enums"]["discipline"];
         };
         Update: {
           id?: string;
@@ -215,6 +220,7 @@ export type Database = {
           cancellation_reason?: string | null;
           is_suspended?: boolean;
           suspended_reason?: string | null;
+          discipline?: Database["public"]["Enums"]["discipline"];
         };
         Relationships: [];
       };
@@ -637,6 +643,7 @@ export type Database = {
       report_target: "profile" | "shoot";
       report_status: "open" | "reviewed" | "dismissed";
       verification_status: "unverified" | "pending" | "verified" | "rejected";
+      discipline: "photo" | "video";
     };
     CompositeTypes: Record<string, never>;
   };

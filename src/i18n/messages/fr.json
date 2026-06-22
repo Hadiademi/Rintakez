@@ -1,8 +1,8 @@
 {
   "meta": {
-    "title": "Rintakez — Place de marché photo Suisse",
-    "description": "Décris ton shoot et reçois des offres de photographes professionnels de ta région.",
-    "ogTitle": "Rintakez — Place de marché photo Suisse"
+    "title": "Rintakez — Marché photo & vidéo en Suisse",
+    "description": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
+    "ogTitle": "Rintakez — Marché photo & vidéo en Suisse"
   },
   "common": {
     "appName": "Rintakez",
@@ -30,8 +30,8 @@
     "admin": "Admin"
   },
   "landing": {
-    "title": "Photographie. En direct. Dans toute la Suisse.",
-    "subtitle": "Décris ton shoot et reçois des offres de photographes professionnels de ta région.",
+    "title": "Photo & vidéo. En direct. Partout en Suisse.",
+    "subtitle": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
     "cta": "Créer une mission",
     "latestShoots": "Missions ouvertes",
     "offersCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
@@ -44,7 +44,7 @@
     "displayName": "Nom ou studio",
     "roleQuestion": "Je suis …",
     "roleClient": "Client·e",
-    "roleClientHint": "Je cherche un·e photographe",
+    "roleClientHint": "Je cherche un photographe ou vidéaste",
     "rolePhotographer": "Photographe",
     "rolePhotographerHint": "Je propose des séances",
     "submitRegister": "Créer le compte",
@@ -57,7 +57,7 @@
     "genericError": "Une erreur est survenue. Réessaie.",
     "loginSubtitle": "Bon retour. Connecte-toi pour continuer.",
     "registerSubtitle": "Crée ton compte en quelques secondes.",
-    "tagline": "Photographie. Directe. Partout en Suisse.",
+    "tagline": "Photo & vidéo. En direct. Partout en Suisse.",
     "registeredSuccess": "Compte créé — connecte-toi.",
     "continueWithGoogle": "Continuer avec Google",
     "orDivider": "ou",
@@ -74,7 +74,10 @@
     "resetLinkInvalid": "Le lien est invalide ou expiré.",
     "termsAgree": "J'accepte les <agb>CGU</agb> et la <privacy>politique de confidentialité</privacy>.",
     "errorAcceptTerms": "Merci d'accepter les CGU et la politique de confidentialité.",
-    "googleConsent": "En continuant, tu acceptes nos CGU et notre politique de confidentialité."
+    "googleConsent": "En continuant, tu acceptes nos CGU et notre politique de confidentialité.",
+    "roleProTitle": "Photographe / Vidéaste",
+    "roleVideographer": "Vidéaste",
+    "rolePhotoVideo": "Photographe & Vidéaste"
   },
   "home": {
     "greeting": "Bonjour, {name}.",
@@ -123,7 +126,8 @@
     "errorSave": "Échec de l'enregistrement.",
     "editTitle": "Modifier le profil",
     "editSubtitle": "Mets à jour tes informations et ton portfolio.",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "disciplines": "Discipline"
   },
   "createShoot": {
     "title": "Créer une mission",
@@ -180,7 +184,12 @@
       "completed": "Terminé",
       "cancelled": "Annulé"
     },
-    "bidsCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
+    "bidsCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}",
+    "discipline": "Médium",
+    "disciplines": {
+      "photo": "Photo",
+      "video": "Vidéo"
+    }
   },
   "myShoots": {
     "title": "Mes missions",
@@ -196,7 +205,8 @@
     "filterBudget": "Budget jusqu'à",
     "all": "Toutes",
     "clear": "Réinitialiser",
-    "empty": "Aucune mission ouverte ne correspond à tes filtres."
+    "empty": "Aucune mission ouverte ne correspond à tes filtres.",
+    "filterDiscipline": "Médium"
   },
   "shootDetail": {
     "brief": "Brief",
@@ -286,7 +296,8 @@
     "notifyShootUpdatesLabel": "Mises à jour des shootings",
     "notifyShootUpdatesHint": "Annulations et changements de tes shootings",
     "prefsSaved": "Enregistré.",
-    "termsAccepted": "Conditions acceptées"
+    "termsAccepted": "Conditions acceptées",
+    "disciplines": "Discipline"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -421,7 +432,8 @@
     "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}",
     "savedOnly": "Enregistrés uniquement",
     "verified": "Vérifié",
-    "verifiedOnly": "Vérifiés uniquement"
+    "verifiedOnly": "Vérifiés uniquement",
+    "allDisciplines": "Toutes disciplines"
   },
   "messages": {
     "navMessages": "Messages",

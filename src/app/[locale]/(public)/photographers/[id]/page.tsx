@@ -79,7 +79,7 @@ export default async function PhotographerProfilePage({
       const { data: details } = await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines"
         )
         .eq("profile_id", id)
         .maybeSingle();
@@ -305,6 +305,23 @@ export default async function PhotographerProfilePage({
           details?.website_url ||
           details?.instagram_url) && (
           <div className="space-y-6 border-t border-line pt-8">
+            {/* Disciplines (photo / video) */}
+            {(details?.disciplines ?? []).length > 0 && (
+              <div className="space-y-2">
+                <p className="label text-mute">{t("disciplines")}</p>
+                <div className="flex flex-wrap gap-2">
+                  {(details?.disciplines ?? []).map((d) => (
+                    <span
+                      key={d}
+                      className="rounded-full border border-line px-3 py-1 text-[13px] text-ink"
+                    >
+                      {tShoot(`disciplines.${d}`)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Specialties */}
             {specialties.length > 0 && (
               <div className="space-y-2">

@@ -28,14 +28,24 @@ export default async function PhotographersDirectoryPage({
     sort?: string;
     saved?: string;
     verified?: string;
+    discipline?: string;
     page?: string;
   }>;
 }) {
-  const { type, canton, minRating, sort, saved, verified, page: pageParam } =
-    await searchParams;
+  const {
+    type,
+    canton,
+    minRating,
+    sort,
+    saved,
+    verified,
+    discipline,
+    page: pageParam,
+  } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const supabase = await createClient();
   const t = await getTranslations("directory");
+  const tShoot = await getTranslations("shoot");
 
   // "Saved only" filter — restrict to the viewer's favorited photographers.
   let savedIds: Set<string> | null = null;
@@ -56,11 +66,13 @@ export default async function PhotographersDirectoryPage({
   let detailsQuery = supabase
     .from("photographer_details")
     .select(
-      "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status"
+      "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status, disciplines"
     );
   if (type) detailsQuery = detailsQuery.contains("specialties", [type]);
   if (canton) detailsQuery = detailsQuery.contains("coverage_cantons", [canton]);
   if (verified) detailsQuery = detailsQuery.eq("verification_status", "verified");
+  if (discipline === "photo" || discipline === "video")
+    detailsQuery = detailsQuery.contains("disciplines", [discipline]);
   const { data: details } = await detailsQuery;
 
   const ids = (details ?? []).map((d) => d.profile_id);
@@ -187,6 +199,19 @@ export default async function PhotographersDirectoryPage({
                     )}
                   </div>
                 </div>
+
+                {x.disciplines?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {x.disciplines.map((d) => (
+                      <span
+                        key={d}
+                        className="rounded-full border border-line px-2.5 py-0.5 text-[12px] text-mute"
+                      >
+                        {tShoot(`disciplines.${d}`)}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {x.specialties.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">

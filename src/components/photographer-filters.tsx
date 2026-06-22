@@ -54,6 +54,17 @@ export function PhotographerFilters() {
       </select>
 
       <select
+        data-testid="filter-discipline"
+        value={params.get("discipline") ?? ""}
+        onChange={(e) => setParam("discipline", e.target.value)}
+        className={selectClass}
+      >
+        <option value="">{t("allDisciplines")}</option>
+        <option value="photo">{tShoot("disciplines.photo")}</option>
+        <option value="video">{tShoot("disciplines.video")}</option>
+      </select>
+
+      <select
         data-testid="filter-minrating"
         value={params.get("minRating") ?? ""}
         onChange={(e) => setParam("minRating", e.target.value)}
