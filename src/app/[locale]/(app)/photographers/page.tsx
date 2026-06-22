@@ -65,7 +65,7 @@ export default async function PhotographersDirectoryPage({
     ids.length
       ? supabase
           .from("profiles")
-          .select("id, display_name, city, canton, avatar_url")
+          .select("id, display_name, city, canton, avatar_url, is_suspended")
           .in("id", ids)
       : Promise.resolve({ data: [] as never[] }),
     ids.length
@@ -93,6 +93,7 @@ export default async function PhotographersDirectoryPage({
       return profile ? { ...d, profile, rating } : null;
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
+    .filter((x) => !x.profile.is_suspended)
     .filter((x) => x.rating.avg >= minR)
     .filter((x) => !savedIds || savedIds.has(x.profile_id));
 

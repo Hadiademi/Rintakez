@@ -81,23 +81,32 @@ export default async function AdminPage() {
       profileTargetIds.length
         ? admin
             .from("profiles")
-            .select("id, display_name")
+            .select("id, display_name, is_suspended")
             .in("id", profileTargetIds)
-        : Promise.resolve({ data: [] as { id: string; display_name: string }[] }),
+        : Promise.resolve({
+            data: [] as {
+              id: string;
+              display_name: string;
+              is_suspended: boolean;
+            }[],
+          }),
       shootTargetIds.length
-        ? admin.from("shoots").select("id, title").in("id", shootTargetIds)
-        : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+        ? admin
+            .from("shoots")
+            .select("id, title, is_suspended")
+            .in("id", shootTargetIds)
+        : Promise.resolve({
+            data: [] as { id: string; title: string; is_suspended: boolean }[],
+          }),
     ]);
 
   const reporterBy = new Map(
     (reporters ?? []).map((p) => [p.id, p.display_name])
   );
   const targetProfileBy = new Map(
-    (targetProfiles ?? []).map((p) => [p.id, p.display_name])
+    (targetProfiles ?? []).map((p) => [p.id, p])
   );
-  const targetShootBy = new Map(
-    (targetShoots ?? []).map((s) => [s.id, s.title])
-  );
+  const targetShootBy = new Map((targetShoots ?? []).map((s) => [s.id, s]));
 
   return (
     <div className="mx-auto max-w-4xl space-y-10">
@@ -126,9 +135,14 @@ export default async function AdminPage() {
           <div className="space-y-3">
             {list.map((r) => {
               const isProfile = r.target_type === "profile";
+              const targetProfile = targetProfileBy.get(r.target_id);
+              const targetShoot = targetShootBy.get(r.target_id);
               const targetLabel = isProfile
-                ? (targetProfileBy.get(r.target_id) ?? r.target_id)
-                : (targetShootBy.get(r.target_id) ?? r.target_id);
+                ? (targetProfile?.display_name ?? r.target_id)
+                : (targetShoot?.title ?? r.target_id);
+              const targetSuspended = isProfile
+                ? (targetProfile?.is_suspended ?? false)
+                : (targetShoot?.is_suspended ?? false);
               const targetHref = isProfile
                 ? `/photographers/${r.target_id}`
                 : `/shoots/${r.target_id}`;
@@ -137,7 +151,10 @@ export default async function AdminPage() {
                   key={r.id}
                   id={r.id}
                   reporterName={reporterBy.get(r.reporter_id) ?? r.reporter_id}
-                  targetType={tReport("report")}
+                  targetTypeLabel={tReport("report")}
+                  targetKind={r.target_type}
+                  targetId={r.target_id}
+                  targetSuspended={targetSuspended}
                   targetLabel={targetLabel}
                   targetHref={targetHref}
                   reason={r.reason}

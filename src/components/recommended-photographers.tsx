@@ -24,6 +24,7 @@ export async function RecommendedPhotographers() {
       .from("profiles")
       .select("id, display_name, city, canton, avatar_url")
       .eq("role", "photographer")
+      .eq("is_suspended", false)
       .limit(24),
     supabase
       .from("photographer_ratings")

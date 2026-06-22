@@ -416,7 +416,13 @@
     "reporter": "Melder:in",
     "target": "Ziel",
     "reason": "Grund",
-    "viewTarget": "Ansehen"
+    "viewTarget": "Ansehen",
+    "suspended": "Gesperrt",
+    "notePlaceholder": "Notiz / Begründung (optional)",
+    "suspendUser": "Nutzer:in sperren",
+    "unsuspendUser": "Sperre aufheben",
+    "suspendShoot": "Auftrag sperren",
+    "unsuspendShoot": "Sperre aufheben"
   },
   "pagination": {
     "label": "Seitennavigation",
@@ -428,5 +434,8 @@
     "loginToBid": "Anmelden, um ein Angebot abzugeben",
     "loginToPost": "Anmelden, um einen Auftrag zu posten",
     "browseAll": "Alle Aufträge ansehen"
+  },
+  "account": {
+    "suspendedBanner": "Dein Konto wurde gesperrt. Du kannst vorübergehend keine neuen Inhalte erstellen."
   }
 }

@@ -114,6 +114,15 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
     }
   }
 
+  // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET
+  // NULL, so the row survives the cascade as an anonymised audit entry).
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "account_deleted",
+    target_type: "profile",
+    target_id: user.id,
+  });
+
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return { ok: false, error: error.message };
 

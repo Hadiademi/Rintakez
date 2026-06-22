@@ -416,7 +416,13 @@
     "reporter": "Signalant",
     "target": "Cible",
     "reason": "Motif",
-    "viewTarget": "Voir"
+    "viewTarget": "Voir",
+    "suspended": "Suspendu",
+    "notePlaceholder": "Note / motif (facultatif)",
+    "suspendUser": "Suspendre l’utilisateur",
+    "unsuspendUser": "Lever la suspension",
+    "suspendShoot": "Suspendre l’annonce",
+    "unsuspendShoot": "Lever la suspension"
   },
   "pagination": {
     "label": "Pagination",
@@ -428,5 +434,8 @@
     "loginToBid": "Connectez-vous pour faire une offre",
     "loginToPost": "Connectez-vous pour publier une demande",
     "browseAll": "Voir toutes les demandes"
+  },
+  "account": {
+    "suspendedBanner": "Votre compte a été suspendu. Vous ne pouvez temporairement pas créer de nouveau contenu."
   }
 }

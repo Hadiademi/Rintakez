@@ -416,7 +416,13 @@
     "reporter": "Reporter",
     "target": "Target",
     "reason": "Reason",
-    "viewTarget": "View"
+    "viewTarget": "View",
+    "suspended": "Suspended",
+    "notePlaceholder": "Note / reason (optional)",
+    "suspendUser": "Suspend user",
+    "unsuspendUser": "Unsuspend",
+    "suspendShoot": "Suspend shoot",
+    "unsuspendShoot": "Unsuspend"
   },
   "pagination": {
     "label": "Pagination",
@@ -428,5 +434,8 @@
     "loginToBid": "Log in to place a bid",
     "loginToPost": "Log in to post a shoot",
     "browseAll": "Browse all shoots"
+  },
+  "account": {
+    "suspendedBanner": "Your account has been suspended. You can’t create new content for now."
   }
 }

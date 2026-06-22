@@ -1,5 +1,13 @@
 // Hand-authored to match supabase/migrations/*. Regenerate with `npm run db:types` once `supabase login` is configured.
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export type Database = {
   public: {
     Tables: {
@@ -16,6 +24,9 @@ export type Database = {
           created_at: string;
           role_confirmed: boolean;
           is_admin: boolean;
+          is_suspended: boolean;
+          suspension_reason: string | null;
+          suspended_at: string | null;
         };
         Insert: {
           id: string;
@@ -29,6 +40,9 @@ export type Database = {
           created_at?: string;
           role_confirmed?: boolean;
           is_admin?: boolean;
+          is_suspended?: boolean;
+          suspension_reason?: string | null;
+          suspended_at?: string | null;
         };
         Update: {
           id?: string;
@@ -42,6 +56,9 @@ export type Database = {
           created_at?: string;
           role_confirmed?: boolean;
           is_admin?: boolean;
+          is_suspended?: boolean;
+          suspension_reason?: string | null;
+          suspended_at?: string | null;
         };
         Relationships: [];
       };
@@ -141,6 +158,8 @@ export type Database = {
           accepted_bid_id: string | null;
           created_at: string;
           cancellation_reason: string | null;
+          is_suspended: boolean;
+          suspended_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -159,6 +178,8 @@ export type Database = {
           accepted_bid_id?: string | null;
           created_at?: string;
           cancellation_reason?: string | null;
+          is_suspended?: boolean;
+          suspended_reason?: string | null;
         };
         Update: {
           id?: string;
@@ -177,6 +198,8 @@ export type Database = {
           accepted_bid_id?: string | null;
           created_at?: string;
           cancellation_reason?: string | null;
+          is_suspended?: boolean;
+          suspended_reason?: string | null;
         };
         Relationships: [];
       };
@@ -312,6 +335,9 @@ export type Database = {
           reason: string;
           status: Database["public"]["Enums"]["report_status"];
           created_at: string;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          admin_note: string | null;
         };
         Insert: {
           id?: string;
@@ -321,6 +347,9 @@ export type Database = {
           reason: string;
           status?: Database["public"]["Enums"]["report_status"];
           created_at?: string;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          admin_note?: string | null;
         };
         Update: {
           id?: string;
@@ -329,6 +358,39 @@ export type Database = {
           target_id?: string;
           reason?: string;
           status?: Database["public"]["Enums"]["report_status"];
+          created_at?: string;
+          reviewed_by?: string | null;
+          reviewed_at?: string | null;
+          admin_note?: string | null;
+        };
+        Relationships: [];
+      };
+      audit_log: {
+        Row: {
+          id: number;
+          actor_id: string | null;
+          action: string;
+          target_type: string;
+          target_id: string | null;
+          meta: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          actor_id?: string | null;
+          action: string;
+          target_type: string;
+          target_id?: string | null;
+          meta?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          actor_id?: string | null;
+          action?: string;
+          target_type?: string;
+          target_id?: string | null;
+          meta?: Json;
           created_at?: string;
         };
         Relationships: [];
@@ -440,6 +502,10 @@ export type Database = {
       };
       has_role: {
         Args: { p_role: Database["public"]["Enums"]["user_role"] };
+        Returns: boolean;
+      };
+      is_suspended: {
+        Args: Record<string, never>;
         Returns: boolean;
       };
     };
