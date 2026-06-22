@@ -6,6 +6,11 @@ import { formatCHF } from "@/lib/format";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
+import { VerificationRequest } from "@/components/verification-request";
+import { ChangePasswordForm } from "@/components/change-password-form";
+import { ChangeEmailForm } from "@/components/change-email-form";
+import { NotificationPrefs } from "@/components/notification-prefs";
+import { DataExportButton } from "@/components/data-export-button";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 
@@ -23,7 +28,9 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, role, city, canton, bio, avatar_url")
+    .select(
+      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, terms_accepted_at, terms_version"
+    )
     .eq("id", user.id)
     .single();
 
@@ -39,7 +46,7 @@ export default async function ProfilePage() {
     ? await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status"
         )
         .eq("profile_id", profile.id)
         .maybeSingle()
@@ -144,13 +151,51 @@ export default async function ProfilePage() {
             <dt className="text-[13px] text-mute-2">{t("role")}</dt>
             <dd className="text-[15px] text-ink">{roleLabel}</dd>
           </div>
+          {profile.terms_accepted_at && (
+            <div className="space-y-1">
+              <dt className="text-[13px] text-mute-2">{t("termsAccepted")}</dt>
+              <dd className="text-[15px] text-ink">
+                {profile.terms_accepted_at.slice(0, 10)}
+                {profile.terms_version ? ` · v${profile.terms_version}` : ""}
+              </dd>
+            </div>
+          )}
         </dl>
+      </div>
+
+      {/* Security */}
+      <div className="space-y-8 border-t border-line pt-8">
+        <p className="label text-mute">{t("securityTitle")}</p>
+        <div className="space-y-4">
+          <h3 className="text-[15px] font-medium text-ink">
+            {t("passwordTitle")}
+          </h3>
+          <ChangePasswordForm email={user.email ?? ""} />
+        </div>
+        <div className="space-y-4">
+          <h3 className="text-[15px] font-medium text-ink">{t("emailTitle")}</h3>
+          <ChangeEmailForm currentEmail={user.email ?? ""} />
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="space-y-3 border-t border-line pt-8">
+        <p className="label text-mute">{t("notificationsTitle")}</p>
+        <NotificationPrefs
+          notifyBids={profile.notify_bids}
+          notifyShootUpdates={profile.notify_shoot_updates}
+        />
       </div>
 
       {/* Photographer details */}
       {isPhotographer && (
         <>
-          <div className="flex items-center justify-end gap-4 border-t border-line pt-8">
+          <div className="border-t border-line pt-8">
+            <VerificationRequest
+              status={details?.verification_status ?? "unverified"}
+            />
+          </div>
+          <div className="flex items-center justify-end gap-4">
             <Link
               href="/onboarding"
               data-testid="profile-edit-details"
@@ -249,6 +294,12 @@ export default async function ProfilePage() {
           <AvailabilityManager initial={unavailableDates} />
         </>
       )}
+
+      <div className="space-y-2 border-t border-line pt-8">
+        <p className="label text-mute">{t("dataPrivacy")}</p>
+        <p className="text-[14px] text-mute">{t("exportDataHint")}</p>
+        <DataExportButton />
+      </div>
 
       <DeleteAccountButton />
     </div>

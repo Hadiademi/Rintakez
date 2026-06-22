@@ -59,6 +59,28 @@ export async function savePhotographerDetails(
   return { ok: true };
 }
 
+/**
+ * Photographer asks an admin to verify their identity. Flips own status to
+ * 'pending' (DB function is a no-op unless currently unverified/rejected, and
+ * can only touch the caller's own row). Verified status is a trust badge, not a
+ * gate on bidding.
+ */
+export async function requestVerification(): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("request_verification");
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
 // ---------------------------------------------------------------------------
 // 2. addPortfolioImage
 // ---------------------------------------------------------------------------

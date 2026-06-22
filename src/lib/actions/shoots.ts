@@ -257,15 +257,39 @@ export async function cancelShootAction(
   if (!user) return { ok: false, error: "unauthorized" };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // Scope the update to the owner AND surface a clear "forbidden" when nothing
+  // matched (a non-owner's update silently affects 0 rows otherwise — RLS still
+  // blocks it, but the caller must not see a misleading success).
+  const { data, error } = await supabase
     .from("shoots")
     .update({
       status: "cancelled",
       cancellation_reason: reason?.trim() ? reason.trim().slice(0, 500) : null,
     })
     .eq("id", shootId)
-    .eq("client_id", user.id);
+    .eq("client_id", user.id)
+    .select("id, title, accepted_bid_id");
   if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "forbidden" };
+
+  // If a photographer was assigned, email them the cancellation (in-app
+  // notification is already created by the shoot_cancelled DB trigger).
+  const cancelled = data[0];
+  if (cancelled.accepted_bid_id) {
+    const { data: bid } = await supabase
+      .from("bids")
+      .select("photographer_id")
+      .eq("id", cancelled.accepted_bid_id)
+      .maybeSingle();
+    if (bid) {
+      await notifyEmail({
+        kind: "shoot_cancelled",
+        recipientId: bid.photographer_id,
+        shootId,
+        shootTitle: cancelled.title,
+      });
+    }
+  }
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");

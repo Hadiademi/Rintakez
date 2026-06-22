@@ -81,6 +81,20 @@ export function PhotographerFilters() {
         ♥ {t("savedOnly")}
       </button>
 
+      <button
+        type="button"
+        data-testid="filter-verified"
+        onClick={() => setParam("verified", params.get("verified") ? "" : "1")}
+        aria-pressed={!!params.get("verified")}
+        className={`press border px-3 py-2 text-[14px] transition-colors ${
+          params.get("verified")
+            ? "border-ink bg-ink text-paper"
+            : "border-line text-ink hover:border-ink"
+        }`}
+      >
+        ✓ {t("verifiedOnly")}
+      </button>
+
       <select
         data-testid="filter-sort"
         value={params.get("sort") ?? "rating"}

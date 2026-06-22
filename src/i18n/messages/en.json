@@ -253,7 +253,40 @@
     "availSub": "Mark the days you are not available.",
     "availAdd": "Block a day",
     "availEmpty": "No blocked days.",
-    "availUnavailable": "Unavailable"
+    "availUnavailable": "Unavailable",
+    "verified": "Verified",
+    "verificationLabel": "Verification",
+    "requestVerification": "Request verification",
+    "verificationStatus": {
+      "unverified": "Not verified",
+      "pending": "Under review",
+      "verified": "Verified",
+      "rejected": "Rejected"
+    },
+    "dataPrivacy": "Data & privacy",
+    "exportData": "Download my data",
+    "exportDataHint": "Download a copy of all data we hold about you as a JSON file.",
+    "securityTitle": "Security",
+    "passwordTitle": "Change password",
+    "emailTitle": "Email address",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed.",
+    "currentPasswordWrong": "Current password is incorrect.",
+    "genericError": "Something went wrong. Please try again.",
+    "currentEmail": "Current email",
+    "newEmail": "New email",
+    "changeEmail": "Update email",
+    "emailChangePending": "Confirmation link sent to the new address.",
+    "emailSame": "That’s already your email address.",
+    "notificationsTitle": "Email notifications",
+    "notifyBidsLabel": "Offers",
+    "notifyBidsHint": "New offers and offer decisions",
+    "notifyShootUpdatesLabel": "Shoot updates",
+    "notifyShootUpdatesHint": "Cancellations and changes to your shoots",
+    "prefsSaved": "Saved.",
+    "termsAccepted": "Terms accepted"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -315,7 +348,13 @@
     "agbS9B": "Rintakez is not liable for the photography service itself. Liability is limited, to the extent permitted by law, to intent and gross negligence.",
     "agbS10T": "10. Termination, changes & law",
     "agbS10B": "You may delete your account at any time. We may amend these terms and will inform you in good time. Swiss law applies; place of jurisdiction is the operator's seat.",
-    "footerAgb": "Terms"
+    "footerAgb": "Terms",
+    "dsSubprocessorsTitle": "Sub-processors in detail",
+    "dsSubprocessors": "We share data with carefully selected providers that help us run the platform: Supabase (database, authentication, file storage), Vercel (hosting), Resend (sending notification emails), and Plausible Analytics (anonymous, cookieless usage statistics) where enabled. These providers process data solely on our behalf.",
+    "dsRetentionTitle": "Retention & deletion",
+    "dsRetention": "We keep personal data only as long as needed to operate the marketplace. You can delete your account at any time; your profile data, shoots, bids, messages and files are removed. Reviews may remain in anonymised form.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "We use only technically necessary cookies for sign-in (session). No tracking or advertising cookies are set; the optional usage analytics (Plausible) works without cookies."
   },
   "states": {
     "errorTitle": "Something went wrong.",
@@ -380,7 +419,9 @@
     "minRating": "Min. rating",
     "empty": "No photographers match your filters.",
     "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}",
-    "savedOnly": "Saved only"
+    "savedOnly": "Saved only",
+    "verified": "Verified",
+    "verifiedOnly": "Verified only"
   },
   "messages": {
     "navMessages": "Messages",
@@ -390,7 +431,11 @@
     "send": "Send",
     "about": "About: {title}",
     "threadEmpty": "No messages yet. Write the first one.",
-    "open": "Send a message"
+    "open": "Send a message",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockedNotice": "You blocked this person. Unblock to write.",
+    "blockedByNotice": "You can’t send messages to this person."
   },
   "report": {
     "report": "Report",
@@ -416,7 +461,56 @@
     "reporter": "Reporter",
     "target": "Target",
     "reason": "Reason",
-    "viewTarget": "View"
+    "viewTarget": "View",
+    "suspended": "Suspended",
+    "notePlaceholder": "Note / reason (optional)",
+    "suspendUser": "Suspend user",
+    "unsuspendUser": "Unsuspend",
+    "suspendShoot": "Suspend shoot",
+    "unsuspendShoot": "Unsuspend",
+    "verifications": "Verifications",
+    "noVerifications": "No pending verifications.",
+    "approveVerification": "Approve",
+    "rejectVerification": "Reject",
+    "tabDashboard": "Overview",
+    "tabUsers": "Users",
+    "tabVerifications": "Verifications",
+    "tabReports": "Reports",
+    "tabAudit": "Audit log",
+    "tabEmail": "Emails",
+    "metricSignups7": "New (7d)",
+    "metricSignups30": "New (30d)",
+    "needsAttention": "Needs attention",
+    "suspendedUsers": "Suspended users",
+    "failedEmails": "Failed emails",
+    "searchUsers": "Search by name…",
+    "search": "Search",
+    "noUsers": "No users found.",
+    "resultsCapped": "Showing the first {n} results. Search to narrow.",
+    "badgeAdmin": "Admin",
+    "makeAdmin": "Make admin",
+    "revokeAdmin": "Revoke admin",
+    "cannotRevokeSelf": "You can’t revoke your own admin status.",
+    "auditLog": "Audit log",
+    "noAudit": "No entries yet.",
+    "auditBy": "by",
+    "emailHealth": "Email health",
+    "emailPending": "Pending",
+    "emailSent": "Sent",
+    "emailFailed": "Failed",
+    "emailQueueEmpty": "No pending or failed emails.",
+    "emailAttempts": "{n} attempts",
+    "retry": "Retry",
+    "reportStatus": {
+      "open": "Open",
+      "reviewed": "Reviewed",
+      "dismissed": "Dismissed"
+    },
+    "userFilter": {
+      "all": "All",
+      "active": "Active",
+      "suspended": "Suspended"
+    }
   },
   "pagination": {
     "label": "Pagination",
@@ -428,5 +522,8 @@
     "loginToBid": "Log in to place a bid",
     "loginToPost": "Log in to post a shoot",
     "browseAll": "Browse all shoots"
+  },
+  "account": {
+    "suspendedBanner": "Your account has been suspended. You can’t create new content for now."
   }
 }

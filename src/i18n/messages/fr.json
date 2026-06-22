@@ -253,7 +253,40 @@
     "availSub": "Marque les jours où tu n'es pas disponible.",
     "availAdd": "Bloquer un jour",
     "availEmpty": "Aucun jour bloqué.",
-    "availUnavailable": "Indisponible"
+    "availUnavailable": "Indisponible",
+    "verified": "Vérifié",
+    "verificationLabel": "Vérification",
+    "requestVerification": "Demander la vérification",
+    "verificationStatus": {
+      "unverified": "Non vérifié",
+      "pending": "En cours d’examen",
+      "verified": "Vérifié",
+      "rejected": "Refusé"
+    },
+    "dataPrivacy": "Données & confidentialité",
+    "exportData": "Télécharger mes données",
+    "exportDataHint": "Télécharge une copie de toutes les données te concernant au format JSON.",
+    "securityTitle": "Sécurité",
+    "passwordTitle": "Changer le mot de passe",
+    "emailTitle": "Adresse e-mail",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "passwordChanged": "Mot de passe modifié.",
+    "currentPasswordWrong": "Le mot de passe actuel est incorrect.",
+    "genericError": "Une erreur s’est produite. Réessaie.",
+    "currentEmail": "E-mail actuel",
+    "newEmail": "Nouvel e-mail",
+    "changeEmail": "Mettre à jour l’e-mail",
+    "emailChangePending": "Lien de confirmation envoyé à la nouvelle adresse.",
+    "emailSame": "C’est déjà ton adresse e-mail.",
+    "notificationsTitle": "Notifications par e-mail",
+    "notifyBidsLabel": "Offres",
+    "notifyBidsHint": "Nouvelles offres et décisions sur les offres",
+    "notifyShootUpdatesLabel": "Mises à jour des shootings",
+    "notifyShootUpdatesHint": "Annulations et changements de tes shootings",
+    "prefsSaved": "Enregistré.",
+    "termsAccepted": "Conditions acceptées"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -315,7 +348,13 @@
     "agbS9B": "Rintakez n'est pas responsable de la prestation photographique elle-même. La responsabilité est limitée, dans les limites légales, au dol et à la faute grave.",
     "agbS10T": "10. Résiliation, modifications & droit",
     "agbS10B": "Tu peux supprimer ton compte à tout moment. Nous pouvons adapter ces conditions et t'informons à temps. Le droit suisse s'applique ; le for est au siège de l'exploitant.",
-    "footerAgb": "CGU"
+    "footerAgb": "CGU",
+    "dsSubprocessorsTitle": "Sous-traitants en détail",
+    "dsSubprocessors": "Nous transmettons des données à des prestataires soigneusement sélectionnés qui nous aident à exploiter la plateforme : Supabase (base de données, authentification, stockage de fichiers), Vercel (hébergement), Resend (envoi des e-mails de notification) ainsi que Plausible Analytics (statistiques d’usage anonymes et sans cookies), si activé. Ces prestataires traitent les données uniquement pour notre compte.",
+    "dsRetentionTitle": "Conservation & suppression",
+    "dsRetention": "Nous ne conservons les données personnelles que le temps nécessaire à l’exploitation de la plateforme. Tu peux supprimer ton compte à tout moment ; tes données de profil, annonces, offres, messages et fichiers sont alors supprimés. Les évaluations peuvent subsister sous forme anonymisée.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "Nous utilisons uniquement des cookies techniquement nécessaires à la connexion (session). Aucun cookie de suivi ou publicitaire n’est utilisé ; la statistique d’usage optionnelle (Plausible) fonctionne sans cookies."
   },
   "states": {
     "errorTitle": "Une erreur est survenue.",
@@ -380,7 +419,9 @@
     "minRating": "Note min.",
     "empty": "Aucun·e photographe ne correspond à tes filtres.",
     "count": "{count, plural, =0 {Aucun} one {# photographe} other {# photographes}}",
-    "savedOnly": "Enregistrés uniquement"
+    "savedOnly": "Enregistrés uniquement",
+    "verified": "Vérifié",
+    "verifiedOnly": "Vérifiés uniquement"
   },
   "messages": {
     "navMessages": "Messages",
@@ -390,7 +431,11 @@
     "send": "Envoyer",
     "about": "À propos de : {title}",
     "threadEmpty": "Pas encore de messages. Écris le premier.",
-    "open": "Envoyer un message"
+    "open": "Envoyer un message",
+    "block": "Bloquer",
+    "unblock": "Débloquer",
+    "blockedNotice": "Vous avez bloqué cette personne. Débloquez-la pour écrire.",
+    "blockedByNotice": "Vous ne pouvez pas envoyer de message à cette personne."
   },
   "report": {
     "report": "Signaler",
@@ -416,7 +461,56 @@
     "reporter": "Signalant",
     "target": "Cible",
     "reason": "Motif",
-    "viewTarget": "Voir"
+    "viewTarget": "Voir",
+    "suspended": "Suspendu",
+    "notePlaceholder": "Note / motif (facultatif)",
+    "suspendUser": "Suspendre l’utilisateur",
+    "unsuspendUser": "Lever la suspension",
+    "suspendShoot": "Suspendre l’annonce",
+    "unsuspendShoot": "Lever la suspension",
+    "verifications": "Vérifications",
+    "noVerifications": "Aucune vérification en attente.",
+    "approveVerification": "Vérifier",
+    "rejectVerification": "Refuser",
+    "tabDashboard": "Aperçu",
+    "tabUsers": "Utilisateurs",
+    "tabVerifications": "Vérifications",
+    "tabReports": "Signalements",
+    "tabAudit": "Journal d’audit",
+    "tabEmail": "E-mails",
+    "metricSignups7": "Nouveaux (7 j)",
+    "metricSignups30": "Nouveaux (30 j)",
+    "needsAttention": "À traiter",
+    "suspendedUsers": "Utilisateurs suspendus",
+    "failedEmails": "E-mails échoués",
+    "searchUsers": "Rechercher par nom…",
+    "search": "Rechercher",
+    "noUsers": "Aucun utilisateur trouvé.",
+    "resultsCapped": "Seuls les {n} premiers résultats. Affinez la recherche.",
+    "badgeAdmin": "Admin",
+    "makeAdmin": "Promouvoir admin",
+    "revokeAdmin": "Retirer admin",
+    "cannotRevokeSelf": "Tu ne peux pas retirer ton propre statut admin.",
+    "auditLog": "Journal d’audit",
+    "noAudit": "Aucune entrée pour l’instant.",
+    "auditBy": "par",
+    "emailHealth": "État des e-mails",
+    "emailPending": "En attente",
+    "emailSent": "Envoyés",
+    "emailFailed": "Échoués",
+    "emailQueueEmpty": "Aucun e-mail en attente ou échoué.",
+    "emailAttempts": "{n} tentatives",
+    "retry": "Réessayer",
+    "reportStatus": {
+      "open": "Ouverts",
+      "reviewed": "Traités",
+      "dismissed": "Rejetés"
+    },
+    "userFilter": {
+      "all": "Tous",
+      "active": "Actifs",
+      "suspended": "Suspendus"
+    }
   },
   "pagination": {
     "label": "Pagination",
@@ -428,5 +522,8 @@
     "loginToBid": "Connectez-vous pour faire une offre",
     "loginToPost": "Connectez-vous pour publier une demande",
     "browseAll": "Voir toutes les demandes"
+  },
+  "account": {
+    "suspendedBanner": "Votre compte a été suspendu. Vous ne pouvez temporairement pas créer de nouveau contenu."
   }
 }

@@ -253,7 +253,40 @@
     "availSub": "Markiere Tage, an denen du nicht verfügbar bist.",
     "availAdd": "Tag blockieren",
     "availEmpty": "Keine blockierten Tage.",
-    "availUnavailable": "Nicht verfügbar"
+    "availUnavailable": "Nicht verfügbar",
+    "verified": "Verifiziert",
+    "verificationLabel": "Verifizierung",
+    "requestVerification": "Verifizierung anfragen",
+    "verificationStatus": {
+      "unverified": "Nicht verifiziert",
+      "pending": "In Prüfung",
+      "verified": "Verifiziert",
+      "rejected": "Abgelehnt"
+    },
+    "dataPrivacy": "Daten & Datenschutz",
+    "exportData": "Meine Daten herunterladen",
+    "exportDataHint": "Lade eine Kopie aller über dich gespeicherten Daten als JSON-Datei herunter.",
+    "securityTitle": "Sicherheit",
+    "passwordTitle": "Passwort ändern",
+    "emailTitle": "E-Mail-Adresse",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "changePassword": "Passwort ändern",
+    "passwordChanged": "Passwort geändert.",
+    "currentPasswordWrong": "Aktuelles Passwort ist falsch.",
+    "genericError": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    "currentEmail": "Aktuelle E-Mail",
+    "newEmail": "Neue E-Mail",
+    "changeEmail": "E-Mail aktualisieren",
+    "emailChangePending": "Bestätigungslink an die neue Adresse gesendet.",
+    "emailSame": "Das ist bereits deine E-Mail-Adresse.",
+    "notificationsTitle": "E-Mail-Benachrichtigungen",
+    "notifyBidsLabel": "Angebote",
+    "notifyBidsHint": "Neue Angebote und Entscheidungen zu Angeboten",
+    "notifyShootUpdatesLabel": "Shooting-Updates",
+    "notifyShootUpdatesHint": "Absagen und Änderungen an deinen Shootings",
+    "prefsSaved": "Gespeichert.",
+    "termsAccepted": "Bedingungen akzeptiert"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -315,7 +348,13 @@
     "agbS9B": "Rintakez haftet nicht für die Erbringung der Fotodienstleistung selbst. Die Haftung ist im gesetzlich zulässigen Rahmen auf Vorsatz und grobe Fahrlässigkeit beschränkt.",
     "agbS10T": "10. Kündigung, Änderungen & Recht",
     "agbS10B": "Du kannst dein Konto jederzeit löschen. Wir können diese AGB anpassen und informieren rechtzeitig. Es gilt schweizerisches Recht; Gerichtsstand ist der Sitz des Betreibers.",
-    "footerAgb": "AGB"
+    "footerAgb": "AGB",
+    "dsSubprocessorsTitle": "Auftragsverarbeiter im Detail",
+    "dsSubprocessors": "Wir geben Daten an sorgfältig ausgewählte Dienstleister weiter, die uns beim Betrieb unterstützen: Supabase (Datenbank, Authentifizierung, Dateispeicher), Vercel (Hosting), Resend (Versand von Benachrichtigungs-E-Mails) sowie Plausible Analytics (anonyme, cookielose Nutzungsstatistik), sofern aktiviert. Diese Anbieter verarbeiten Daten ausschliesslich in unserem Auftrag.",
+    "dsRetentionTitle": "Aufbewahrung & Löschung",
+    "dsRetention": "Wir bewahren personenbezogene Daten nur so lange auf, wie es für den Betrieb des Marktplatzes erforderlich ist. Du kannst dein Konto jederzeit löschen; dabei werden deine Profildaten, Aufträge, Angebote, Nachrichten und Dateien entfernt. Bewertungen können in anonymisierter Form bestehen bleiben.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "Wir verwenden ausschliesslich technisch notwendige Cookies für die Anmeldung (Session). Es werden keine Tracking- oder Werbe-Cookies gesetzt; die optionale Nutzungsstatistik (Plausible) funktioniert ohne Cookies."
   },
   "states": {
     "errorTitle": "Etwas ist schiefgelaufen.",
@@ -380,7 +419,9 @@
     "minRating": "Mind. Bewertung",
     "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
     "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",
-    "savedOnly": "Nur gespeicherte"
+    "savedOnly": "Nur gespeicherte",
+    "verified": "Verifiziert",
+    "verifiedOnly": "Nur verifizierte"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -390,7 +431,11 @@
     "send": "Senden",
     "about": "Zu: {title}",
     "threadEmpty": "Noch keine Nachrichten. Schreib die erste.",
-    "open": "Nachricht senden"
+    "open": "Nachricht senden",
+    "block": "Blockieren",
+    "unblock": "Blockierung aufheben",
+    "blockedNotice": "Du hast diese Person blockiert. Hebe die Blockierung auf, um zu schreiben.",
+    "blockedByNotice": "Du kannst dieser Person keine Nachricht senden."
   },
   "report": {
     "report": "Melden",
@@ -416,7 +461,56 @@
     "reporter": "Melder:in",
     "target": "Ziel",
     "reason": "Grund",
-    "viewTarget": "Ansehen"
+    "viewTarget": "Ansehen",
+    "suspended": "Gesperrt",
+    "notePlaceholder": "Notiz / Begründung (optional)",
+    "suspendUser": "Nutzer:in sperren",
+    "unsuspendUser": "Sperre aufheben",
+    "suspendShoot": "Auftrag sperren",
+    "unsuspendShoot": "Sperre aufheben",
+    "verifications": "Verifizierungen",
+    "noVerifications": "Keine offenen Verifizierungen.",
+    "approveVerification": "Verifizieren",
+    "rejectVerification": "Ablehnen",
+    "tabDashboard": "Übersicht",
+    "tabUsers": "Nutzer:innen",
+    "tabVerifications": "Verifizierungen",
+    "tabReports": "Meldungen",
+    "tabAudit": "Audit-Log",
+    "tabEmail": "E-Mails",
+    "metricSignups7": "Neu (7 T)",
+    "metricSignups30": "Neu (30 T)",
+    "needsAttention": "Handlungsbedarf",
+    "suspendedUsers": "Gesperrte Nutzer:innen",
+    "failedEmails": "Fehlgeschlagene E-Mails",
+    "searchUsers": "Nach Name suchen…",
+    "search": "Suchen",
+    "noUsers": "Keine Nutzer:innen gefunden.",
+    "resultsCapped": "Nur die ersten {n} Ergebnisse. Suche zum Eingrenzen.",
+    "badgeAdmin": "Admin",
+    "makeAdmin": "Zu Admin machen",
+    "revokeAdmin": "Admin entziehen",
+    "cannotRevokeSelf": "Du kannst dir selbst den Admin-Status nicht entziehen.",
+    "auditLog": "Audit-Log",
+    "noAudit": "Noch keine Einträge.",
+    "auditBy": "von",
+    "emailHealth": "E-Mail-Zustand",
+    "emailPending": "Ausstehend",
+    "emailSent": "Gesendet",
+    "emailFailed": "Fehlgeschlagen",
+    "emailQueueEmpty": "Keine ausstehenden oder fehlgeschlagenen E-Mails.",
+    "emailAttempts": "{n} Versuche",
+    "retry": "Erneut versuchen",
+    "reportStatus": {
+      "open": "Offen",
+      "reviewed": "Geprüft",
+      "dismissed": "Verworfen"
+    },
+    "userFilter": {
+      "all": "Alle",
+      "active": "Aktiv",
+      "suspended": "Gesperrt"
+    }
   },
   "pagination": {
     "label": "Seitennavigation",
@@ -428,5 +522,8 @@
     "loginToBid": "Anmelden, um ein Angebot abzugeben",
     "loginToPost": "Anmelden, um einen Auftrag zu posten",
     "browseAll": "Alle Aufträge ansehen"
+  },
+  "account": {
+    "suspendedBanner": "Dein Konto wurde gesperrt. Du kannst vorübergehend keine neuen Inhalte erstellen."
   }
 }

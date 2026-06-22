@@ -27,10 +27,11 @@ export default async function PhotographersDirectoryPage({
     minRating?: string;
     sort?: string;
     saved?: string;
+    verified?: string;
     page?: string;
   }>;
 }) {
-  const { type, canton, minRating, sort, saved, page: pageParam } =
+  const { type, canton, minRating, sort, saved, verified, page: pageParam } =
     await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const supabase = await createClient();
@@ -54,9 +55,12 @@ export default async function PhotographersDirectoryPage({
   // Filter on the photographer_details (array columns), then enrich.
   let detailsQuery = supabase
     .from("photographer_details")
-    .select("profile_id, specialties, coverage_cantons, hourly_rate_chf");
+    .select(
+      "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status"
+    );
   if (type) detailsQuery = detailsQuery.contains("specialties", [type]);
   if (canton) detailsQuery = detailsQuery.contains("coverage_cantons", [canton]);
+  if (verified) detailsQuery = detailsQuery.eq("verification_status", "verified");
   const { data: details } = await detailsQuery;
 
   const ids = (details ?? []).map((d) => d.profile_id);
@@ -65,7 +69,7 @@ export default async function PhotographersDirectoryPage({
     ids.length
       ? supabase
           .from("profiles")
-          .select("id, display_name, city, canton, avatar_url")
+          .select("id, display_name, city, canton, avatar_url, is_suspended")
           .in("id", ids)
       : Promise.resolve({ data: [] as never[] }),
     ids.length
@@ -93,6 +97,7 @@ export default async function PhotographersDirectoryPage({
       return profile ? { ...d, profile, rating } : null;
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
+    .filter((x) => !x.profile.is_suspended)
     .filter((x) => x.rating.avg >= minR)
     .filter((x) => !savedIds || savedIds.has(x.profile_id));
 
@@ -161,8 +166,17 @@ export default async function PhotographersDirectoryPage({
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-ink">
-                      {x.profile.display_name}
+                    <p className="flex items-center gap-1.5 truncate font-medium text-ink">
+                      <span className="truncate">{x.profile.display_name}</span>
+                      {x.verification_status === "verified" && (
+                        <span
+                          title={t("verified")}
+                          aria-label={t("verified")}
+                          className="shrink-0 text-accent"
+                        >
+                          ✓
+                        </span>
+                      )}
                     </p>
                     {(x.profile.city || x.profile.canton) && (
                       <p className="truncate text-[13px] text-mute">

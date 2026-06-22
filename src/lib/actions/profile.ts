@@ -103,16 +103,31 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   const admin = createAdminClient();
   if (!admin) return { ok: false, error: "generic" };
 
-  // Best-effort storage cleanup (avatars/portfolio/shoot-refs live under the
-  // user's uid folder); DB rows cascade from the auth.users delete.
+  // Storage cleanup (avatars/portfolio/shoot-refs live under the user's uid
+  // folder); DB rows cascade from the auth.users delete. Fail-safe: if any
+  // removal errors, abort BEFORE deleting the auth user so we never leave
+  // orphaned PII behind with no account to retry from — the user can try again.
   for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
-    const { data: files } = await admin.storage.from(bucket).list(user.id);
+    const { data: files, error: listError } = await admin.storage
+      .from(bucket)
+      .list(user.id);
+    if (listError) return { ok: false, error: "storage_cleanup_failed" };
     if (files?.length) {
-      await admin.storage
+      const { error: removeError } = await admin.storage
         .from(bucket)
         .remove(files.map((f) => `${user.id}/${f.name}`));
+      if (removeError) return { ok: false, error: "storage_cleanup_failed" };
     }
   }
+
+  // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET
+  // NULL, so the row survives the cascade as an anonymised audit entry).
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "account_deleted",
+    target_type: "profile",
+    target_id: user.id,
+  });
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error) return { ok: false, error: error.message };

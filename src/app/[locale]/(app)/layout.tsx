@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
@@ -38,6 +39,14 @@ export default async function AppLayout({
     }
   }
 
+  let suspendedBanner: string | null = null;
+  if (profile.is_suspended) {
+    const t = await getTranslations("account");
+    suspendedBanner = profile.suspension_reason
+      ? `${t("suspendedBanner")} ${profile.suspension_reason}`
+      : t("suspendedBanner");
+  }
+
   return (
     <div className="min-h-screen bg-paper">
       <AppNav
@@ -47,6 +56,14 @@ export default async function AppLayout({
         avatarUrl={avatarUrl}
         isAdmin={profile.is_admin}
       />
+      {suspendedBanner ? (
+        <div
+          role="alert"
+          className="border-b border-red-300 bg-red-50 px-5 py-3 text-center text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+        >
+          {suspendedBanner}
+        </div>
+      ) : null}
       <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">{children}</div>
     </div>
   );
