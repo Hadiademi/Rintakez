@@ -401,7 +401,11 @@
     "send": "Send",
     "about": "About: {title}",
     "threadEmpty": "No messages yet. Write the first one.",
-    "open": "Send a message"
+    "open": "Send a message",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockedNotice": "You blocked this person. Unblock to write.",
+    "blockedByNotice": "You can’t send messages to this person."
   },
   "report": {
     "report": "Report",

@@ -8,6 +8,8 @@ import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import {
   sendMessage,
   markConversationRead,
+  blockUser,
+  unblockUser,
   type ThreadData,
   type ThreadMessage,
 } from "@/lib/actions/messages";
@@ -17,7 +19,22 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   const [messages, setMessages] = useState<ThreadMessage[]>(thread.messages);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [iBlocked, setIBlocked] = useState(thread.iBlocked);
+  const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // The other side blocked me, or I blocked them → no new messages either way.
+  const composerDisabled = iBlocked || thread.blockedByThem;
+
+  async function onToggleBlock() {
+    if (blocking) return;
+    setBlocking(true);
+    const res = iBlocked
+      ? await unblockUser(thread.otherId)
+      : await blockUser(thread.otherId);
+    if (res.ok) setIBlocked((v) => !v);
+    setBlocking(false);
+  }
 
   // Mark read on open.
   useEffect(() => {
@@ -119,6 +136,14 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
             </Link>
           )}
         </div>
+        <button
+          type="button"
+          onClick={onToggleBlock}
+          disabled={blocking}
+          className="press ml-auto shrink-0 text-[13px] text-mute hover:text-ink disabled:opacity-50"
+        >
+          {iBlocked ? t("unblock") : t("block")}
+        </button>
       </div>
 
       {/* Messages */}
@@ -150,31 +175,37 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       </div>
 
       {/* Composer */}
-      <div className="flex items-end gap-2 border-t border-line pt-4">
-        <textarea
-          data-testid="message-input"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              onSend();
-            }
-          }}
-          rows={1}
-          placeholder={t("placeholder")}
-          className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
-        />
-        <button
-          type="button"
-          data-testid="message-send"
-          onClick={onSend}
-          disabled={sending || !body.trim()}
-          className="press shrink-0 bg-ink px-5 py-3 text-[14px] font-medium text-paper disabled:opacity-40"
-        >
-          {t("send")}
-        </button>
-      </div>
+      {composerDisabled ? (
+        <div className="border-t border-line pt-4 text-center text-[13px] text-mute">
+          {iBlocked ? t("blockedNotice") : t("blockedByNotice")}
+        </div>
+      ) : (
+        <div className="flex items-end gap-2 border-t border-line pt-4">
+          <textarea
+            data-testid="message-input"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                onSend();
+              }
+            }}
+            rows={1}
+            placeholder={t("placeholder")}
+            className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
+          />
+          <button
+            type="button"
+            data-testid="message-send"
+            onClick={onSend}
+            disabled={sending || !body.trim()}
+            className="press shrink-0 bg-ink px-5 py-3 text-[14px] font-medium text-paper disabled:opacity-40"
+          >
+            {t("send")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -32,7 +32,10 @@ export type ThreadData = {
   shootId: string;
   shootTitle: string | null;
   otherName: string;
+  otherId: string;
   meId: string;
+  iBlocked: boolean;
+  blockedByThem: boolean;
   messages: ThreadMessage[];
 };
 
@@ -107,31 +110,40 @@ export async function getThread(
   const otherId =
     conv.client_id === user.id ? conv.photographer_id : conv.client_id;
 
-  const [{ data: messages }, { data: other }, { data: shoot }] =
-    await Promise.all([
-      supabase
-        .from("messages")
-        .select("id, sender_id, body, created_at")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", otherId)
-        .maybeSingle(),
-      supabase
-        .from("shoots")
-        .select("title")
-        .eq("id", conv.shoot_id)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: messages },
+    { data: other },
+    { data: shoot },
+    { data: myBlock },
+    { data: blockedByThem },
+  ] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("id, sender_id, body, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true }),
+    supabase.from("profiles").select("display_name").eq("id", otherId).maybeSingle(),
+    supabase.from("shoots").select("title").eq("id", conv.shoot_id).maybeSingle(),
+    // My own block of them (RLS exposes only my own block rows).
+    supabase
+      .from("user_blocks")
+      .select("blocked_id")
+      .eq("blocker_id", user.id)
+      .eq("blocked_id", otherId)
+      .maybeSingle(),
+    // Whether they blocked me — not visible via RLS, so via SECURITY DEFINER fn.
+    supabase.rpc("blocked_by", { p_other: otherId }),
+  ]);
 
   return {
     id: conv.id,
     shootId: conv.shoot_id,
     shootTitle: shoot?.title ?? null,
     otherName: other?.display_name ?? "",
+    otherId,
     meId: user.id,
+    iBlocked: !!myBlock,
+    blockedByThem: blockedByThem ?? false,
     messages: (messages ?? []).map((m) => ({
       id: m.id,
       senderId: m.sender_id,
@@ -174,6 +186,46 @@ export async function sendMessage(
 
   revalidatePath("/[locale]/(app)/messages/[id]", "page");
   revalidatePath("/[locale]/(app)/messages", "page");
+  return { ok: true };
+}
+
+/** Block another user — they can no longer message the current user. */
+export async function blockUser(
+  targetId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+  if (targetId === user.id) return { ok: false, error: "invalid_input" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("user_blocks")
+    .upsert(
+      { blocker_id: user.id, blocked_id: targetId },
+      { onConflict: "blocker_id,blocked_id" }
+    );
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/messages/[id]", "page");
+  return { ok: true };
+}
+
+/** Lift a block previously placed by the current user. */
+export async function unblockUser(
+  targetId: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("user_blocks")
+    .delete()
+    .eq("blocker_id", user.id)
+    .eq("blocked_id", targetId);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/[locale]/(app)/messages/[id]", "page");
   return { ok: true };
 }
 

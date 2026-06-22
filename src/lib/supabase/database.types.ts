@@ -368,6 +368,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_blocks: {
+        Row: {
+          blocker_id: string;
+          blocked_id: string;
+          created_at: string;
+        };
+        Insert: {
+          blocker_id: string;
+          blocked_id: string;
+          created_at?: string;
+        };
+        Update: {
+          blocker_id?: string;
+          blocked_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       audit_log: {
         Row: {
           id: number;
@@ -514,6 +532,10 @@ export type Database = {
       request_verification: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      blocked_by: {
+        Args: { p_other: string };
+        Returns: boolean;
       };
     };
     Enums: {
