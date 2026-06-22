@@ -32,6 +32,13 @@ values
    'authenticated', 'authenticated', 'claire@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
    '{"role":"photographer","display_name":"Claire Dubois","locale":"fr"}', now(), now(),
+   '', '', '', '', ''),
+  -- Dedicated platform admin for oversight (is_admin set below). Strong initial
+  -- password; change it after first login (a `db reset` reverts it to this).
+  ('a0000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'admin@rintakez.ch',
+   extensions.crypt('gzOuYKoDplFbJWNqtdJyAa1!', extensions.gen_salt('bf')), now(),
+   '{"role":"client","display_name":"Platform Admin","locale":"en"}', now(), now(),
    '', '', '', '', '');
 
 -- Identities for the email provider (required for password sign-in).
@@ -45,8 +52,13 @@ where u.id in (
   'a0000000-0000-0000-0000-000000000001',
   'a0000000-0000-0000-0000-000000000002',
   'a0000000-0000-0000-0000-000000000003',
-  'a0000000-0000-0000-0000-000000000004'
+  'a0000000-0000-0000-0000-000000000004',
+  'a0000000-0000-0000-0000-000000000005'
 );
+
+-- Grant the dedicated admin account oversight access.
+update public.profiles set is_admin = true
+  where id = 'a0000000-0000-0000-0000-000000000005';
 
 update public.profiles set city = 'Zürich', canton = 'ZH'
   where id = 'a0000000-0000-0000-0000-000000000003';
