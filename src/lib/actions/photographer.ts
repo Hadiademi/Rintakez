@@ -165,6 +165,104 @@ export async function addPortfolioImage(
 }
 
 // ---------------------------------------------------------------------------
+// 2b. setCoverImage / removeCover — the public profile's cover band
+// ---------------------------------------------------------------------------
+function safeImageExt(file: File): string {
+  const rawExt = file.name.includes(".")
+    ? file.name.split(".").pop()!.toLowerCase()
+    : "";
+  const fromMime =
+    file.type === "image/jpeg"
+      ? "jpg"
+      : file.type === "image/png"
+        ? "png"
+        : file.type === "image/webp"
+          ? "webp"
+          : file.type === "image/gif"
+            ? "gif"
+            : "bin";
+  return /^[a-z0-9]{1,5}$/.test(rawExt) ? rawExt : fromMime;
+}
+
+export async function setCoverImage(
+  formData: FormData
+): Promise<ActionResult<{ url: string }>> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
+
+  const file = formData.get("file");
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    !file.type.startsWith("image/") ||
+    file.size > 5 * 1024 * 1024
+  ) {
+    return { ok: false, error: "invalid_file" };
+  }
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("photographer_details")
+    .select("cover_path")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  const path = `${user.id}/cover/${crypto.randomUUID()}.${safeImageExt(file)}`;
+  const { error: uploadError } = await supabase.storage
+    .from("portfolio")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  const { error: updErr } = await supabase
+    .from("photographer_details")
+    .update({ cover_path: path })
+    .eq("profile_id", user.id);
+  if (updErr) {
+    await supabase.storage.from("portfolio").remove([path]);
+    return { ok: false, error: updErr.message };
+  }
+
+  // Best-effort cleanup of the previous cover object.
+  if (current?.cover_path) {
+    await supabase.storage.from("portfolio").remove([current.cover_path]);
+  }
+
+  const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(path);
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true, url: urlData.publicUrl };
+}
+
+export async function removeCover(): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("photographer_details")
+    .select("cover_path")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("photographer_details")
+    .update({ cover_path: null })
+    .eq("profile_id", user.id);
+  if (error) return { ok: false, error: error.message };
+
+  if (current?.cover_path) {
+    await supabase.storage.from("portfolio").remove([current.cover_path]);
+  }
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
 // 3. removePortfolioImage
 // ---------------------------------------------------------------------------
 export async function removePortfolioImage(

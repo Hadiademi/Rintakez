@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -6,6 +7,7 @@ import { ShootCard } from "@/components/shoot-card";
 import { SiteFooter } from "@/components/site-footer";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getProfile } from "@/lib/auth";
+import { shootImage } from "@/lib/shoot-image";
 import { Link } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
 
@@ -60,9 +62,11 @@ export default async function Home() {
         ? "/shoots/new"
         : "/shoots";
 
+  const featured = shoots[0] ?? null;
+
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         <span className="text-lg font-medium tracking-tight">Rintakez</span>
         <div className="flex items-center gap-4">
           {profile ? (
@@ -91,28 +95,61 @@ export default async function Home() {
       </header>
       <div className="h-px bg-line" />
 
-      <section className="mx-auto w-full max-w-5xl px-6 py-16">
-        <h1 className="max-w-2xl text-4xl font-medium tracking-tight md:text-5xl">
-          {t("title")}
-        </h1>
-        <p className="mt-4 max-w-xl text-mute">{t("subtitle")}</p>
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <Link
-            href={ctaHref}
-            className="press inline-block bg-ink px-6 py-3 text-paper"
-          >
-            {t("cta")}
-          </Link>
-          <Link
-            href="/photographers"
-            className="press text-sm text-mute underline underline-offset-4 hover:text-ink"
-          >
-            {tNav("photographers")} →
-          </Link>
+      <section className="mx-auto w-full max-w-6xl px-6 py-16 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <h1 className="text-4xl font-medium tracking-tight md:text-5xl lg:text-6xl">
+              {t("title")}
+            </h1>
+            <p className="mt-5 max-w-md text-lg text-mute">{t("subtitle")}</p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+              <Link
+                href={ctaHref}
+                className="press inline-block bg-ink px-6 py-3 text-paper"
+              >
+                {t("cta")}
+              </Link>
+              <Link
+                href="/photographers"
+                className="press text-sm text-mute underline underline-offset-4 hover:text-ink"
+              >
+                {tNav("photographers")} →
+              </Link>
+            </div>
+          </div>
+
+          {/* Featured editorial visual (desktop) — fills the frame, gives the
+              hero presence instead of empty space. */}
+          {featured ? (
+            <Link
+              href={`/shoots/${featured.id}`}
+              className="press group relative hidden aspect-[4/5] overflow-hidden bg-chip lg:block"
+            >
+              <Image
+                src={shootImage(featured.type, featured.id, 900, 1125)}
+                alt={featured.title}
+                fill
+                sizes="(min-width: 1024px) 40vw, 0px"
+                className="object-cover grayscale transition-[filter,transform] duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                <span className="label text-paper/80">{t("latestShoots")}</span>
+                <p className="mt-1 text-lg font-semibold text-paper">
+                  {featured.title}
+                </p>
+              </div>
+            </Link>
+          ) : (
+            <div className="hidden aspect-[4/5] items-center justify-center bg-gradient-to-br from-chip to-surface lg:flex">
+              <span className="text-[120px] font-semibold leading-none text-mute-2/30">
+                R
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-5xl px-6 pb-20">
+      <section className="mx-auto w-full max-w-6xl px-6 pb-20">
         <div className="flex items-center justify-between gap-4">
           <h2 className="label text-mute">{t("latestShoots")}</h2>
           <Link

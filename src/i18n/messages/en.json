@@ -301,7 +301,13 @@
     "notifyShootUpdatesHint": "Cancellations and changes to your shoots",
     "prefsSaved": "Saved.",
     "termsAccepted": "Terms accepted",
-    "disciplines": "Discipline"
+    "disciplines": "Discipline",
+    "postShootCta": "Post a shoot",
+    "publicProfileTitle": "Public profile",
+    "coverTitle": "Cover photo",
+    "coverUpload": "Upload cover",
+    "coverReplace": "Replace cover",
+    "coverRemove": "Remove"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -420,7 +426,8 @@
     "recommended": "Recommended photographers",
     "newBadge": "New",
     "reviews": "Reviews",
-    "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}"
+    "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
+    "noReviews": "No reviews yet."
   },
   "directory": {
     "navPhotographers": "Photographers",

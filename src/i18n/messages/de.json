@@ -301,7 +301,13 @@
     "notifyShootUpdatesHint": "Absagen und Änderungen an deinen Shootings",
     "prefsSaved": "Gespeichert.",
     "termsAccepted": "Bedingungen akzeptiert",
-    "disciplines": "Disziplin"
+    "disciplines": "Disziplin",
+    "postShootCta": "Auftrag ausschreiben",
+    "publicProfileTitle": "Öffentliches Profil",
+    "coverTitle": "Titelbild",
+    "coverUpload": "Titelbild hochladen",
+    "coverReplace": "Titelbild ersetzen",
+    "coverRemove": "Entfernen"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -420,7 +426,8 @@
     "recommended": "Empfohlene Fotograf:innen",
     "newBadge": "Neu",
     "reviews": "Bewertungen",
-    "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}"
+    "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
+    "noReviews": "Noch keine Bewertungen."
   },
   "directory": {
     "navPhotographers": "Fotograf:innen",

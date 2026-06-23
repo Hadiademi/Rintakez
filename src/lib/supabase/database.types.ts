@@ -85,6 +85,7 @@ export type Database = {
           created_at: string;
           verification_status: Database["public"]["Enums"]["verification_status"];
           disciplines: Database["public"]["Enums"]["discipline"][];
+          cover_path: string | null;
         };
         Insert: {
           profile_id: string;
@@ -96,6 +97,7 @@ export type Database = {
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
           disciplines?: Database["public"]["Enums"]["discipline"][];
+          cover_path?: string | null;
         };
         Update: {
           profile_id?: string;
@@ -107,6 +109,7 @@ export type Database = {
           created_at?: string;
           verification_status?: Database["public"]["Enums"]["verification_status"];
           disciplines?: Database["public"]["Enums"]["discipline"][];
+          cover_path?: string | null;
         };
         Relationships: [];
       };

@@ -301,7 +301,13 @@
     "notifyShootUpdatesHint": "Annulations et changements de tes shootings",
     "prefsSaved": "Enregistré.",
     "termsAccepted": "Conditions acceptées",
-    "disciplines": "Discipline"
+    "disciplines": "Discipline",
+    "postShootCta": "Publier une annonce",
+    "publicProfileTitle": "Profil public",
+    "coverTitle": "Photo de couverture",
+    "coverUpload": "Téléverser la couverture",
+    "coverReplace": "Remplacer la couverture",
+    "coverRemove": "Supprimer"
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -420,7 +426,8 @@
     "recommended": "Photographes recommandé·es",
     "newBadge": "Nouveau",
     "reviews": "Évaluations",
-    "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}"
+    "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}",
+    "noReviews": "Pas encore d’avis."
   },
   "directory": {
     "navPhotographers": "Photographes",
