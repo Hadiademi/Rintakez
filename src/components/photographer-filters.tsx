@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { SHOOT_TYPES, CANTONS } from "@/lib/validation/photographer";
+import { Select } from "@/components/ui/select";
 
 export function PhotographerFilters() {
   const t = useTranslations("directory");
@@ -20,16 +21,12 @@ export function PhotographerFilters() {
     router.push(`${pathname}?${next.toString()}`);
   }
 
-  const selectClass =
-    "border border-line bg-surface px-3 py-2 text-[14px] text-ink focus:border-ink focus:outline-none";
-
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <select
+      <Select
         data-testid="filter-specialty"
         value={params.get("type") ?? ""}
         onChange={(e) => setParam("type", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("allSpecialties")}</option>
         {SHOOT_TYPES.map((v) => (
@@ -37,13 +34,12 @@ export function PhotographerFilters() {
             {tShoot(`types.${v}`)}
           </option>
         ))}
-      </select>
+      </Select>
 
-      <select
+      <Select
         data-testid="filter-canton"
         value={params.get("canton") ?? ""}
         onChange={(e) => setParam("canton", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("allCantons")}</option>
         {CANTONS.map((c) => (
@@ -51,24 +47,22 @@ export function PhotographerFilters() {
             {c}
           </option>
         ))}
-      </select>
+      </Select>
 
-      <select
+      <Select
         data-testid="filter-discipline"
         value={params.get("discipline") ?? ""}
         onChange={(e) => setParam("discipline", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("allDisciplines")}</option>
         <option value="photo">{tShoot("disciplines.photo")}</option>
         <option value="video">{tShoot("disciplines.video")}</option>
-      </select>
+      </Select>
 
-      <select
+      <Select
         data-testid="filter-minrating"
         value={params.get("minRating") ?? ""}
         onChange={(e) => setParam("minRating", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("minRating")}</option>
         {[3, 4, 4.5].map((r) => (
@@ -76,7 +70,7 @@ export function PhotographerFilters() {
             ★ {r}+
           </option>
         ))}
-      </select>
+      </Select>
 
       <button
         type="button"
@@ -106,15 +100,16 @@ export function PhotographerFilters() {
         ✓ {t("verifiedOnly")}
       </button>
 
-      <select
-        data-testid="filter-sort"
-        value={params.get("sort") ?? "rating"}
-        onChange={(e) => setParam("sort", e.target.value)}
-        className={`${selectClass} ml-auto`}
-      >
-        <option value="rating">{t("sortRating")}</option>
-        <option value="price">{t("sortPriceAsc")}</option>
-      </select>
+      <div className="ml-auto">
+        <Select
+          data-testid="filter-sort"
+          value={params.get("sort") ?? "rating"}
+          onChange={(e) => setParam("sort", e.target.value)}
+        >
+          <option value="rating">{t("sortRating")}</option>
+          <option value="price">{t("sortPriceAsc")}</option>
+        </Select>
+      </div>
     </div>
   );
 }

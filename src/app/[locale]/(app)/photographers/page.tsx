@@ -6,6 +6,7 @@ import { formatCHF } from "@/lib/format";
 import { Stars } from "@/components/stars";
 import { PhotographerFilters } from "@/components/photographer-filters";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -142,7 +143,7 @@ export default async function PhotographersDirectoryPage({
       <p className="label text-mute">{t("count", { count: total })}</p>
 
       {total === 0 ? (
-        <p className="text-mute">{t("empty")}</p>
+        <EmptyState description={t("empty")} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pageItems.map((x) => {

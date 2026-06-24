@@ -7,6 +7,7 @@ import { ShootCard } from "@/components/shoot-card";
 import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -105,7 +106,7 @@ export default async function BrowseShootsPage({
 
         <div>
           {list.length === 0 ? (
-            <p className="text-mute">{t("empty")}</p>
+            <EmptyState description={t("empty")} />
           ) : (
             <div
               data-testid="browse-list"
