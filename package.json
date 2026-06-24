@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "check:legal": "node scripts/check-legal.mjs",
     "test": "vitest",
     "test:e2e": "playwright test",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",

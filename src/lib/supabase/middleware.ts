@@ -9,7 +9,6 @@ const LOCALES = ["de", "fr", "en"] as const;
 const PROTECTED = [
   "/home",
   "/profile",
-  "/settings",
   "/my-shoots",
   "/my-bids",
   "/onboarding",

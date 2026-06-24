@@ -314,6 +314,7 @@
     "unauthorized": "Bitte melde dich an.",
     "forbidden": "Dazu hast du keine Berechtigung.",
     "already_bid": "Du hast bereits ein Angebot abgegeben.",
+    "already_reviewed": "Du hast bereits eine Bewertung abgegeben.",
     "not_found": "Nicht gefunden.",
     "limit_reached": "Limit erreicht.",
     "invalid_file": "Ungültige Datei. Nur Bilder bis 5 MB.",

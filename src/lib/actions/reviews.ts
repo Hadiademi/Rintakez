@@ -59,7 +59,7 @@ export async function submitReviewAction(
   });
 
   if (error) {
-    if (error.code === "23505") return { ok: false, error: "already_bid" }; // already reviewed
+    if (error.code === "23505") return { ok: false, error: "already_reviewed" };
     return { ok: false, error: error.message };
   }
 

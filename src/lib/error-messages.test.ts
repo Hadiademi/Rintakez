@@ -4,6 +4,7 @@ import { errorKey } from "./error-messages";
 describe("errorKey", () => {
   it("returns known code as-is", () => {
     expect(errorKey("already_bid")).toBe("already_bid");
+    expect(errorKey("already_reviewed")).toBe("already_reviewed");
   });
 
   it("returns unauthorized as-is", () => {

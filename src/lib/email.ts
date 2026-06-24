@@ -11,7 +11,7 @@ import { captureError } from "@/lib/observability";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "Rintakez <onboarding@resend.dev>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const MAX_ATTEMPTS = 5;
 const SEND_TIMEOUT_MS = 8000;
@@ -95,7 +95,7 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
     (kind === "bid_received" || kind === "shoot_cancelled") && shootId
       ? `/${locale}/shoots/${shootId}`
       : `/${locale}/my-bids`;
-  return `${APP_URL}${path}`;
+  return `${SITE_URL}${path}`;
 }
 
 const COPY: Record<
