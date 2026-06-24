@@ -12,7 +12,6 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
 import { DataExportButton } from "@/components/data-export-button";
-import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 
 export const dynamic = "force-dynamic";
@@ -162,9 +161,6 @@ export default async function ProfilePage() {
               </p>
             )}
           </div>
-        </div>
-        <div className="pt-2">
-          <SignOutButton showTestId={false} />
         </div>
       </div>
 

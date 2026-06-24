@@ -34,14 +34,14 @@ export async function PublicNav() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="shrink-0 text-lg font-medium tracking-tight text-ink"
+            className="shrink-0 text-base font-medium tracking-tight text-ink sm:text-lg"
           >
             Rintakez
           </Link>
           <nav className="hidden items-center gap-5 text-sm sm:flex">
             {browseLinks}
           </nav>
-          <div className="ml-auto flex items-center gap-3 sm:gap-4">
+          <div className="ml-auto flex items-center gap-2 sm:gap-4">
             <Link
               href="/login"
               className="whitespace-nowrap text-sm text-ink hover:underline"
@@ -54,7 +54,11 @@ export async function PublicNav() {
             >
               {t("register")}
             </Link>
-            <ThemeToggle />
+            {/* Theme toggle is a nicety — drop it on the tight anon mobile bar
+                (system colour-scheme still applies); keep locale (CH trilingual). */}
+            <span className="hidden sm:inline-flex">
+              <ThemeToggle />
+            </span>
             <LocaleSwitcher />
           </div>
         </div>

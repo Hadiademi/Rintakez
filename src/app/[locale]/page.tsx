@@ -67,8 +67,10 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-        <span className="text-lg font-medium tracking-tight">Rintakez</span>
-        <div className="flex items-center gap-4">
+        <span className="text-base font-medium tracking-tight sm:text-lg">
+          Rintakez
+        </span>
+        <div className="flex items-center gap-2 sm:gap-4">
           {profile ? (
             <>
               <Link href="/home" className="text-sm hover:underline">
@@ -89,7 +91,9 @@ export default async function Home() {
               </Link>
             </>
           )}
-          <ThemeToggle />
+          <span className="hidden sm:inline-flex">
+            <ThemeToggle />
+          </span>
           <LocaleSwitcher />
         </div>
       </header>
