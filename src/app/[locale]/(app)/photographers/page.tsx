@@ -252,7 +252,7 @@ export default async function PhotographersDirectoryPage({
       <Pagination
         page={page}
         totalPages={totalPages}
-        params={{ type, canton, minRating, sort, saved }}
+        params={{ type, canton, minRating, sort, saved, verified, discipline }}
         basePath="/photographers"
       />
     </div>

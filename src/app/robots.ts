@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
         "/*/messages",
         "/*/profile",
         "/*/onboarding",
-        "/*/settings",
         "/*/shoots/new",
         "/auth/",
       ],

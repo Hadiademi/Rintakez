@@ -3,6 +3,7 @@ const KNOWN = new Set([
   "unauthorized",
   "forbidden",
   "already_bid",
+  "already_reviewed",
   "not_found",
   "limit_reached",
   "invalid_file",

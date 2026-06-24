@@ -250,6 +250,10 @@ export async function markConversationRead(
       ? { client_last_read_at: now }
       : { photographer_last_read_at: now };
 
-  await supabase.from("conversations").update(patch).eq("id", conversationId);
+  const { error } = await supabase
+    .from("conversations")
+    .update(patch)
+    .eq("id", conversationId);
+  if (error) return { ok: false, error: error.message };
   return { ok: true };
 }

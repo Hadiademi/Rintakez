@@ -71,11 +71,12 @@ export async function markNotificationsRead(): Promise<{ ok: boolean }> {
   if (!user) return { ok: false };
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
     .is("read_at", null)
     .eq("user_id", user.id);
+  if (error) return { ok: false };
 
   return { ok: true };
 }
