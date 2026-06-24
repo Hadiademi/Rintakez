@@ -9,7 +9,7 @@ Zürich region). Pairs with the launch runbook in `docs/superpowers/plans/`.
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client | yes |
 | `SUPABASE_SERVICE_ROLE_KEY` | Trusted server work (admin actions, email outbox, account deletion) | yes |
-| `NEXT_PUBLIC_APP_URL` | Absolute links in emails | prod |
+| `NEXT_PUBLIC_SITE_URL` | Public base URL — email links + sitemap/robots/canonical metadata | prod |
 | `RESEND_API_KEY` / `EMAIL_FROM` | Notification email delivery (gated; inert if unset) | optional |
 | `CRON_SECRET` | Authorizes `/api/cron/process` (Vercel Cron sends it as a Bearer token) | prod |
 | `ERROR_WEBHOOK_URL` | Error sink — point at Sentry/Logflare/Slack ingestion (gated) | optional |
@@ -84,6 +84,21 @@ the mechanics in the production Supabase project, not the form:
 - **Terms consent** is recorded automatically on signup (`profiles.terms_accepted_at`
   + `terms_version`, set by the handle_new_user trigger). Bump `TERMS_VERSION`
   (src/lib/legal.ts) whenever the AGB/Datenschutz text materially changes.
+
+## Pre-launch content gate (legal)
+
+The Impressum, the Datenschutz data-protection contact, and the AGB fee clause
+ship as explicit placeholders (`legal.impressumPlaceholder`,
+`legal.dsContactPlaceholder`, `legal.agbS6B` in
+`src/i18n/messages/{de,fr,en}.json`). They are mandatory for a public Swiss
+launch. Fill them with the operator's real details, then verify:
+
+```bash
+npm run check:legal   # must exit 0 — fails while any placeholder remains
+```
+
+Run this as a required gate before every production deploy. Once the
+placeholders are filled, wire it into CI to prevent regressions.
 
 ## Routine operator tasks
 
