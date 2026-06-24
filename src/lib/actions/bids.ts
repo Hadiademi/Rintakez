@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, getProfile } from "@/lib/auth";
 import { createBidSchema } from "@/lib/validation/bid";
 import { notifyEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
@@ -18,14 +18,17 @@ function revalidateBidViews() {
 export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok | ErrResult> {
   const parsed = createBidSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
-  const user = await getSessionUser();
-  if (!user) return { ok: false, error: "unauthorized" };
-  if (!(await rateLimit(`bid:${user.id}`, 20, 3_600_000)))
+  // Only photographers may bid. RLS enforces this too; checking here returns a
+  // clean "forbidden" instead of a raw DB error, matching sibling actions.
+  const profile = await getProfile();
+  if (!profile) return { ok: false, error: "unauthorized" };
+  if (profile.role !== "photographer") return { ok: false, error: "forbidden" };
+  if (!(await rateLimit(`bid:${profile.id}`, 20, 3_600_000)))
     return { ok: false, error: "limit_reached" };
   const supabase = await createClient();
   const { error } = await supabase.from("bids").insert({
     shoot_id: shootId,
-    photographer_id: user.id,
+    photographer_id: profile.id,
     amount_chf: parsed.data.amountChf,
     message: parsed.data.message,
   });
@@ -59,12 +62,16 @@ export async function updateBidAction(bidId: string, raw: unknown): Promise<Ok |
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("bids")
     .update({ amount_chf: parsed.data.amountChf, message: parsed.data.message })
     .eq("id", bidId)
-    .eq("photographer_id", user.id);
+    .eq("photographer_id", user.id)
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  // 0 rows = the bid doesn't exist or isn't the caller's — surface it instead
+  // of a misleading success.
+  if (!data || data.length === 0) return { ok: false, error: "not_found" };
   revalidateBidViews();
   return { ok: true };
 }
@@ -73,12 +80,14 @@ export async function withdrawBidAction(bidId: string): Promise<Ok | ErrResult> 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("bids")
     .update({ status: "withdrawn" })
     .eq("id", bidId)
-    .eq("photographer_id", user.id);
+    .eq("photographer_id", user.id)
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  if (!data || data.length === 0) return { ok: false, error: "not_found" };
   revalidateBidViews();
   return { ok: true };
 }
