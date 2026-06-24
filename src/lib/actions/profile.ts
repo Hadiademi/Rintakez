@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,6 +28,35 @@ function extFor(file: File): string {
 
 function isStoragePath(value: string): boolean {
   return !value.startsWith("http://") && !value.startsWith("https://");
+}
+
+type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
+
+/**
+ * Recursively collect every object path under a storage prefix. Storage `list`
+ * returns nested folders as entries with a null id; we descend into them so
+ * nested objects (e.g. `<uid>/cover/...`, `<uid>/<shootId>/...`) are not left
+ * behind. Throws on any listing error so the caller can fail safe.
+ */
+async function collectStoragePaths(
+  admin: AdminClient,
+  bucket: string,
+  prefix: string
+): Promise<string[]> {
+  const { data, error } = await admin.storage
+    .from(bucket)
+    .list(prefix, { limit: 1000 });
+  if (error) throw error;
+  const out: string[] = [];
+  for (const entry of data ?? []) {
+    const full = `${prefix}/${entry.name}`;
+    if (entry.id === null) {
+      out.push(...(await collectStoragePaths(admin, bucket, full)));
+    } else {
+      out.push(full);
+    }
+  }
+  return out;
 }
 
 /**
@@ -68,7 +98,7 @@ export async function uploadAvatar(
   const { error: uploadError } = await supabase.storage
     .from("avatars")
     .upload(path, file, { contentType: file.type, upsert: false });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "profile") };
 
   const { error: updateError } = await supabase
     .from("profiles")
@@ -76,7 +106,7 @@ export async function uploadAvatar(
     .eq("id", user.id);
   if (updateError) {
     await supabase.storage.from("avatars").remove([path]);
-    return { ok: false, error: updateError.message };
+    return { ok: false, error: dbError(updateError, "profile") };
   }
 
   if (oldPath) await supabase.storage.from("avatars").remove([oldPath]);
@@ -104,20 +134,21 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   if (!admin) return { ok: false, error: "generic" };
 
   // Storage cleanup (avatars/portfolio/shoot-refs live under the user's uid
-  // folder); DB rows cascade from the auth.users delete. Fail-safe: if any
-  // removal errors, abort BEFORE deleting the auth user so we never leave
-  // orphaned PII behind with no account to retry from — the user can try again.
-  for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
-    const { data: files, error: listError } = await admin.storage
-      .from(bucket)
-      .list(user.id);
-    if (listError) return { ok: false, error: "storage_cleanup_failed" };
-    if (files?.length) {
-      const { error: removeError } = await admin.storage
-        .from(bucket)
-        .remove(files.map((f) => `${user.id}/${f.name}`));
-      if (removeError) return { ok: false, error: "storage_cleanup_failed" };
+  // folder, possibly nested); DB rows cascade from the auth.users delete.
+  // Fail-safe: if any listing/removal errors, abort BEFORE deleting the auth
+  // user so we never leave orphaned PII behind with no account to retry from.
+  try {
+    for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
+      const paths = await collectStoragePaths(admin, bucket, user.id);
+      if (paths.length > 0) {
+        const { error: removeError } = await admin.storage
+          .from(bucket)
+          .remove(paths);
+        if (removeError) throw removeError;
+      }
     }
+  } catch {
+    return { ok: false, error: "storage_cleanup_failed" };
   }
 
   // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET
@@ -130,7 +161,7 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   });
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   // Tear down the now-orphaned session cookies.
   const supabase = await createClient();
@@ -156,7 +187,7 @@ export async function removeAvatar(): Promise<{ ok: true } | ErrResult> {
     .from("profiles")
     .update({ avatar_url: null })
     .eq("id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   if (current?.avatar_url && isStoragePath(current.avatar_url)) {
     await supabase.storage.from("avatars").remove([current.avatar_url]);

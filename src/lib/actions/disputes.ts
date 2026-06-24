@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -29,7 +30,7 @@ export async function openDispute(
     opened_by: user.id,
     reason: parsed.data.reason.trim(),
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "disputes") };
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   return { ok: true };

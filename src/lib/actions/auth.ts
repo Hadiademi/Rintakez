@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { redirect } from "@/i18n/navigation";
 import { getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
@@ -24,7 +25,7 @@ export async function registerAction(raw: unknown): Promise<RegisterResult> {
       data: { display_name: displayName, role, locale, terms_version: TERMS_VERSION },
     },
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "auth") };
   // When local confirmations are disabled, signUp returns a live session and
   // would auto-log-in the user. We instead send them to the login page, so the
   // session is torn down here before returning.
@@ -38,7 +39,7 @@ export async function loginAction(raw: unknown): Promise<ActionResult> {
   if (!parsed.success) return { ok: false, error: "invalid_input" };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "auth") };
   return { ok: true };
 }
 
