@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -34,7 +35,7 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   });
   if (error) {
     if (error.code === "23505") return { ok: false, error: "already_bid" };
-    return { ok: false, error: error.message };
+    return { ok: false, error: dbError(error, "bids") };
   }
 
   // Email the shoot's client (best-effort; gated on RESEND_API_KEY).
@@ -68,7 +69,7 @@ export async function updateBidAction(bidId: string, raw: unknown): Promise<Ok |
     .eq("id", bidId)
     .eq("photographer_id", user.id)
     .select("id");
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "bids") };
   // 0 rows = the bid doesn't exist or isn't the caller's — surface it instead
   // of a misleading success.
   if (!data || data.length === 0) return { ok: false, error: "not_found" };
@@ -86,7 +87,7 @@ export async function withdrawBidAction(bidId: string): Promise<Ok | ErrResult> 
     .eq("id", bidId)
     .eq("photographer_id", user.id)
     .select("id");
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "bids") };
   if (!data || data.length === 0) return { ok: false, error: "not_found" };
   revalidateBidViews();
   return { ok: true };

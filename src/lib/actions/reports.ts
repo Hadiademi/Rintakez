@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
@@ -31,7 +32,7 @@ export async function submitReport(
     target_id: parsed.data.targetId,
     reason: parsed.data.reason.trim(),
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "reports") };
 
   return { ok: true };
 }

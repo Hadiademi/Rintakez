@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -60,7 +61,7 @@ export async function submitReviewAction(
 
   if (error) {
     if (error.code === "23505") return { ok: false, error: "already_reviewed" };
-    return { ok: false, error: error.message };
+    return { ok: false, error: dbError(error, "reviews") };
   }
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");

@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -182,7 +183,7 @@ export async function sendMessage(
     sender_id: user.id,
     body: parsed.data.body.trim(),
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "messages") };
 
   revalidatePath("/[locale]/(app)/messages/[id]", "page");
   revalidatePath("/[locale]/(app)/messages", "page");
@@ -204,7 +205,7 @@ export async function blockUser(
       { blocker_id: user.id, blocked_id: targetId },
       { onConflict: "blocker_id,blocked_id" }
     );
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "messages") };
 
   revalidatePath("/[locale]/(app)/messages/[id]", "page");
   return { ok: true };
@@ -223,7 +224,7 @@ export async function unblockUser(
     .delete()
     .eq("blocker_id", user.id)
     .eq("blocked_id", targetId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "messages") };
 
   revalidatePath("/[locale]/(app)/messages/[id]", "page");
   return { ok: true };
@@ -254,6 +255,6 @@ export async function markConversationRead(
     .from("conversations")
     .update(patch)
     .eq("id", conversationId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "messages") };
   return { ok: true };
 }

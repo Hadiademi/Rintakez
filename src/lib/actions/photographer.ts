@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -52,7 +53,7 @@ export async function savePhotographerDetails(
     { onConflict: "profile_id" }
   );
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "photographer") };
 
   revalidatePath("/[locale]/(app)/onboarding", "page");
   revalidatePath("/[locale]/(app)/home", "page");
@@ -77,7 +78,7 @@ export async function requestVerification(): Promise<{ ok: true } | ErrResult> {
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("request_verification");
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "photographer") };
 
   revalidatePath("/[locale]/(app)/profile", "page");
   return { ok: true };
@@ -141,7 +142,7 @@ export async function addPortfolioImage(
     .from("portfolio")
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "photographer") };
 
   const { data: inserted, error: insertError } = await supabase
     .from("portfolio_images")
@@ -152,7 +153,7 @@ export async function addPortfolioImage(
   if (insertError || !inserted) {
     // Attempt to clean up the orphaned storage object
     await supabase.storage.from("portfolio").remove([path]);
-    return { ok: false, error: insertError?.message ?? "insert_failed" };
+    return { ok: false, error: dbError(insertError, "photographer") };
   }
 
   const { data: urlData } = supabase.storage
@@ -215,7 +216,7 @@ export async function setCoverImage(
   const { error: uploadError } = await supabase.storage
     .from("portfolio")
     .upload(path, file, { contentType: file.type, upsert: false });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "photographer") };
 
   const { error: updErr } = await supabase
     .from("photographer_details")
@@ -223,7 +224,7 @@ export async function setCoverImage(
     .eq("profile_id", user.id);
   if (updErr) {
     await supabase.storage.from("portfolio").remove([path]);
-    return { ok: false, error: updErr.message };
+    return { ok: false, error: dbError(updErr, "photographer") };
   }
 
   // Best-effort cleanup of the previous cover object.
@@ -252,7 +253,7 @@ export async function removeCover(): Promise<{ ok: true } | ErrResult> {
     .from("photographer_details")
     .update({ cover_path: null })
     .eq("profile_id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "photographer") };
 
   if (current?.cover_path) {
     await supabase.storage.from("portfolio").remove([current.cover_path]);
@@ -280,14 +281,14 @@ export async function removePortfolioImage(
     .eq("photographer_id", user.id) // defensive: only own images
     .maybeSingle();
 
-  if (fetchError) return { ok: false, error: fetchError.message };
+  if (fetchError) return { ok: false, error: dbError(fetchError, "photographer") };
   if (!row) return { ok: false, error: "not_found" };
 
   const { error: storageError } = await supabase.storage
     .from("portfolio")
     .remove([row.storage_path]);
 
-  if (storageError) return { ok: false, error: storageError.message };
+  if (storageError) return { ok: false, error: dbError(storageError, "photographer") };
 
   const { error: deleteError } = await supabase
     .from("portfolio_images")
@@ -295,7 +296,7 @@ export async function removePortfolioImage(
     .eq("id", imageId)
     .eq("photographer_id", user.id);
 
-  if (deleteError) return { ok: false, error: deleteError.message };
+  if (deleteError) return { ok: false, error: dbError(deleteError, "photographer") };
 
   revalidateTag(`photographer:${user.id}`, "max");
 

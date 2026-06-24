@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -97,7 +98,7 @@ export async function uploadAvatar(
   const { error: uploadError } = await supabase.storage
     .from("avatars")
     .upload(path, file, { contentType: file.type, upsert: false });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "profile") };
 
   const { error: updateError } = await supabase
     .from("profiles")
@@ -105,7 +106,7 @@ export async function uploadAvatar(
     .eq("id", user.id);
   if (updateError) {
     await supabase.storage.from("avatars").remove([path]);
-    return { ok: false, error: updateError.message };
+    return { ok: false, error: dbError(updateError, "profile") };
   }
 
   if (oldPath) await supabase.storage.from("avatars").remove([oldPath]);
@@ -160,7 +161,7 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   });
 
   const { error } = await admin.auth.admin.deleteUser(user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   // Tear down the now-orphaned session cookies.
   const supabase = await createClient();
@@ -186,7 +187,7 @@ export async function removeAvatar(): Promise<{ ok: true } | ErrResult> {
     .from("profiles")
     .update({ avatar_url: null })
     .eq("id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   if (current?.avatar_url && isStoragePath(current.avatar_url)) {
     await supabase.storage.from("avatars").remove([current.avatar_url]);

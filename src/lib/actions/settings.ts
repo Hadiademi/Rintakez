@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -30,7 +31,7 @@ export async function updateNotificationPrefs(
       notify_shoot_updates: parsed.data.notifyShootUpdates,
     })
     .eq("id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "settings") };
 
   revalidatePath("/[locale]/(app)/profile", "page");
   return { ok: true };

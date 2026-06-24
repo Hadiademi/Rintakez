@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -51,7 +52,7 @@ export async function updateReportStatus(
       admin_note: trimmedNote,
     })
     .eq("id", reportId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(supabase, admin.id, `report_${status}`, "report", reportId, {
     note: trimmedNote,
@@ -92,7 +93,7 @@ export async function setUserSuspension(
       suspended_at: suspend ? new Date().toISOString() : null,
     })
     .eq("id", userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(
     supabase,
@@ -124,7 +125,7 @@ export async function setShootSuspension(
     .from("shoots")
     .update({ is_suspended: suspend, suspended_reason: trimmedReason })
     .eq("id", shootId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(
     supabase,
@@ -154,7 +155,7 @@ export async function setPhotographerVerification(
     .from("photographer_details")
     .update({ verification_status: status })
     .eq("profile_id", photographerId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(
     supabase,
@@ -189,7 +190,7 @@ export async function setUserAdmin(
     .from("profiles")
     .update({ is_admin: makeAdmin })
     .eq("id", userId);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(
     supabase,
@@ -224,7 +225,7 @@ export async function resolveDispute(
       resolved_at: new Date().toISOString(),
     })
     .eq("id", id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   await writeAudit(supabase, admin.id, `dispute_${status}`, "dispute", id, {
     note: trimmedNote,
@@ -247,7 +248,7 @@ export async function retryFailedEmail(id: number): Promise<Ok | ErrResult> {
     .update({ status: "pending", attempts: 0, last_error: null })
     .eq("id", id)
     .eq("status", "failed");
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "admin") };
 
   revalidatePath("/[locale]/(app)/admin/email", "page");
   return { ok: true };
