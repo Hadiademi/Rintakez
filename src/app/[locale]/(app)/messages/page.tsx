@@ -27,7 +27,7 @@ export default async function MessagesPage() {
               <Link
                 href={`/messages/${c.id}`}
                 data-testid="conversation-row"
-                className="press flex items-center justify-between gap-4 py-5"
+                className="press group flex items-center justify-between gap-4 py-5 transition-colors hover:bg-surface"
               >
                 <div className="flex items-center gap-3">
                   {c.unread && (
@@ -46,7 +46,9 @@ export default async function MessagesPage() {
                     )}
                   </div>
                 </div>
-                <span className="shrink-0 text-mute">→</span>
+                <span className="shrink-0 text-mute transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
               </Link>
             </li>
           ))}

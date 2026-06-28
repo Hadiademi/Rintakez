@@ -104,7 +104,7 @@ export default async function MyBidsPage() {
                 key={bid.id}
                 href={`/shoots/${shoot.id}`}
                 data-testid={`my-bid-${bid.id}`}
-                className="press flex items-center justify-between gap-4 py-5"
+                className="press flex items-center justify-between gap-4 py-5 transition-colors hover:bg-surface"
               >
                 <div className="min-w-0">
                   <p className="label uppercase text-mute">

@@ -78,7 +78,7 @@ export default async function MyShootsPage() {
               key={shoot.id}
               href={`/shoots/${shoot.id}`}
               data-testid={`my-shoot-${shoot.id}`}
-              className="press flex items-center gap-4 py-5"
+              className="press flex items-center gap-4 py-5 transition-colors hover:bg-surface"
             >
               <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
                 <Image
