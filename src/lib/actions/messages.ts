@@ -17,7 +17,10 @@ export type ConversationSummary = {
   shootTitle: string | null;
   otherName: string;
   otherId: string;
+  otherAvatarUrl: string | null;
   lastMessageAt: string;
+  lastBody: string | null;
+  lastMine: boolean;
   unread: boolean;
 };
 
@@ -33,6 +36,7 @@ export type ThreadData = {
   shootId: string;
   shootTitle: string | null;
   otherName: string;
+  otherAvatarUrl: string | null;
   otherId: string;
   meId: string;
   iBlocked: boolean;
@@ -59,14 +63,36 @@ export async function getConversations(): Promise<ConversationSummary[]> {
     c.client_id === user.id ? c.photographer_id : c.client_id
   );
   const shootIds = convs.map((c) => c.shoot_id);
+  const convIds = convs.map((c) => c.id);
 
-  const [{ data: profiles }, { data: shoots }] = await Promise.all([
-    supabase.from("profiles").select("id, display_name").in("id", otherIds),
-    supabase.from("shoots").select("id, title").in("id", shootIds),
-  ]);
+  const [{ data: profiles }, { data: shoots }, { data: msgs }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .in("id", otherIds),
+      supabase.from("shoots").select("id, title").in("id", shootIds),
+      supabase
+        .from("messages")
+        .select("conversation_id, sender_id, body, created_at")
+        .in("conversation_id", convIds)
+        .order("created_at", { ascending: false }),
+    ]);
 
-  const nameBy = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+  const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
   const titleBy = new Map((shoots ?? []).map((s) => [s.id, s.title]));
+  // Newest message per conversation (msgs is ordered created_at desc).
+  const lastBy = new Map<string, { sender_id: string; body: string }>();
+  for (const m of msgs ?? []) {
+    if (!lastBy.has(m.conversation_id))
+      lastBy.set(m.conversation_id, { sender_id: m.sender_id, body: m.body });
+  }
+
+  function avatarUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  }
 
   return convs.map((c) => {
     const isClient = c.client_id === user.id;
@@ -75,13 +101,18 @@ export async function getConversations(): Promise<ConversationSummary[]> {
       ? c.client_last_read_at
       : c.photographer_last_read_at;
     const unread = !myReadAt || c.last_message_at > myReadAt;
+    const last = lastBy.get(c.id);
+    const other = profileBy.get(otherId);
     return {
       id: c.id,
       shootId: c.shoot_id,
       shootTitle: titleBy.get(c.shoot_id) ?? null,
-      otherName: nameBy.get(otherId) ?? "",
+      otherName: other?.display_name ?? "",
       otherId,
+      otherAvatarUrl: avatarUrl(other?.avatar_url),
       lastMessageAt: c.last_message_at,
+      lastBody: last?.body ?? null,
+      lastMine: last ? last.sender_id === user.id : false,
       unread,
     };
   });
@@ -123,7 +154,11 @@ export async function getThread(
       .select("id, sender_id, body, created_at")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true }),
-    supabase.from("profiles").select("display_name").eq("id", otherId).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("display_name, avatar_url")
+      .eq("id", otherId)
+      .maybeSingle(),
     supabase.from("shoots").select("title").eq("id", conv.shoot_id).maybeSingle(),
     // My own block of them (RLS exposes only my own block rows).
     supabase
@@ -136,11 +171,19 @@ export async function getThread(
     supabase.rpc("blocked_by", { p_other: otherId }),
   ]);
 
+  const rawAvatar = other?.avatar_url ?? null;
+  const otherAvatarUrl = rawAvatar
+    ? rawAvatar.startsWith("http://") || rawAvatar.startsWith("https://")
+      ? rawAvatar
+      : supabase.storage.from("avatars").getPublicUrl(rawAvatar).data.publicUrl
+    : null;
+
   return {
     id: conv.id,
     shootId: conv.shoot_id,
     shootTitle: shoot?.title ?? null,
     otherName: other?.display_name ?? "",
+    otherAvatarUrl,
     otherId,
     meId: user.id,
     iBlocked: !!myBlock,

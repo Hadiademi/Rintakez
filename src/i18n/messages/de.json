@@ -455,6 +455,7 @@
     "send": "Senden",
     "about": "Zu: {title}",
     "threadEmpty": "Noch keine Nachrichten. Schreib die erste.",
+    "selectConversation": "Wähle ein Gespräch.",
     "open": "Nachricht senden",
     "block": "Blockieren",
     "unblock": "Blockierung aufheben",

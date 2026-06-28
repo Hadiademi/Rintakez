@@ -5,6 +5,10 @@ import { useTranslations } from "next-intl";
 import { createClient as createRealtimeClient } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatSwissDate } from "@/lib/format";
 import {
   sendMessage,
   markConversationRead,
@@ -14,6 +18,11 @@ import {
   type ThreadMessage,
 } from "@/lib/actions/messages";
 
+function hhmm(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
 export function MessageThread({ thread }: { thread: ThreadData }) {
   const t = useTranslations("messages");
   const [messages, setMessages] = useState<ThreadMessage[]>(thread.messages);
@@ -22,6 +31,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   const [iBlocked, setIBlocked] = useState(thread.iBlocked);
   const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
 
   // The other side blocked me, or I blocked them → no new messages either way.
   const composerDisabled = iBlocked || thread.blockedByThem;
@@ -111,18 +121,24 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     if (!text || sending) return;
     setSending(true);
     setBody("");
+    if (taRef.current) taRef.current.style.height = "auto";
     const res = await sendMessage(thread.id, { body: text });
     if (!res.ok) setBody(text); // restore on failure
     setSending(false);
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-12rem)] max-w-2xl flex-col">
+    <div className="flex h-[calc(100vh-12rem)] flex-col lg:h-full lg:px-6">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-line pb-4">
-        <Link href="/messages" className="press text-mute hover:text-ink">
+      <div className="flex shrink-0 items-center gap-3 border-b border-line py-4">
+        <Link
+          href="/messages"
+          className="press text-mute hover:text-ink lg:hidden"
+          aria-label="Back"
+        >
           ←
         </Link>
+        <Avatar name={thread.otherName} src={thread.otherAvatarUrl} size={38} />
         <div className="min-w-0">
           <p className="truncate font-semibold tracking-tight text-ink">
             {thread.otherName}
@@ -147,26 +163,43 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-2 overflow-y-auto py-5">
+      <div className="flex-1 space-y-1 overflow-y-auto py-5">
         {messages.length === 0 ? (
-          <p className="text-mute">{t("threadEmpty")}</p>
+          <div className="flex h-full items-center justify-center">
+            <EmptyState description={t("threadEmpty")} />
+          </div>
         ) : (
-          messages.map((m) => {
+          messages.map((m, i) => {
             const mine = m.senderId === thread.meId;
+            const showDate =
+              i === 0 ||
+              messages[i - 1].createdAt.slice(0, 10) !==
+                m.createdAt.slice(0, 10);
             return (
-              <div
-                key={m.id}
-                className={`flex ${mine ? "justify-end" : "justify-start"}`}
-              >
-                <span
-                  className={`max-w-[78%] whitespace-pre-wrap px-4 py-2.5 text-[14px] leading-relaxed ${
-                    mine
-                      ? "bg-ink text-paper"
-                      : "border border-line bg-surface text-ink"
-                  }`}
+              <div key={m.id}>
+                {showDate && (
+                  <div className="my-3 flex justify-center">
+                    <span className="label text-mute-2">
+                      {formatSwissDate(m.createdAt.slice(0, 10))}
+                    </span>
+                  </div>
+                )}
+                <div
+                  className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
                 >
-                  {m.body}
-                </span>
+                  <span
+                    className={`max-w-[78%] whitespace-pre-wrap px-4 py-2.5 text-[14px] leading-relaxed ${
+                      mine
+                        ? "bg-ink text-paper"
+                        : "border border-line bg-surface text-ink"
+                    }`}
+                  >
+                    {m.body}
+                  </span>
+                  <span className="mt-1 px-1 text-[11px] text-mute-2">
+                    {hhmm(m.createdAt)}
+                  </span>
+                </div>
               </div>
             );
           })
@@ -176,15 +209,20 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
 
       {/* Composer */}
       {composerDisabled ? (
-        <div className="border-t border-line pt-4 text-center text-[13px] text-mute">
+        <div className="shrink-0 border-t border-line py-4 text-center text-[13px] text-mute">
           {iBlocked ? t("blockedNotice") : t("blockedByNotice")}
         </div>
       ) : (
-        <div className="flex items-end gap-2 border-t border-line pt-4">
+        <div className="flex shrink-0 items-end gap-2 border-t border-line pb-5 pt-4">
           <textarea
+            ref={taRef}
             data-testid="message-input"
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={(e) => {
+              setBody(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -195,15 +233,17 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
             placeholder={t("placeholder")}
             className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
           />
-          <button
+          <Button
             type="button"
             data-testid="message-send"
             onClick={onSend}
-            disabled={sending || !body.trim()}
-            className="press shrink-0 bg-ink px-5 py-3 text-[14px] font-medium text-paper disabled:opacity-40"
+            pending={sending}
+            disabled={!body.trim()}
+            size="lg"
+            className="shrink-0"
           >
             {t("send")}
-          </button>
+          </Button>
         </div>
       )}
     </div>
