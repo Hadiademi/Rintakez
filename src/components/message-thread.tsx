@@ -128,7 +128,8 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col lg:h-full lg:px-6">
+    <div className="flex h-[calc(100vh-12rem)] flex-col lg:h-full">
+      <div className="mx-auto flex h-full w-full max-w-3xl flex-col lg:px-6">
       {/* Header */}
       <div className="flex shrink-0 items-center gap-3 border-b border-line py-4">
         <Link
@@ -156,7 +157,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           type="button"
           onClick={onToggleBlock}
           disabled={blocking}
-          className="press ml-auto shrink-0 text-[13px] text-mute hover:text-ink disabled:opacity-50"
+          className="press ml-auto shrink-0 rounded-full border border-line px-3 py-1 text-[12px] text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
         >
           {iBlocked ? t("unblock") : t("block")}
         </button>
@@ -246,6 +247,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           </Button>
         </div>
       )}
+      </div>
     </div>
   );
 }
