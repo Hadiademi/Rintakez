@@ -1,23 +1,15 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
-import { formatCHF } from "@/lib/format";
-import { Stars } from "@/components/stars";
 import { PhotographerFilters } from "@/components/photographer-filters";
+import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { photographerAvatar } from "@/lib/shoot-image";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 12;
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
 
 export default async function PhotographersDirectoryPage({
   searchParams,
@@ -47,6 +39,7 @@ export default async function PhotographersDirectoryPage({
   const supabase = await createClient();
   const t = await getTranslations("directory");
   const tShoot = await getTranslations("shoot");
+  const tReview = await getTranslations("review");
 
   // "Saved only" filter — restrict to the viewer's favorited photographers.
   let savedIds: Set<string> | null = null;
@@ -67,7 +60,7 @@ export default async function PhotographersDirectoryPage({
   let detailsQuery = supabase
     .from("photographer_details")
     .select(
-      "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status, disciplines"
+      "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status, disciplines, cover_path"
     );
   if (type) detailsQuery = detailsQuery.contains("specialties", [type]);
   if (canton) detailsQuery = detailsQuery.contains("coverage_cantons", [canton]);
@@ -129,8 +122,31 @@ export default async function PhotographersDirectoryPage({
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const pageItems = list.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
+  // Card cover = cover_path, else the photographer's first portfolio image
+  // (one batched query for the visible page only — not N+1).
+  const pageIds = pageItems.map((x) => x.profile_id);
+  const { data: coverRows } = pageIds.length
+    ? await supabase
+        .from("portfolio_images")
+        .select("photographer_id, storage_path")
+        .in("photographer_id", pageIds)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true })
+    : { data: [] as { photographer_id: string; storage_path: string }[] };
+  const firstPortfolioBy = new Map<string, string>();
+  for (const r of coverRows ?? []) {
+    if (!firstPortfolioBy.has(r.photographer_id))
+      firstPortfolioBy.set(r.photographer_id, r.storage_path);
+  }
+
+  function publicUrl(bucket: "avatars" | "portfolio", path: string | null) {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
       <div className="space-y-2">
         <h1 className="text-4xl font-semibold tracking-tight text-ink">
           {t("title")}
@@ -145,106 +161,35 @@ export default async function PhotographersDirectoryPage({
       {total === 0 ? (
         <EmptyState description={t("empty")} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {pageItems.map((x) => {
-            let avatarUrl: string | null = null;
-            if (x.profile.avatar_url) {
-              avatarUrl =
-                x.profile.avatar_url.startsWith("http")
-                  ? x.profile.avatar_url
-                  : supabase.storage
-                      .from("avatars")
-                      .getPublicUrl(x.profile.avatar_url).data.publicUrl;
-            }
+            const coverPath =
+              x.cover_path ?? firstPortfolioBy.get(x.profile_id) ?? null;
             return (
-              <Link
+              <PhotographerCard
                 key={x.profile_id}
-                href={`/photographers/${x.profile_id}`}
-                data-testid="photographer-card"
-                className="press group flex flex-col gap-4 border border-line p-5 transition-colors hover:border-mute-2"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-line bg-chip">
-                    {avatarUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={avatarUrl}
-                        alt=""
-                        className="h-full w-full object-cover grayscale"
-                      />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center text-[13px] font-medium text-mute">
-                        {initials(x.profile.display_name)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 truncate font-medium text-ink">
-                      <span className="truncate">{x.profile.display_name}</span>
-                      {x.verification_status === "verified" && (
-                        <span
-                          title={t("verified")}
-                          aria-label={t("verified")}
-                          className="shrink-0 text-accent"
-                        >
-                          ✓
-                        </span>
-                      )}
-                    </p>
-                    {(x.profile.city || x.profile.canton) && (
-                      <p className="truncate text-[13px] text-mute">
-                        {[x.profile.city, x.profile.canton]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {x.disciplines?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {x.disciplines.map((d) => (
-                      <span
-                        key={d}
-                        className="rounded-full border border-line px-2.5 py-0.5 text-[12px] text-mute"
-                      >
-                        {tShoot(`disciplines.${d}`)}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {x.specialties.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {x.specialties.slice(0, 3).map((s) => (
-                      <span
-                        key={s}
-                        className="rounded-full bg-chip px-2.5 py-0.5 text-[12px] text-ink"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-auto flex items-center justify-between">
-                  {x.rating.count > 0 ? (
-                    <span className="flex items-center gap-1.5">
-                      <Stars value={x.rating.avg} size={12} />
-                      <span className="tabular text-[12px] text-mute">
-                        {x.rating.avg.toFixed(1)}
-                      </span>
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-                  {x.hourly_rate_chf != null && (
-                    <span className="tabular text-[13px] text-mute">
-                      {formatCHF(x.hourly_rate_chf)}/h
-                    </span>
-                  )}
-                </div>
-              </Link>
+                verifiedLabel={t("verified")}
+                newLabel={tReview("newBadge")}
+                data={{
+                  id: x.profile_id,
+                  name: x.profile.display_name,
+                  city: x.profile.city,
+                  canton: x.profile.canton,
+                  avatarUrl: publicUrl("avatars", x.profile.avatar_url),
+                  coverUrl:
+                    publicUrl("portfolio", coverPath) ??
+                    photographerAvatar(x.profile_id, 600, 450),
+                  verified: x.verification_status === "verified",
+                  disciplineLabels: (x.disciplines ?? []).map((d) =>
+                    tShoot(`disciplines.${d}`)
+                  ),
+                  specialtyLabels: (x.specialties ?? []).map((s) =>
+                    tShoot(`types.${s}`)
+                  ),
+                  rating: x.rating,
+                  hourlyRate: x.hourly_rate_chf,
+                }}
+              />
             );
           })}
         </div>

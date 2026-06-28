@@ -1,20 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Stars } from "@/components/stars";
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
+import { PhotographerCard } from "@/components/photographer-card";
+import { photographerAvatar } from "@/lib/shoot-image";
 
 /**
- * "Recommended photographers" — top photographers by average rating (rated
- * ones first), shown on the dashboard. Renders nothing when there are no
- * photographers. Ratings are real; unrated photographers show a "New" badge
- * rather than a fabricated score.
+ * "Recommended photographers" — top photographers by average rating (rated ones
+ * first), shown on the dashboard as image-led cards. Renders nothing when there
+ * are no photographers.
  */
 export async function RecommendedPhotographers() {
   const supabase = await createClient();
@@ -41,11 +33,42 @@ export async function RecommendedPhotographers() {
   );
 
   const ranked = photogs
-    .map((p) => ({ ...p, rating: ratingBy.get(p.id) ?? null }))
-    .sort((a, b) => (b.rating?.avg ?? -1) - (a.rating?.avg ?? -1))
+    .map((p) => ({ ...p, rating: ratingBy.get(p.id) ?? { avg: 0, count: 0 } }))
+    .sort((a, b) => b.rating.avg - a.rating.avg)
     .slice(0, 3);
+  const topIds = ranked.map((p) => p.id);
+
+  const [{ data: details }, { data: coverRows }] = await Promise.all([
+    supabase
+      .from("photographer_details")
+      .select(
+        "profile_id, disciplines, specialties, hourly_rate_chf, verification_status, cover_path"
+      )
+      .in("profile_id", topIds),
+    supabase
+      .from("portfolio_images")
+      .select("photographer_id, storage_path")
+      .in("photographer_id", topIds)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const detailsBy = new Map((details ?? []).map((d) => [d.profile_id, d]));
+  const firstPortfolioBy = new Map<string, string>();
+  for (const r of coverRows ?? []) {
+    if (!firstPortfolioBy.has(r.photographer_id))
+      firstPortfolioBy.set(r.photographer_id, r.storage_path);
+  }
 
   const t = await getTranslations("review");
+  const tDir = await getTranslations("directory");
+  const tShoot = await getTranslations("shoot");
+
+  function publicUrl(bucket: "avatars" | "portfolio", path: string | null) {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+  }
 
   return (
     <section className="space-y-6">
@@ -53,60 +76,35 @@ export async function RecommendedPhotographers() {
         {t("recommended")}
       </h2>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {ranked.map((p) => {
-          let avatarUrl: string | null = null;
-          if (p.avatar_url) {
-            avatarUrl =
-              p.avatar_url.startsWith("http://") ||
-              p.avatar_url.startsWith("https://")
-                ? p.avatar_url
-                : supabase.storage.from("avatars").getPublicUrl(p.avatar_url)
-                    .data.publicUrl;
-          }
+          const d = detailsBy.get(p.id);
+          const coverPath = d?.cover_path ?? firstPortfolioBy.get(p.id) ?? null;
           return (
-            <Link
+            <PhotographerCard
               key={p.id}
-              href={`/photographers/${p.id}`}
-              className="press group flex items-center gap-4 border border-line p-4 transition-colors hover:border-mute-2"
-            >
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full border border-line bg-chip">
-                {avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    className="h-full w-full object-cover grayscale"
-                  />
-                ) : (
-                  <span className="flex h-full w-full items-center justify-center text-[13px] font-medium text-mute">
-                    {initials(p.display_name)}
-                  </span>
-                )}
-              </div>
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <span className="truncate font-medium text-ink">
-                  {p.display_name}
-                </span>
-                {(p.city || p.canton) && (
-                  <span className="truncate text-[13px] text-mute">
-                    {[p.city, p.canton].filter(Boolean).join(", ")}
-                  </span>
-                )}
-                {p.rating && p.rating.count > 0 ? (
-                  <span className="mt-0.5 flex items-center gap-1.5">
-                    <Stars value={p.rating.avg} size={12} />
-                    <span className="tabular text-[12px] text-mute">
-                      {p.rating.avg.toFixed(1)}
-                    </span>
-                  </span>
-                ) : (
-                  <span className="label mt-0.5 text-mute-2">
-                    {t("newBadge")}
-                  </span>
-                )}
-              </div>
-            </Link>
+              verifiedLabel={tDir("verified")}
+              newLabel={t("newBadge")}
+              data={{
+                id: p.id,
+                name: p.display_name,
+                city: p.city,
+                canton: p.canton,
+                avatarUrl: publicUrl("avatars", p.avatar_url),
+                coverUrl:
+                  publicUrl("portfolio", coverPath) ??
+                  photographerAvatar(p.id, 600, 450),
+                verified: d?.verification_status === "verified",
+                disciplineLabels: (d?.disciplines ?? []).map((x) =>
+                  tShoot(`disciplines.${x}`)
+                ),
+                specialtyLabels: (d?.specialties ?? []).map((x) =>
+                  tShoot(`types.${x}`)
+                ),
+                rating: p.rating,
+                hourlyRate: d?.hourly_rate_chf ?? null,
+              }}
+            />
           );
         })}
       </div>

@@ -1,8 +1,10 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { shootImage } from "@/lib/shoot-image";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { PageHeading } from "@/components/section-label";
 
@@ -76,9 +78,18 @@ export default async function MyShootsPage() {
               key={shoot.id}
               href={`/shoots/${shoot.id}`}
               data-testid={`my-shoot-${shoot.id}`}
-              className="press flex items-center justify-between gap-4 py-5"
+              className="press flex items-center gap-4 py-5"
             >
-              <div className="min-w-0">
+              <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
+                <Image
+                  src={shootImage(shoot.type, shoot.id, 240, 160)}
+                  alt=""
+                  fill
+                  sizes="96px"
+                  className="object-cover grayscale"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="label uppercase text-mute">
                   {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
                   {shoot.canton} · {formatSwissDate(shoot.shoot_date)}

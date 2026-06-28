@@ -169,6 +169,7 @@ export default async function HomePage() {
   }
 
   const t = await getTranslations("home");
+  const tShoot = await getTranslations("shoot");
   const supabase = await createClient();
   const fullName = profile.display_name ?? "";
   const firstName = fullName.split(/\s+/)[0] || fullName;
@@ -203,7 +204,9 @@ export default async function HomePage() {
           primary={{ href: "/shoots/new", text: t("ctaClientTitle") }}
           secondary={{ href: "/my-shoots", text: t("yourShoots") }}
           featured={featured}
-          featuredLabel={t("ctaClientLabel")}
+          featuredLabel={
+            featured ? tShoot(`status.${featured.status}`) : t("ctaClientLabel")
+          }
           featuredMeta={
             featured
               ? formatCHFRange(featured.budget_min_chf, featured.budget_max_chf)
