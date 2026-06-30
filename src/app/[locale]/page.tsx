@@ -45,10 +45,11 @@ export async function generateMetadata({
 }
 
 export default async function Home() {
-  const [t, tNav, tMarket, profile] = await Promise.all([
+  const [t, tNav, tMarket, tHome, profile] = await Promise.all([
     getTranslations("landing"),
     getTranslations("nav"),
     getTranslations("marketplace"),
+    getTranslations("home"),
     getProfile(),
   ]);
 
@@ -153,7 +154,38 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-6xl px-6 pb-20">
+      {/* How it works — three steps, stacks on mobile */}
+      <section className="mx-auto w-full max-w-6xl px-6 pb-16">
+        <h2 className="label text-mute">{tHome("howItWorks")}</h2>
+        <div className="mt-6 grid gap-8 sm:grid-cols-3">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="space-y-2">
+              <span className="label tabular text-mute-2">
+                {String(n).padStart(2, "0")}
+              </span>
+              <h3 className="text-lg font-semibold tracking-tight text-ink">
+                {tHome(`stepClient${n}Title`)}
+              </h3>
+              <p className="text-[14px] leading-relaxed text-mute">
+                {tHome(`stepClient${n}Desc`)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Trust strip */}
+      <section className="border-y border-line bg-surface">
+        <div className="mx-auto grid w-full max-w-6xl gap-6 px-6 py-8 sm:grid-cols-3">
+          {(["trust1", "trust2", "trust3"] as const).map((k) => (
+            <p key={k} className="text-[14px] leading-relaxed text-ink">
+              {t(k)}
+            </p>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-6 py-16 pb-20">
         <div className="flex items-center justify-between gap-4">
           <h2 className="label text-mute">{t("latestShoots")}</h2>
           <Link
@@ -163,13 +195,17 @@ export default async function Home() {
             {tMarket("browseAll")} →
           </Link>
         </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(shoots ?? []).map((s) => (
-            <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
-              <ShootCard shoot={s} />
-            </Link>
-          ))}
-        </div>
+        {shoots.length === 0 ? (
+          <p className="mt-4 text-[15px] text-mute">{t("noShoots")}</p>
+        ) : (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shoots.map((s) => (
+              <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
+                <ShootCard shoot={s} />
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <SiteFooter />

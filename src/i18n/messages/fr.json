@@ -35,7 +35,11 @@
     "subtitle": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
     "cta": "Créer une mission",
     "latestShoots": "Missions ouvertes",
-    "offersCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}"
+    "offersCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}",
+    "trust1": "Contact direct — sans intermédiaire sur ton shooting.",
+    "trust2": "Photographes vérifiés avec de vraies évaluations.",
+    "trust3": "Hébergement suisse, tes données restent à Zürich.",
+    "noShoots": "Aucune mission ouverte pour l'instant — publie la première."
   },
   "auth": {
     "registerTitle": "Créer un compte",

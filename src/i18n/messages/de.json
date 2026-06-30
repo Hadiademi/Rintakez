@@ -35,7 +35,11 @@
     "subtitle": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
     "cta": "Auftrag erstellen",
     "latestShoots": "Offene Aufträge",
-    "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}"
+    "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}",
+    "trust1": "Direkter Kontakt — kein Mittelsmann bei deinem Shooting.",
+    "trust2": "Geprüfte Fotograf:innen mit echten, verifizierten Bewertungen.",
+    "trust3": "Schweizer Hosting, deine Daten bleiben in Zürich.",
+    "noShoots": "Gerade keine offenen Aufträge — erstelle den ersten."
   },
   "auth": {
     "registerTitle": "Konto erstellen",
