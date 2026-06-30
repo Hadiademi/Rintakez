@@ -161,7 +161,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] flex-col lg:h-full">
+    <div className="flex h-[calc(100dvh-12rem)] flex-col lg:h-full">
       <div className="mx-auto flex h-full w-full max-w-3xl flex-col lg:px-6">
       {/* Header */}
       <div className="flex shrink-0 items-center gap-3 border-b border-line py-4">
@@ -247,7 +247,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           {iBlocked ? t("blockedNotice") : t("blockedByNotice")}
         </div>
       ) : (
-        <div className="shrink-0 border-t border-line pb-5 pt-4">
+        <div className="shrink-0 border-t border-line pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4">
           {sendError && (
             <p
               data-testid="message-error"

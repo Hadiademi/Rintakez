@@ -141,7 +141,7 @@ export function NotificationBell({
     };
   }, [userId]);
 
-  // ── Close dropdown on outside click ────────────────────────────────
+  // ── Close dropdown on outside click or Escape ──────────────────────
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
@@ -149,8 +149,15 @@ export function NotificationBell({
         setOpen(false);
       }
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   async function toggle() {
@@ -171,6 +178,8 @@ export function NotificationBell({
         type="button"
         onClick={toggle}
         aria-label={t("title")}
+        aria-haspopup="menu"
+        aria-expanded={open}
         data-testid="notification-bell"
         className="press relative text-mute hover:text-ink"
       >

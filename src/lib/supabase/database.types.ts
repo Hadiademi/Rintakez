@@ -645,6 +645,10 @@ export type Database = {
         Args: { p_other: string };
         Returns: boolean;
       };
+      mark_conversation_read: {
+        Args: { p_conversation_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: "client" | "photographer";

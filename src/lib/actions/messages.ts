@@ -306,23 +306,11 @@ export async function markConversationRead(
   if (!user) return { ok: false, error: "unauthorized" };
 
   const supabase = await createClient();
-  const now = new Date().toISOString();
-  const { data: conv } = await supabase
-    .from("conversations")
-    .select("client_id, photographer_id")
-    .eq("id", conversationId)
-    .maybeSingle();
-  if (!conv) return { ok: false, error: "not_found" };
-
-  const patch =
-    conv.client_id === user.id
-      ? { client_last_read_at: now }
-      : { photographer_last_read_at: now };
-
-  const { error } = await supabase
-    .from("conversations")
-    .update(patch)
-    .eq("id", conversationId);
+  // SECURITY DEFINER RPC sets only the caller's own read marker — a participant
+  // can no longer forge the other side's "last read" timestamp.
+  const { error } = await supabase.rpc("mark_conversation_read", {
+    p_conversation_id: conversationId,
+  });
   if (error) return { ok: false, error: dbError(error, "messages") };
 
   // Refresh the inbox so the unread dot clears without a full reload.

@@ -28,6 +28,7 @@ export function ChipMultiSelect({
             type="button"
             onClick={() => toggle(o.value)}
             data-selected={sel}
+            aria-pressed={sel}
             className={`press border px-3 py-1.5 text-sm ${
               sel
                 ? "border-ink bg-surface text-ink"
