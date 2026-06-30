@@ -14,6 +14,7 @@ import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
 import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
+import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 border-t border-line pt-8">
+    <section id={id} className="scroll-mt-24">
       <h2 className="label mb-5 text-mute">{title}</h2>
       {children}
     </section>
@@ -132,15 +133,15 @@ export default async function ProfilePage() {
         ? tAuth("roleVideographer")
         : tAuth("rolePhotographer");
 
-  // In-page section nav (left rail).
-  const navItems: { href: string; label: string }[] = [
+  // Settings tabs — only the selected one is shown (see ProfileTabs).
+  const tabs: { id: string; label: string }[] = [
     ...(isPhotographer
-      ? [{ href: "#profile", label: t("publicProfileTitle") }]
+      ? [{ id: "profile", label: t("publicProfileTitle") }]
       : []),
-    { href: "#account", label: t("account") },
-    { href: "#security", label: t("securityTitle") },
-    { href: "#notifications", label: t("notificationsTitle") },
-    { href: "#privacy", label: t("dataPrivacy") },
+    { id: "account", label: t("account") },
+    { id: "security", label: t("securityTitle") },
+    { id: "notifications", label: t("notificationsTitle") },
+    { id: "privacy", label: t("dataPrivacy") },
   ];
 
   return (
@@ -171,26 +172,11 @@ export default async function ProfilePage() {
         </p>
       )}
 
-      {/* Settings: sticky section nav + content */}
-      <div className="mt-10 lg:grid lg:grid-cols-[180px_1fr] lg:gap-12">
-        <nav className="mb-6 lg:sticky lg:top-8 lg:mb-0 lg:self-start">
-          <ul className="flex gap-x-5 gap-y-2 overflow-x-auto border-b border-line pb-2 lg:flex-col lg:border-b-0 lg:pb-0">
-            {navItems.map((item) => (
-              <li key={item.href} className="shrink-0">
-                <a
-                  href={item.href}
-                  className="text-sm text-mute transition-colors hover:text-ink"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="min-w-0 space-y-2">
-          {/* Public profile (photographer) */}
-          {isPhotographer && (
+      {/* Settings — tabbed; only the active section is shown */}
+      <ProfileTabs tabs={tabs}>
+        {/* Public profile (photographer) */}
+        {isPhotographer && (
+          <ProfileTabPanel id="profile" label={t("publicProfileTitle")}>
             <section id="profile" className="scroll-mt-24">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="label text-mute">{t("publicProfileTitle")}</h2>
@@ -322,9 +308,11 @@ export default async function ProfilePage() {
                 <AvailabilityManager initial={unavailableDates} />
               </div>
             </section>
-          )}
+          </ProfileTabPanel>
+        )}
 
-          {/* Account */}
+        {/* Account */}
+        <ProfileTabPanel id="account" label={t("account")}>
           <Section id="account" title={t("account")}>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1">
@@ -350,8 +338,10 @@ export default async function ProfilePage() {
               )}
             </dl>
           </Section>
+        </ProfileTabPanel>
 
-          {/* Security */}
+        {/* Security */}
+        <ProfileTabPanel id="security" label={t("securityTitle")}>
           <Section id="security" title={t("securityTitle")}>
             <div className="space-y-8">
               <div className="space-y-4">
@@ -368,8 +358,10 @@ export default async function ProfilePage() {
               </div>
             </div>
           </Section>
+        </ProfileTabPanel>
 
-          {/* Notifications */}
+        {/* Notifications */}
+        <ProfileTabPanel id="notifications" label={t("notificationsTitle")}>
           <Section id="notifications" title={t("notificationsTitle")}>
             <NotificationPrefs
               notifyBids={profile.notify_bids}
@@ -377,8 +369,10 @@ export default async function ProfilePage() {
               notifyMessages={profile.notify_messages}
             />
           </Section>
+        </ProfileTabPanel>
 
-          {/* Privacy */}
+        {/* Privacy */}
+        <ProfileTabPanel id="privacy" label={t("dataPrivacy")}>
           <Section id="privacy" title={t("dataPrivacy")}>
             <p className="mb-3 text-[14px] text-mute">{t("exportDataHint")}</p>
             <DataExportButton />
@@ -386,8 +380,8 @@ export default async function ProfilePage() {
               <DeleteAccountButton />
             </div>
           </Section>
-        </div>
-      </div>
+        </ProfileTabPanel>
+      </ProfileTabs>
     </div>
   );
 }
