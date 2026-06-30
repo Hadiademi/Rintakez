@@ -10,7 +10,8 @@ export type NotificationItem = {
     | "bid_accepted"
     | "bid_declined"
     | "shoot_cancelled"
-    | "message_received";
+    | "message_received"
+    | "shoot_reopened";
   shootId: string | null;
   title: string | null;
   readAt: string | null;

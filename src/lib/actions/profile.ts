@@ -1,13 +1,56 @@
 "use server";
 
+import { z } from "zod";
 import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionUser } from "@/lib/auth";
+import { CANTONS } from "@/lib/validation/photographer";
 
 type ErrResult = { ok: false; error: string };
 type Ok<T extends object = object> = { ok: true } & T;
+
+const profileBasicsSchema = z.object({
+  displayName: z.string().trim().min(1).max(80),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  canton: z.enum(CANTONS).optional().or(z.literal("")),
+  bio: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+
+/**
+ * Update the current user's public basics — display name, city, canton, bio.
+ * These render on the header, the public photographer profile and directory
+ * cards, but had no setter anywhere (registration/onboarding never collected
+ * them), so they were permanently blank. RLS scopes the write to the own row;
+ * the profiles UPDATE grant is column-scoped to exactly these columns.
+ */
+export async function updateProfileBasics(
+  raw: unknown
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = profileBasicsSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: parsed.data.displayName,
+      city: parsed.data.city ? parsed.data.city : null,
+      canton: parsed.data.canton ? parsed.data.canton : null,
+      bio: parsed.data.bio ? parsed.data.bio : null,
+    })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: dbError(error, "profile") };
+
+  revalidatePath("/[locale]/(app)/profile", "page");
+  revalidatePath("/[locale]/(public)/photographers/[id]", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
+  return { ok: true };
+}
 
 function extFor(file: File): string {
   const rawExt = file.name.includes(".")

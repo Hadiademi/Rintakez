@@ -228,7 +228,8 @@
     "cancelReasonLabel": "Grund (optional)",
     "cancelReasonPlaceholder": "Warum sagst du ab?",
     "cancelledReason": "Grund der Absage",
-    "cancelPolicy": "Eine Absage informiert die andere Partei. Bitte sage rechtzeitig ab."
+    "cancelPolicy": "Eine Absage informiert die andere Partei. Bitte sage rechtzeitig ab.",
+    "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}"
   },
   "myBids": {
     "title": "Meine Angebote",
@@ -312,6 +313,17 @@
     "coverUpload": "Titelbild hochladen",
     "coverReplace": "Titelbild ersetzen",
     "coverRemove": "Entfernen"
+  },
+  "profileBasics": {
+    "edit": "Name & Ort bearbeiten",
+    "displayName": "Name oder Studio",
+    "city": "Ort",
+    "canton": "Kanton",
+    "bio": "Über mich",
+    "bioPlaceholder": "Eine kurze Vorstellung, die Auftraggeber:innen auf deinem Profil sehen.",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "saved": "Gespeichert"
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -417,7 +429,8 @@
     "bid_accepted": "Dein Angebot wurde angenommen",
     "bid_declined": "Dein Angebot wurde abgelehnt",
     "shoot_cancelled": "Ein Shooting wurde abgesagt",
-    "message_received": "Neue Nachricht erhalten"
+    "message_received": "Neue Nachricht erhalten",
+    "shoot_reopened": "Eine Buchung wurde wieder geöffnet — die Fotograf:in ist nicht mehr verfügbar"
   },
   "review": {
     "title": "Bewertung",

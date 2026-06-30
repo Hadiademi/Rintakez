@@ -19,7 +19,9 @@ function hrefFor(item: NotificationItem): string {
   // Photographer bid outcomes → their bids.
   if (item.type === "message_received") return "/messages";
   if (
-    (item.type === "bid_received" || item.type === "shoot_cancelled") &&
+    (item.type === "bid_received" ||
+      item.type === "shoot_cancelled" ||
+      item.type === "shoot_reopened") &&
     item.shootId
   )
     return `/shoots/${item.shootId}`;

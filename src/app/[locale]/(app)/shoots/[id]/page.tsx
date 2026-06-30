@@ -22,10 +22,14 @@ export const dynamic = "force-dynamic";
 
 export default async function ShootDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ imgFailed?: string }>;
 }) {
   const { id } = await params;
+  const sp = await searchParams;
+  const imgFailed = sp?.imgFailed ? parseInt(sp.imgFailed, 10) : 0;
   // Public read-only access for anonymous visitors; actions require login.
   const profile = await getProfile();
 
@@ -242,18 +246,20 @@ export default async function ShootDetailPage({
     return (
       <div className="mx-auto max-w-3xl space-y-10">
         {summary}
-        {myBid ? (
-          <MyBidPanel
-            bid={myBid}
-            canEdit={myBid.status === "pending" && shoot.status === "open"}
-          />
-        ) : shoot.status === "open" ? (
+        {(!myBid || myBid.status === "withdrawn") &&
+        shoot.status === "open" ? (
+          // No bid yet, or a withdrawn one on an open shoot — let them (re-)bid.
           <BidSheet
             shootId={id}
             budgetRange={formatCHFRange(
               shoot.budget_min_chf,
               shoot.budget_max_chf
             )}
+          />
+        ) : myBid ? (
+          <MyBidPanel
+            bid={myBid}
+            canEdit={myBid.status === "pending" && shoot.status === "open"}
           />
         ) : (
           <p className="text-mute">{tBid("notOpen")}</p>
@@ -321,6 +327,15 @@ export default async function ShootDetailPage({
   return (
     <div className="mx-auto max-w-3xl space-y-12">
       <div className="space-y-10">
+        {imgFailed > 0 ? (
+          <div
+            data-testid="ref-upload-warning"
+            className="border-l-2 border-accent bg-surface px-4 py-3 text-[14px] text-ink"
+          >
+            {t("refUploadFailed", { count: imgFailed })}
+          </div>
+        ) : null}
+
         {summary}
 
         {shoot.status === "open" ? (

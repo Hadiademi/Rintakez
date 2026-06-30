@@ -8,6 +8,7 @@ import { CoverUploader } from "@/components/cover-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
 import { VerificationRequest } from "@/components/verification-request";
+import { ProfileBasicsEditor } from "@/components/profile-basics-editor";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
@@ -202,6 +203,13 @@ export default async function ProfilePage() {
               </div>
 
               <div className="mt-5 space-y-8">
+                <ProfileBasicsEditor
+                  displayName={profile.display_name}
+                  city={profile.city ?? ""}
+                  canton={profile.canton ?? ""}
+                  bio={profile.bio ?? ""}
+                />
+
                 <CoverUploader initialUrl={coverUrl} />
 
                 <VerificationRequest

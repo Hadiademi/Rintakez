@@ -97,7 +97,20 @@ export default async function MyBidsPage() {
           {list.map((bid) => {
             const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;
             if (!shoot) return null;
-            const dotClass = statusDotClass[bid.status] ?? "text-mute";
+            // For the winning bid, the shoot's terminal state is the truth: an
+            // accepted bid on a cancelled/completed shoot must not keep reading
+            // as a live "Accepted".
+            const showShootState =
+              bid.status === "accepted" &&
+              (shoot.status === "cancelled" || shoot.status === "completed");
+            const dotClass = showShootState
+              ? shoot.status === "completed"
+                ? "text-ink"
+                : "text-mute"
+              : statusDotClass[bid.status] ?? "text-mute";
+            const statusLabel = showShootState
+              ? tShoot(`status.${shoot.status}`)
+              : tBid(`status.${bid.status}`);
 
             return (
               <Link
@@ -125,7 +138,7 @@ export default async function MyBidsPage() {
                     aria-hidden="true"
                     className="inline-block h-1.5 w-1.5 rounded-full bg-current"
                   />
-                  {tBid(`status.${bid.status}`)}
+                  {statusLabel}
                 </span>
               </Link>
             );

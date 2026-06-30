@@ -682,7 +682,8 @@ export type Database = {
         | "bid_accepted"
         | "bid_declined"
         | "shoot_cancelled"
-        | "message_received";
+        | "message_received"
+        | "shoot_reopened";
       report_target: "profile" | "shoot";
       report_status: "open" | "reviewed" | "dismissed";
       verification_status: "unverified" | "pending" | "verified" | "rejected";

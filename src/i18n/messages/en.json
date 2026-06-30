@@ -228,7 +228,8 @@
     "cancelReasonLabel": "Reason (optional)",
     "cancelReasonPlaceholder": "Why are you cancelling?",
     "cancelledReason": "Cancellation reason",
-    "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time."
+    "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time.",
+    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}"
   },
   "myBids": {
     "title": "My bids",
@@ -312,6 +313,17 @@
     "coverUpload": "Upload cover",
     "coverReplace": "Replace cover",
     "coverRemove": "Remove"
+  },
+  "profileBasics": {
+    "edit": "Edit name & location",
+    "displayName": "Name or studio",
+    "city": "City",
+    "canton": "Canton",
+    "bio": "Bio",
+    "bioPlaceholder": "A short introduction clients will see on your profile.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved"
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -417,7 +429,8 @@
     "bid_accepted": "Your offer was accepted",
     "bid_declined": "Your offer was declined",
     "shoot_cancelled": "A shoot was cancelled",
-    "message_received": "New message received"
+    "message_received": "New message received",
+    "shoot_reopened": "A booking reopened — the photographer is no longer available"
   },
   "review": {
     "title": "Review",

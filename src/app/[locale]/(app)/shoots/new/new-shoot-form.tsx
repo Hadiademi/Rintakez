@@ -88,14 +88,23 @@ export default function NewShootForm() {
       setServerError(tErr(errorKey(result.error)));
       return;
     }
-    // Upload any reference images now that we have the shoot id. Failures here
-    // are non-fatal — the shoot already exists, so we still navigate to it.
+    // Upload reference images now that we have the shoot id. Failures are
+    // non-fatal (the shoot already exists), but must not be silently swallowed
+    // or let an exception strand the user on the form — count them and tell the
+    // detail page so it can warn instead of showing a brief with missing refs.
+    let failed = 0;
     for (const { file } of refImages) {
-      const fd = new FormData();
-      fd.append("file", file);
-      await addShootImage(result.id, fd);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const r = await addShootImage(result.id, fd);
+        if (!r.ok) failed++;
+      } catch {
+        failed++;
+      }
     }
-    router.push(`/shoots/${result.id}`);
+    const query = failed > 0 ? `?imgFailed=${failed}` : "";
+    router.push(`/shoots/${result.id}${query}`);
     router.refresh();
   }
 
