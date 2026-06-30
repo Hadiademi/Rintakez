@@ -277,6 +277,8 @@
     "verified": "Vérifié",
     "verificationLabel": "Vérification",
     "requestVerification": "Demander la vérification",
+    "verificationEvidenceHint": "Ajoute des liens prouvant ton identité ou ton activité — site web, registre du commerce ou profil public. La vérification est examinée par notre équipe.",
+    "verificationEvidencePlaceholder": "Liens vers ton site, registre du commerce ou pièce d'identité …",
     "verificationStatus": {
       "unverified": "Non vérifié",
       "pending": "En cours d’examen",
@@ -455,7 +457,8 @@
     "newBadge": "Nouveau",
     "reviews": "Évaluations",
     "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}",
-    "noReviews": "Pas encore d’avis."
+    "noReviews": "Pas encore d’avis.",
+    "verifiedBooking": "Réservation vérifiée"
   },
   "directory": {
     "navPhotographers": "Photographes",
@@ -524,6 +527,8 @@
     "noVerifications": "Aucune vérification en attente.",
     "approveVerification": "Vérifier",
     "rejectVerification": "Refuser",
+    "submittedEvidence": "Preuves soumises",
+    "noEvidence": "Aucune preuve fournie.",
     "tabDashboard": "Aperçu",
     "tabUsers": "Utilisateurs",
     "tabVerifications": "Vérifications",

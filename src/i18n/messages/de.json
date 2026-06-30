@@ -277,6 +277,8 @@
     "verified": "Verifiziert",
     "verificationLabel": "Verifizierung",
     "requestVerification": "Verifizierung anfragen",
+    "verificationEvidenceHint": "Füge Links hinzu, die deine Identität oder dein Geschäft belegen — Website, Handelsregister oder ein öffentliches Profil. Die Verifizierung wird von unserem Team geprüft.",
+    "verificationEvidencePlaceholder": "Links zu Website, Handelsregister oder Ausweis …",
     "verificationStatus": {
       "unverified": "Nicht verifiziert",
       "pending": "In Prüfung",
@@ -455,7 +457,8 @@
     "newBadge": "Neu",
     "reviews": "Bewertungen",
     "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
-    "noReviews": "Noch keine Bewertungen."
+    "noReviews": "Noch keine Bewertungen.",
+    "verifiedBooking": "Verifizierte Buchung"
   },
   "directory": {
     "navPhotographers": "Fotograf:innen",
@@ -524,6 +527,8 @@
     "noVerifications": "Keine offenen Verifizierungen.",
     "approveVerification": "Verifizieren",
     "rejectVerification": "Ablehnen",
+    "submittedEvidence": "Eingereichte Nachweise",
+    "noEvidence": "Keine Nachweise angegeben.",
     "tabDashboard": "Übersicht",
     "tabUsers": "Nutzer:innen",
     "tabVerifications": "Verifizierungen",

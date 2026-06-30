@@ -5,7 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getSessionUser } from "@/lib/auth";
-import { formatCHF } from "@/lib/format";
+import { formatCHF, formatSwissDate } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
@@ -115,10 +115,54 @@ export default async function PhotographerProfilePage({
 
       const { data: reviewRows } = await supabase
         .from("reviews")
-        .select("id, rating, comment, created_at")
+        .select("id, rating, comment, created_at, client_id, shoot_id")
         .eq("photographer_id", id)
         .order("created_at", { ascending: false })
         .limit(10);
+
+      // Enrich each review with the reviewer (first name + last initial) and the
+      // shoot type, so reviews read as verifiable bookings rather than anonymous.
+      const reviewerIds = [
+        ...new Set((reviewRows ?? []).map((r) => r.client_id)),
+      ];
+      const reviewShootIds = [
+        ...new Set((reviewRows ?? []).map((r) => r.shoot_id)),
+      ];
+      const [{ data: reviewers }, { data: reviewShoots }] = await Promise.all([
+        reviewerIds.length
+          ? supabase
+              .from("profiles")
+              .select("id, display_name")
+              .in("id", reviewerIds)
+          : Promise.resolve({
+              data: [] as { id: string; display_name: string }[],
+            }),
+        reviewShootIds.length
+          ? supabase.from("shoots").select("id, type").in("id", reviewShootIds)
+          : Promise.resolve({
+              data: [] as { id: string; type: string }[],
+            }),
+      ]);
+      const reviewerById = new Map(
+        (reviewers ?? []).map((p) => [p.id, p.display_name])
+      );
+      const shootTypeById = new Map(
+        (reviewShoots ?? []).map((s) => [s.id, s.type])
+      );
+      const shortName = (full: string) => {
+        const parts = full.trim().split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return "";
+        if (parts.length === 1) return parts[0];
+        return `${parts[0]} ${parts[parts.length - 1][0].toUpperCase()}.`;
+      };
+      const reviews = (reviewRows ?? []).map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        created_at: r.created_at,
+        reviewerName: shortName(reviewerById.get(r.client_id) ?? ""),
+        shootType: shootTypeById.get(r.shoot_id) ?? null,
+      }));
 
       const { data: unavailableRows } = await supabase
         .from("photographer_unavailable")
@@ -139,7 +183,7 @@ export default async function PhotographerProfilePage({
         coverUrl,
         avatarUrl,
         rating,
-        reviewRows: reviewRows ?? [],
+        reviewRows: reviews,
         unavailableDates: (unavailableRows ?? []).map((r) => r.date),
       };
     },
@@ -472,12 +516,26 @@ export default async function PhotographerProfilePage({
               <ul className="space-y-5">
                 {reviewRows.map((r) => (
                   <li key={r.id} className="space-y-1.5">
-                    <Stars value={r.rating} />
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <Stars value={r.rating} />
+                      <span className="label text-mute-2">
+                        ✓ {tReview("verifiedBooking")}
+                      </span>
+                    </div>
                     {r.comment ? (
                       <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">
                         {r.comment}
                       </p>
                     ) : null}
+                    <p className="text-[13px] text-mute">
+                      {[
+                        r.reviewerName,
+                        r.shootType ? tShoot(`types.${r.shootType}`) : null,
+                        formatSwissDate(r.created_at.slice(0, 10)),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
                   </li>
                 ))}
               </ul>

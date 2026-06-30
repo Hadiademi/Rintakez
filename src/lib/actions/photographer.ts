@@ -68,7 +68,9 @@ export async function savePhotographerDetails(
  * can only touch the caller's own row). Verified status is a trust badge, not a
  * gate on bidding.
  */
-export async function requestVerification(): Promise<{ ok: true } | ErrResult> {
+export async function requestVerification(
+  note?: string
+): Promise<{ ok: true } | ErrResult> {
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
 
@@ -77,6 +79,15 @@ export async function requestVerification(): Promise<{ ok: true } | ErrResult> {
     return { ok: false, error: "forbidden" };
 
   const supabase = await createClient();
+
+  // Store the evidence note (links to ID / business registration / proof) the
+  // admin will review. Own-row, column-scoped grant; status stays out of reach.
+  const trimmed = note?.trim().slice(0, 1000) ?? "";
+  await supabase
+    .from("photographer_details")
+    .update({ verification_note: trimmed || null })
+    .eq("profile_id", user.id);
+
   const { error } = await supabase.rpc("request_verification");
   if (error) return { ok: false, error: dbError(error, "photographer") };
 

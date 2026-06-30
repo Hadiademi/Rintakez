@@ -277,6 +277,8 @@
     "verified": "Verified",
     "verificationLabel": "Verification",
     "requestVerification": "Request verification",
+    "verificationEvidenceHint": "Add links that prove your identity or business — your website, business registration, or a public profile. Verification is reviewed by our team.",
+    "verificationEvidencePlaceholder": "Links to your website, business registration or ID…",
     "verificationStatus": {
       "unverified": "Not verified",
       "pending": "Under review",
@@ -455,7 +457,8 @@
     "newBadge": "New",
     "reviews": "Reviews",
     "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
-    "noReviews": "No reviews yet."
+    "noReviews": "No reviews yet.",
+    "verifiedBooking": "Verified booking"
   },
   "directory": {
     "navPhotographers": "Photographers",
@@ -524,6 +527,8 @@
     "noVerifications": "No pending verifications.",
     "approveVerification": "Approve",
     "rejectVerification": "Reject",
+    "submittedEvidence": "Submitted evidence",
+    "noEvidence": "No evidence provided.",
     "tabDashboard": "Overview",
     "tabUsers": "Users",
     "tabVerifications": "Verifications",

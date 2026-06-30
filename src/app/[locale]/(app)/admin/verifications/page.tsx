@@ -11,11 +11,14 @@ export default async function AdminVerificationsPage() {
 
   const { data: pending } = await admin
     .from("photographer_details")
-    .select("profile_id")
+    .select("profile_id, verification_note")
     .eq("verification_status", "pending")
     .limit(100);
 
   const ids = (pending ?? []).map((d) => d.profile_id);
+  const evidenceById = new Map(
+    (pending ?? []).map((d) => [d.profile_id, d.verification_note])
+  );
   const { data: profiles } = ids.length
     ? await admin
         .from("profiles")
@@ -33,7 +36,13 @@ export default async function AdminVerificationsPage() {
       ) : (
         <div className="space-y-3">
           {(profiles ?? []).map((p) => (
-            <AdminVerifyRow key={p.id} id={p.id} name={p.display_name} city={p.city} />
+            <AdminVerifyRow
+              key={p.id}
+              id={p.id}
+              name={p.display_name}
+              city={p.city}
+              evidence={evidenceById.get(p.id) ?? null}
+            />
           ))}
         </div>
       )}

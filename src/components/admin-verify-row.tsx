@@ -9,10 +9,12 @@ export function AdminVerifyRow({
   id,
   name,
   city,
+  evidence,
 }: {
   id: string;
   name: string;
   city: string | null;
+  evidence: string | null;
 }) {
   const t = useTranslations("admin");
   const router = useRouter();
@@ -36,6 +38,13 @@ export function AdminVerifyRow({
           {name}
         </Link>
         {city ? <span>{city}</span> : null}
+      </div>
+
+      <div className="space-y-1">
+        <p className="label text-mute-2">{t("submittedEvidence")}</p>
+        <p className="whitespace-pre-line break-words text-[13px] text-ink">
+          {evidence?.trim() ? evidence : t("noEvidence")}
+        </p>
       </div>
 
       <textarea
