@@ -229,7 +229,10 @@
     "cancelReasonPlaceholder": "Pourquoi annules-tu ?",
     "cancelledReason": "Motif de l'annulation",
     "cancelPolicy": "Une annulation informe l'autre partie. Merci d'annuler à temps.",
-    "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}"
+    "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}",
+    "acceptConfirm": "Accepter cette offre ? Les autres offres seront refusées.",
+    "declineConfirm": "Refuser cette offre ? Cette action est irréversible.",
+    "pastOffers": "{count, plural, one {# offre antérieure n'est plus active} other {# offres antérieures ne sont plus actives}}"
   },
   "myBids": {
     "title": "Mes offres",
@@ -334,6 +337,9 @@
     "not_found": "Introuvable.",
     "limit_reached": "Limite atteinte.",
     "invalid_file": "Fichier invalide. Images jusqu'à 5 Mo.",
+    "invalid_credentials": "E-mail ou mot de passe incorrect.",
+    "email_not_confirmed": "Confirme d'abord ton adresse e-mail.",
+    "email_taken": "Un compte existe déjà avec cet e-mail.",
     "generic": "Une erreur est survenue. Réessaie."
   },
   "theme": {
@@ -346,7 +352,7 @@
     "impressumIntro": "Identification du prestataire conformément aux obligations de transparence applicables.",
     "impressumOperator": "Exploitant",
     "impressumContact": "Contact",
-    "impressumPlaceholder": "[À COMPLÉTER : nom / société, rue et numéro, NPA localité, adresse e-mail] — Ces informations doivent être exactes et complètes avant le lancement public.",
+    "impressumOperatorBody": "Rinor Mustafi – Rintakez\nRaison individuelle\nVia Calundis 19a\n7013 Domat/Ems\nSuisse\nIDE : CHE-466.681.384",
     "datenschutzTitle": "Politique de confidentialité",
     "dsIntro": "Cette politique de confidentialité explique comment Rintakez collecte, traite et protège les données personnelles. Elle s'applique à tous les utilisateurs de la plateforme rintakez.ch et est régie par la loi fédérale révisée sur la protection des données (nLPD / revLPD).",
     "dsDataTitle": "Données collectées",
@@ -430,7 +436,10 @@
     "bid_declined": "Ton offre a été refusée",
     "shoot_cancelled": "Un shooting a été annulé",
     "message_received": "Nouveau message reçu",
-    "shoot_reopened": "Une réservation a été rouverte — le/la photographe n'est plus disponible"
+    "shoot_reopened": "Une réservation a été rouverte — le/la photographe n'est plus disponible",
+    "review_received": "Tu as reçu une nouvelle évaluation",
+    "verification_approved": "Ton profil a été vérifié",
+    "verification_rejected": "Ta demande de vérification a été refusée"
   },
   "review": {
     "title": "Évaluation",

@@ -18,6 +18,13 @@ function hrefFor(item: NotificationItem): string {
   // New message → the inbox. Client (bid_received) / cancellation → the shoot.
   // Photographer bid outcomes → their bids.
   if (item.type === "message_received") return "/messages";
+  // Review / verification outcomes land on the photographer's own profile.
+  if (
+    item.type === "review_received" ||
+    item.type === "verification_approved" ||
+    item.type === "verification_rejected"
+  )
+    return "/profile";
   if (
     (item.type === "bid_received" ||
       item.type === "shoot_cancelled" ||

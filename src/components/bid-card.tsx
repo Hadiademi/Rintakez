@@ -30,6 +30,7 @@ export function BidCard({
   canManage: boolean;
 }) {
   const t = useTranslations("shootDetail");
+  const tBid = useTranslations("bid");
   const tErr = useTranslations("errors");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -54,13 +55,18 @@ export function BidCard({
   }
 
   function onAccept() {
-    if (typeof window !== "undefined" && !window.confirm(t("accept") + "?")) {
+    if (typeof window !== "undefined" && !window.confirm(t("acceptConfirm"))) {
       return;
     }
     run(() => acceptBidAction(bid.id));
   }
 
   function onDecline() {
+    // Decline is irreversible and emails the photographer — confirm first, like
+    // accept (the two buttons sit side by side and a mis-tap is easy on mobile).
+    if (typeof window !== "undefined" && !window.confirm(t("declineConfirm"))) {
+      return;
+    }
     run(() => declineBidAction(bid.id));
   }
 
@@ -99,13 +105,9 @@ export function BidCard({
       <div className="mt-6 flex items-center justify-between gap-4 border-t border-line pt-4">
         <span
           data-testid={`bid-status-${bid.id}`}
-          className="label text-mute-2"
+          className="label text-mute"
         >
-          {bid.status === "accepted"
-            ? t("accept")
-            : bid.status === "declined"
-              ? t("decline")
-              : bid.status}
+          {tBid(`status.${bid.status}`)}
         </span>
 
         {canManage && bid.status === "pending" ? (

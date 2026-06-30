@@ -229,7 +229,10 @@
     "cancelReasonPlaceholder": "Why are you cancelling?",
     "cancelledReason": "Cancellation reason",
     "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time.",
-    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}"
+    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}",
+    "acceptConfirm": "Accept this offer? The other offers will be declined.",
+    "declineConfirm": "Decline this offer? This can't be undone.",
+    "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}"
   },
   "myBids": {
     "title": "My bids",
@@ -334,6 +337,9 @@
     "not_found": "Not found.",
     "limit_reached": "Limit reached.",
     "invalid_file": "Invalid file. Images up to 5 MB.",
+    "invalid_credentials": "Wrong email or password.",
+    "email_not_confirmed": "Please confirm your email address first.",
+    "email_taken": "An account with this email already exists.",
     "generic": "Something went wrong. Please try again."
   },
   "theme": {
@@ -346,7 +352,7 @@
     "impressumIntro": "Provider identification pursuant to applicable transparency obligations.",
     "impressumOperator": "Operator",
     "impressumContact": "Contact",
-    "impressumPlaceholder": "[TO COMPLETE: full name / company, street and number, postcode city, email address] — This information must be accurate and complete before public launch.",
+    "impressumOperatorBody": "Rinor Mustafi – Rintakez\nSole proprietorship\nVia Calundis 19a\n7013 Domat/Ems\nSwitzerland\nUID: CHE-466.681.384",
     "datenschutzTitle": "Privacy policy",
     "dsIntro": "This privacy policy explains how Rintakez collects, processes and protects personal data. It applies to all users of the platform rintakez.ch and is governed by the revised Swiss Federal Act on Data Protection (revFADP / nFADP).",
     "dsDataTitle": "Data we collect",
@@ -430,7 +436,10 @@
     "bid_declined": "Your offer was declined",
     "shoot_cancelled": "A shoot was cancelled",
     "message_received": "New message received",
-    "shoot_reopened": "A booking reopened — the photographer is no longer available"
+    "shoot_reopened": "A booking reopened — the photographer is no longer available",
+    "review_received": "You received a new review",
+    "verification_approved": "Your profile was verified",
+    "verification_rejected": "Your verification request was declined"
   },
   "review": {
     "title": "Review",

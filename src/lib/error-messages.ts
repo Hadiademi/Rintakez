@@ -7,6 +7,9 @@ const KNOWN = new Set([
   "not_found",
   "limit_reached",
   "invalid_file",
+  "invalid_credentials",
+  "email_not_confirmed",
+  "email_taken",
 ]);
 
 /** Map an action error string to a stable i18n key under the `errors` namespace.

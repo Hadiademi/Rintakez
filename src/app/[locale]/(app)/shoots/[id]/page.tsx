@@ -311,6 +311,13 @@ export default async function ShootDetailPage({
 
   const bidList = (bids ?? []) as unknown as BidCardData[];
   const canManageBids = shoot.status === "open";
+  // Declutter the decision view: while open, show only the offers the client can
+  // still act on (pending); once decided, only the accepted one. Declined and
+  // withdrawn offers collapse into a small count so they don't bury the choice.
+  const visibleBids = canManageBids
+    ? bidList.filter((b) => b.status === "pending")
+    : bidList.filter((b) => b.status === "accepted");
+  const hiddenBidCount = bidList.length - visibleBids.length;
 
   // Existing review (owner, completed shoot).
   const { data: myReview } =
@@ -394,11 +401,22 @@ export default async function ShootDetailPage({
         <SectionLabel title={t("offers")} />
         {bidList.length === 0 ? (
           <p className="text-mute">{t("noOffers")}</p>
+        ) : visibleBids.length === 0 ? (
+          <p className="text-mute">
+            {hiddenBidCount > 0
+              ? t("pastOffers", { count: hiddenBidCount })
+              : t("noOffers")}
+          </p>
         ) : (
           <div data-testid="bids-list" className="space-y-4">
-            {bidList.map((bid) => (
+            {visibleBids.map((bid) => (
               <BidCard key={bid.id} bid={bid} canManage={canManageBids} />
             ))}
+            {hiddenBidCount > 0 ? (
+              <p className="text-[13px] text-mute-2">
+                {t("pastOffers", { count: hiddenBidCount })}
+              </p>
+            ) : null}
           </div>
         )}
       </section>

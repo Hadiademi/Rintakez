@@ -229,7 +229,10 @@
     "cancelReasonPlaceholder": "Warum sagst du ab?",
     "cancelledReason": "Grund der Absage",
     "cancelPolicy": "Eine Absage informiert die andere Partei. Bitte sage rechtzeitig ab.",
-    "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}"
+    "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}",
+    "acceptConfirm": "Dieses Angebot annehmen? Die anderen Angebote werden abgelehnt.",
+    "declineConfirm": "Dieses Angebot ablehnen? Das kann nicht rückgängig gemacht werden.",
+    "pastOffers": "{count, plural, one {# früheres Angebot nicht mehr aktiv} other {# frühere Angebote nicht mehr aktiv}}"
   },
   "myBids": {
     "title": "Meine Angebote",
@@ -334,6 +337,9 @@
     "not_found": "Nicht gefunden.",
     "limit_reached": "Limit erreicht.",
     "invalid_file": "Ungültige Datei. Nur Bilder bis 5 MB.",
+    "invalid_credentials": "Falsche E-Mail oder falsches Passwort.",
+    "email_not_confirmed": "Bitte bestätige zuerst deine E-Mail-Adresse.",
+    "email_taken": "Mit dieser E-Mail existiert bereits ein Konto.",
     "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
   },
   "theme": {
@@ -346,7 +352,7 @@
     "impressumIntro": "Angaben gemäss Art. 3 lit. s UWG und zur Erfüllung der Informationspflichten.",
     "impressumOperator": "Betreiber",
     "impressumContact": "Kontakt",
-    "impressumPlaceholder": "[BITTE AUSFÜLLEN: Name / Firma, Strasse und Hausnummer, PLZ Ort, E-Mail-Adresse] — Diese Angaben müssen vor dem öffentlichen Launch korrekt und vollständig sein.",
+    "impressumOperatorBody": "Rinor Mustafi – Rintakez\nEinzelfirma\nVia Calundis 19a\n7013 Domat/Ems\nSchweiz\nUID: CHE-466.681.384",
     "datenschutzTitle": "Datenschutzerklärung",
     "dsIntro": "Diese Datenschutzerklärung informiert dich darüber, wie Rintakez personenbezogene Daten erhebt, verarbeitet und schützt. Sie gilt für alle Nutzer:innen der Plattform rintakez.ch und richtet sich nach dem revidierten Datenschutzgesetz der Schweiz (revDSG / nFADP).",
     "dsDataTitle": "Welche Daten wir erheben",
@@ -430,7 +436,10 @@
     "bid_declined": "Dein Angebot wurde abgelehnt",
     "shoot_cancelled": "Ein Shooting wurde abgesagt",
     "message_received": "Neue Nachricht erhalten",
-    "shoot_reopened": "Eine Buchung wurde wieder geöffnet — die Fotograf:in ist nicht mehr verfügbar"
+    "shoot_reopened": "Eine Buchung wurde wieder geöffnet — die Fotograf:in ist nicht mehr verfügbar",
+    "review_received": "Du hast eine neue Bewertung erhalten",
+    "verification_approved": "Dein Profil wurde verifiziert",
+    "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt"
   },
   "review": {
     "title": "Bewertung",
