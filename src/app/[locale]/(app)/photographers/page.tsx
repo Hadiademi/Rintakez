@@ -22,6 +22,7 @@ export default async function PhotographersDirectoryPage({
     saved?: string;
     verified?: string;
     discipline?: string;
+    q?: string;
     page?: string;
   }>;
 }) {
@@ -33,8 +34,10 @@ export default async function PhotographersDirectoryPage({
     saved,
     verified,
     discipline,
+    q,
     page: pageParam,
   } = await searchParams;
+  const query = q?.trim().toLowerCase() ?? "";
   const page = Math.max(1, Number(pageParam) || 1);
   const supabase = await createClient();
   const t = await getTranslations("directory");
@@ -75,7 +78,9 @@ export default async function PhotographersDirectoryPage({
     ids.length
       ? supabase
           .from("profiles")
-          .select("id, display_name, city, canton, avatar_url, is_suspended")
+          .select(
+            "id, display_name, city, canton, avatar_url, is_suspended, created_at"
+          )
           .in("id", ids)
       : Promise.resolve({ data: [] as never[] }),
     ids.length
@@ -105,13 +110,31 @@ export default async function PhotographersDirectoryPage({
     .filter((x): x is NonNullable<typeof x> => x !== null)
     .filter((x) => !x.profile.is_suspended)
     .filter((x) => x.rating.avg >= minR)
-    .filter((x) => !savedIds || savedIds.has(x.profile_id));
+    .filter((x) => !savedIds || savedIds.has(x.profile_id))
+    .filter(
+      (x) => !query || x.profile.display_name.toLowerCase().includes(query)
+    );
 
   list = list.sort((a, b) => {
     if (sort === "price") {
       return (a.hourly_rate_chf ?? Infinity) - (b.hourly_rate_chf ?? Infinity);
     }
-    return b.rating.avg - a.rating.avg;
+    if (sort === "newest") {
+      return (
+        new Date(b.profile.created_at).getTime() -
+        new Date(a.profile.created_at).getTime()
+      );
+    }
+    // Default: top rated, with stable tiebreakers so unrated (avg 0)
+    // photographers don't shuffle arbitrarily — more reviews, then verified,
+    // then name.
+    return (
+      b.rating.avg - a.rating.avg ||
+      b.rating.count - a.rating.count ||
+      Number(b.verification_status === "verified") -
+        Number(a.verification_status === "verified") ||
+      a.profile.display_name.localeCompare(b.profile.display_name)
+    );
   });
 
   // Ranking (rating filter + sort + "saved only") spans tables, so it is
@@ -198,7 +221,7 @@ export default async function PhotographersDirectoryPage({
       <Pagination
         page={page}
         totalPages={totalPages}
-        params={{ type, canton, minRating, sort, saved, verified, discipline }}
+        params={{ type, canton, minRating, sort, saved, verified, discipline, q }}
         basePath="/photographers"
       />
     </div>

@@ -36,14 +36,21 @@ export default async function MyShootsPage() {
 
   const shootList = shoots ?? [];
 
-  const bidCounts = await Promise.all(
-    shootList.map(async (shoot) => {
-      const { data, error } = await supabase.rpc("shoot_bid_count", {
-        p_shoot_id: shoot.id,
-      });
-      return error || data === null ? 0 : (data as number);
-    })
-  );
+  // Active-offer counts in a single query (was one shoot_bid_count RPC per row).
+  // Mirrors shoot_bid_count: count only pending + accepted bids. RLS lets the
+  // owning client read bids on their own shoots.
+  const shootIds = shootList.map((s) => s.id);
+  const { data: bidRows } = shootIds.length
+    ? await supabase
+        .from("bids")
+        .select("shoot_id, status")
+        .in("shoot_id", shootIds)
+        .in("status", ["pending", "accepted"])
+    : { data: [] as { shoot_id: string; status: string }[] };
+  const bidCountBy = new Map<string, number>();
+  for (const b of bidRows ?? []) {
+    bidCountBy.set(b.shoot_id, (bidCountBy.get(b.shoot_id) ?? 0) + 1);
+  }
 
   const createCtaLink = (
     <Link
@@ -73,7 +80,7 @@ export default async function MyShootsPage() {
           data-testid="my-shoots-list"
           className="divide-y divide-line border-y border-line"
         >
-          {shootList.map((shoot, i) => (
+          {shootList.map((shoot) => (
             <Link
               key={shoot.id}
               href={`/shoots/${shoot.id}`}
@@ -99,7 +106,7 @@ export default async function MyShootsPage() {
                 </h2>
                 <p className="mt-0.5 tabular text-sm text-mute">
                   {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)} ·{" "}
-                  {tShoot("bidsCount", { count: bidCounts[i] })}
+                  {tShoot("bidsCount", { count: bidCountBy.get(shoot.id) ?? 0 })}
                 </p>
               </div>
               <ShootStatusBadge status={shoot.status} />

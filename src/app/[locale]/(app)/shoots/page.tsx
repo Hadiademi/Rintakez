@@ -66,7 +66,10 @@ export default async function BrowseShootsPage({
 
   const budgetMaxNum = budgetMax ? Number(budgetMax) : NaN;
   if (!isNaN(budgetMaxNum) && budgetMaxNum > 0) {
-    query = query.lte("budget_min_chf", budgetMaxNum);
+    // "Budget up to X" means the shoot's whole range fits within X — match on
+    // the ceiling, not the floor (otherwise a 500–3000 shoot shows for a 1000
+    // cap because its minimum happens to be low).
+    query = query.lte("budget_max_chf", budgetMaxNum);
   }
 
   if (q) {

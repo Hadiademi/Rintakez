@@ -526,6 +526,8 @@ export type Database = {
           photographer_id: string;
           created_at: string;
           last_message_at: string;
+          last_message_body: string | null;
+          last_sender_id: string | null;
           client_last_read_at: string | null;
           photographer_last_read_at: string | null;
         };
@@ -536,6 +538,8 @@ export type Database = {
           photographer_id: string;
           created_at?: string;
           last_message_at?: string;
+          last_message_body?: string | null;
+          last_sender_id?: string | null;
           client_last_read_at?: string | null;
           photographer_last_read_at?: string | null;
         };
@@ -546,6 +550,8 @@ export type Database = {
           photographer_id?: string;
           created_at?: string;
           last_message_at?: string;
+          last_message_body?: string | null;
+          last_sender_id?: string | null;
           client_last_read_at?: string | null;
           photographer_last_read_at?: string | null;
         };

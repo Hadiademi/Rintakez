@@ -14,10 +14,13 @@ export async function RecommendedPhotographers() {
   const [{ data: photogs }, { data: ratings }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, display_name, city, canton, avatar_url")
+      .select("id, display_name, city, canton, avatar_url, created_at")
       .eq("role", "photographer")
       .eq("is_suspended", false)
-      .limit(24),
+      // Deterministic candidate set (newest first) so ranking isn't applied to
+      // an arbitrary slice; the best by rating then surface to the top 3.
+      .order("created_at", { ascending: false })
+      .limit(60),
     supabase
       .from("photographer_ratings")
       .select("photographer_id, avg_rating, review_count"),
@@ -34,7 +37,12 @@ export async function RecommendedPhotographers() {
 
   const ranked = photogs
     .map((p) => ({ ...p, rating: ratingBy.get(p.id) ?? { avg: 0, count: 0 } }))
-    .sort((a, b) => b.rating.avg - a.rating.avg)
+    .sort(
+      (a, b) =>
+        b.rating.avg - a.rating.avg ||
+        b.rating.count - a.rating.count ||
+        a.display_name.localeCompare(b.display_name)
+    )
     .slice(0, 3);
   const topIds = ranked.map((p) => p.id);
 

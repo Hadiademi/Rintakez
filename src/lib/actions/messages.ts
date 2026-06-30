@@ -54,7 +54,7 @@ export async function getConversations(): Promise<ConversationSummary[]> {
   const { data: convs } = await supabase
     .from("conversations")
     .select(
-      "id, shoot_id, client_id, photographer_id, last_message_at, client_last_read_at, photographer_last_read_at"
+      "id, shoot_id, client_id, photographer_id, last_message_at, last_message_body, last_sender_id, client_last_read_at, photographer_last_read_at"
     )
     .order("last_message_at", { ascending: false });
 
@@ -64,30 +64,19 @@ export async function getConversations(): Promise<ConversationSummary[]> {
     c.client_id === user.id ? c.photographer_id : c.client_id
   );
   const shootIds = convs.map((c) => c.shoot_id);
-  const convIds = convs.map((c) => c.id);
 
-  const [{ data: profiles }, { data: shoots }, { data: msgs }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url")
-        .in("id", otherIds),
-      supabase.from("shoots").select("id, title").in("id", shootIds),
-      supabase
-        .from("messages")
-        .select("conversation_id, sender_id, body, created_at")
-        .in("conversation_id", convIds)
-        .order("created_at", { ascending: false }),
-    ]);
+  // Previews come from the denormalized last_message_* columns (kept up to date
+  // by the touch_conversation trigger), so we no longer read every message body.
+  const [{ data: profiles }, { data: shoots }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, display_name, avatar_url")
+      .in("id", otherIds),
+    supabase.from("shoots").select("id, title").in("id", shootIds),
+  ]);
 
   const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
   const titleBy = new Map((shoots ?? []).map((s) => [s.id, s.title]));
-  // Newest message per conversation (msgs is ordered created_at desc).
-  const lastBy = new Map<string, { sender_id: string; body: string }>();
-  for (const m of msgs ?? []) {
-    if (!lastBy.has(m.conversation_id))
-      lastBy.set(m.conversation_id, { sender_id: m.sender_id, body: m.body });
-  }
 
   function avatarUrl(path: string | null | undefined): string | null {
     if (!path) return null;
@@ -102,7 +91,6 @@ export async function getConversations(): Promise<ConversationSummary[]> {
       ? c.client_last_read_at
       : c.photographer_last_read_at;
     const unread = !myReadAt || c.last_message_at > myReadAt;
-    const last = lastBy.get(c.id);
     const other = profileBy.get(otherId);
     return {
       id: c.id,
@@ -112,8 +100,8 @@ export async function getConversations(): Promise<ConversationSummary[]> {
       otherId,
       otherAvatarUrl: avatarUrl(other?.avatar_url),
       lastMessageAt: c.last_message_at,
-      lastBody: last?.body ?? null,
-      lastMine: last ? last.sender_id === user.id : false,
+      lastBody: c.last_message_body ?? null,
+      lastMine: c.last_sender_id ? c.last_sender_id === user.id : false,
       unread,
     };
   });

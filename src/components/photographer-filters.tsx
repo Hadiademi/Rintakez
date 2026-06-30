@@ -22,7 +22,33 @@ export function PhotographerFilters() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="space-y-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const v = new FormData(e.currentTarget).get("q");
+          setParam("q", typeof v === "string" ? v.trim() : "");
+        }}
+        className="flex gap-2"
+      >
+        <input
+          key={params.get("q") ?? ""}
+          name="q"
+          type="search"
+          defaultValue={params.get("q") ?? ""}
+          placeholder={t("searchName")}
+          data-testid="filter-search"
+          className="w-full max-w-xs border border-line bg-surface px-3.5 py-2 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="press shrink-0 border border-line px-4 py-2 text-[14px] text-ink hover:border-ink"
+        >
+          {t("search")}
+        </button>
+      </form>
+
+      <div className="flex flex-wrap items-center gap-3">
       <Select
         data-testid="filter-specialty"
         value={params.get("type") ?? ""}
@@ -107,8 +133,10 @@ export function PhotographerFilters() {
           onChange={(e) => setParam("sort", e.target.value)}
         >
           <option value="rating">{t("sortRating")}</option>
+          <option value="newest">{t("sortNewest")}</option>
           <option value="price">{t("sortPriceAsc")}</option>
         </Select>
+      </div>
       </div>
     </div>
   );
