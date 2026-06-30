@@ -40,7 +40,7 @@ export function ReportButton({
         type="button"
         data-testid="report-open"
         onClick={() => setOpen(true)}
-        className="press text-[13px] text-mute-2 underline underline-offset-2 hover:text-ink"
+        className="press text-[13px] text-mute underline underline-offset-2 hover:text-ink"
       >
         {t("report")}
       </button>

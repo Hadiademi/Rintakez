@@ -14,6 +14,7 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
   const t = useTranslations("profile");
   const tOnb = useTranslations("onboarding");
   const tErr = useTranslations("errors");
+  const tCommon = useTranslations("common");
   const [items, setItems] = useState<Item[]>(initial);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +83,8 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
-                className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-0 transition-opacity group-hover:opacity-100"
-                aria-label="Remove"
+                className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+                aria-label={tCommon("remove")}
               >
                 ✕
               </button>

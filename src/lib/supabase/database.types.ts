@@ -29,6 +29,7 @@ export type Database = {
           suspended_at: string | null;
           notify_bids: boolean;
           notify_shoot_updates: boolean;
+          notify_messages: boolean;
           terms_accepted_at: string | null;
           terms_version: string | null;
         };
@@ -49,6 +50,7 @@ export type Database = {
           suspended_at?: string | null;
           notify_bids?: boolean;
           notify_shoot_updates?: boolean;
+          notify_messages?: boolean;
           terms_accepted_at?: string | null;
           terms_version?: string | null;
         };
@@ -69,6 +71,7 @@ export type Database = {
           suspended_at?: string | null;
           notify_bids?: boolean;
           notify_shoot_updates?: boolean;
+          notify_messages?: boolean;
           terms_accepted_at?: string | null;
           terms_version?: string | null;
         };
@@ -678,7 +681,8 @@ export type Database = {
         | "bid_received"
         | "bid_accepted"
         | "bid_declined"
-        | "shoot_cancelled";
+        | "shoot_cancelled"
+        | "message_received";
       report_target: "profile" | "shoot";
       report_status: "open" | "reviewed" | "dismissed";
       verification_status: "unverified" | "pending" | "verified" | "rejected";

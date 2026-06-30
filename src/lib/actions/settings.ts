@@ -11,6 +11,7 @@ type ErrResult = { ok: false; error: string };
 const prefsSchema = z.object({
   notifyBids: z.boolean(),
   notifyShootUpdates: z.boolean(),
+  notifyMessages: z.boolean(),
 });
 
 /** Update the current user's email notification preferences (own row only). */
@@ -29,6 +30,7 @@ export async function updateNotificationPrefs(
     .update({
       notify_bids: parsed.data.notifyBids,
       notify_shoot_updates: parsed.data.notifyShootUpdates,
+      notify_messages: parsed.data.notifyMessages,
     })
     .eq("id", user.id);
   if (error) return { ok: false, error: dbError(error, "settings") };

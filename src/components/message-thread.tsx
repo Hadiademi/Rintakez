@@ -12,11 +12,13 @@ import { formatSwissDate } from "@/lib/format";
 import {
   sendMessage,
   markConversationRead,
+  getThread,
   blockUser,
   unblockUser,
   type ThreadData,
   type ThreadMessage,
 } from "@/lib/actions/messages";
+import { errorKey } from "@/lib/error-messages";
 
 function hhmm(iso: string): string {
   const d = new Date(iso);
@@ -25,13 +27,24 @@ function hhmm(iso: string): string {
 
 export function MessageThread({ thread }: { thread: ThreadData }) {
   const t = useTranslations("messages");
+  const tErr = useTranslations("errors");
   const [messages, setMessages] = useState<ThreadMessage[]>(thread.messages);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [iBlocked, setIBlocked] = useState(thread.iBlocked);
   const [blocking, setBlocking] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // Merge any messages we don't already have (by id), preserving order.
+  function mergeMessages(incoming: ThreadMessage[]) {
+    setMessages((prev) => {
+      const ids = new Set(prev.map((m) => m.id));
+      const fresh = incoming.filter((m) => !ids.has(m.id));
+      return fresh.length ? [...prev, ...fresh] : prev;
+    });
+  }
 
   // The other side blocked me, or I blocked them → no new messages either way.
   const composerDisabled = iBlocked || thread.blockedByThem;
@@ -101,7 +114,20 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       const { data } = await createBrowserClient().auth.getSession();
       if (cancelled || !data.session) return;
       await rt.realtime.setAuth(data.session.access_token);
-      channel.subscribe();
+      channel.subscribe(async (status) => {
+        // Self-heal: after mobile backgrounding the access token can expire and
+        // the socket drop. On error/timeout, refresh the token and re-sync any
+        // messages missed while disconnected so nothing silently vanishes.
+        if (
+          cancelled ||
+          (status !== "CHANNEL_ERROR" && status !== "TIMED_OUT")
+        )
+          return;
+        const { data: s } = await createBrowserClient().auth.getSession();
+        if (s.session) await rt.realtime.setAuth(s.session.access_token);
+        const fresh = await getThread(thread.id);
+        if (!cancelled && fresh) mergeMessages(fresh.messages);
+      });
     })();
 
     return () => {
@@ -120,10 +146,17 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     const text = body.trim();
     if (!text || sending) return;
     setSending(true);
+    setSendError(null);
     setBody("");
     if (taRef.current) taRef.current.style.height = "auto";
     const res = await sendMessage(thread.id, { body: text });
-    if (!res.ok) setBody(text); // restore on failure
+    if (res.ok) {
+      // Render immediately; realtime echo (if any) dedupes by id.
+      mergeMessages([res.message]);
+    } else {
+      setBody(text); // restore on failure so the user doesn't lose their text
+      setSendError(tErr(errorKey(res.error)));
+    }
     setSending(false);
   }
 
@@ -214,7 +247,17 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           {iBlocked ? t("blockedNotice") : t("blockedByNotice")}
         </div>
       ) : (
-        <div className="flex shrink-0 items-end gap-2 border-t border-line pb-5 pt-4">
+        <div className="shrink-0 border-t border-line pb-5 pt-4">
+          {sendError && (
+            <p
+              data-testid="message-error"
+              role="alert"
+              className="mb-2 text-[13px] text-accent"
+            >
+              {sendError}
+            </p>
+          )}
+          <div className="flex items-end gap-2">
           <textarea
             ref={taRef}
             data-testid="message-input"
@@ -245,6 +288,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           >
             {t("send")}
           </Button>
+          </div>
         </div>
       )}
       </div>

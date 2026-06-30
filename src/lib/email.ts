@@ -20,15 +20,20 @@ export type EmailKind =
   | "bid_received"
   | "bid_accepted"
   | "bid_declined"
-  | "shoot_cancelled";
+  | "shoot_cancelled"
+  | "message_received";
 type Locale = "de" | "fr" | "en";
 
 // Which notification-preference column gates each email kind (null = always send).
-const PREF_COLUMN: Record<EmailKind, "notify_bids" | "notify_shoot_updates"> = {
+const PREF_COLUMN: Record<
+  EmailKind,
+  "notify_bids" | "notify_shoot_updates" | "notify_messages"
+> = {
   bid_received: "notify_bids",
   bid_accepted: "notify_bids",
   bid_declined: "notify_bids",
   shoot_cancelled: "notify_shoot_updates",
+  message_received: "notify_messages",
 };
 
 /**
@@ -91,10 +96,17 @@ async function sendEmail(to: string, subject: string, html: string) {
 }
 
 function link(kind: EmailKind, locale: Locale, shootId?: string | null): string {
-  const path =
-    (kind === "bid_received" || kind === "shoot_cancelled") && shootId
-      ? `/${locale}/shoots/${shootId}`
-      : `/${locale}/my-bids`;
+  let path: string;
+  if (kind === "message_received") {
+    path = `/${locale}/messages`;
+  } else if (
+    (kind === "bid_received" || kind === "shoot_cancelled") &&
+    shootId
+  ) {
+    path = `/${locale}/shoots/${shootId}`;
+  } else {
+    path = `/${locale}/my-bids`;
+  }
   return `${SITE_URL}${path}`;
 }
 
@@ -121,6 +133,11 @@ const COPY: Record<
     de: { subject: "Ein Shooting wurde abgesagt", lead: "Ein dir zugewiesenes Shooting wurde abgesagt", cta: "Shooting ansehen" },
     fr: { subject: "Un shooting a été annulé", lead: "Un shooting qui t’était attribué a été annulé", cta: "Voir le shooting" },
     en: { subject: "A shoot was cancelled", lead: "A shoot assigned to you was cancelled", cta: "View shoot" },
+  },
+  message_received: {
+    de: { subject: "Neue Nachricht auf Rintakez", lead: "Du hast eine neue Nachricht erhalten", cta: "Nachricht öffnen" },
+    fr: { subject: "Nouveau message sur Rintakez", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
+    en: { subject: "New message on Rintakez", lead: "You received a new message", cta: "Open message" },
   },
 };
 

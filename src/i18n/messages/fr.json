@@ -9,7 +9,8 @@
     "back": "Retour",
     "next": "Suivant",
     "cancel": "Annuler",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "remove": "Supprimer"
   },
   "nav": {
     "home": "Accueil",
@@ -122,6 +123,7 @@
     "instagram": "Instagram (optionnel)",
     "portfolio": "Portfolio",
     "addPhotos": "Ajouter des photos",
+    "portfolioFull": "Tu as atteint le nombre maximal de photos.",
     "finish": "Terminer",
     "errorSave": "Échec de l'enregistrement.",
     "editTitle": "Modifier le profil",
@@ -299,6 +301,8 @@
     "notifyBidsHint": "Nouvelles offres et décisions sur les offres",
     "notifyShootUpdatesLabel": "Mises à jour des shootings",
     "notifyShootUpdatesHint": "Annulations et changements de tes shootings",
+    "notifyMessagesLabel": "Messages",
+    "notifyMessagesHint": "Nouveaux messages de clients et de photographes",
     "prefsSaved": "Enregistré.",
     "termsAccepted": "Conditions acceptées",
     "disciplines": "Discipline",
@@ -342,7 +346,7 @@
     "dsRightsTitle": "Tes droits",
     "dsRights": "Tu as le droit à tout moment de demander l'accès à tes données enregistrées, de corriger des informations inexactes et de demander la suppression de ton compte et des données associées. Tu peux exercer ces droits via l'adresse de contact ci-dessous. Nous répondrons à ta demande dans un délai de 30 jours.",
     "dsContactTitle": "Contact protection des données",
-    "dsContactPlaceholder": "[À COMPLÉTER : adresse e-mail de contact pour la protection des données] — Cette information doit être exacte avant le lancement public.",
+    "dsContactPlaceholder": "Pour toute question relative à la protection des données, contacte-nous à Rinormustafi@hotmail.com.",
     "dsUpdated": "Mise à jour : juin 2026",
     "footerImpressum": "Mentions légales",
     "footerDatenschutz": "Confidentialité",
@@ -361,7 +365,7 @@
     "agbS5T": "5. Demandes, offres & contrats",
     "agbS5B": "Lorsqu'un client accepte une offre, le contrat est conclu directement entre le client et le/la photographe. Rintakez n'y est pas partie.",
     "agbS6T": "6. Frais",
-    "agbS6B": "La structure tarifaire en vigueur est indiquée de façon transparente avant toute utilisation payante. [À compléter avant le lancement.]",
+    "agbS6B": "L'utilisation de la plateforme est actuellement gratuite. Toute structure tarifaire future sera indiquée de manière transparente avant toute utilisation payante.",
     "agbS7T": "7. Contenus & droits",
     "agbS7B": "Tu conserves les droits sur tes contenus et accordes à Rintakez le droit de les afficher pour présenter ton profil ou ta demande.",
     "agbS8T": "8. Comportements interdits",
@@ -412,7 +416,8 @@
     "bid_received": "Nouvelle offre reçue",
     "bid_accepted": "Ton offre a été acceptée",
     "bid_declined": "Ton offre a été refusée",
-    "shoot_cancelled": "Un shooting a été annulé"
+    "shoot_cancelled": "Un shooting a été annulé",
+    "message_received": "Nouveau message reçu"
   },
   "review": {
     "title": "Évaluation",

@@ -9,7 +9,8 @@
     "back": "Back",
     "next": "Next",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "remove": "Remove"
   },
   "nav": {
     "home": "Home",
@@ -122,6 +123,7 @@
     "instagram": "Instagram (optional)",
     "portfolio": "Portfolio",
     "addPhotos": "Add photos",
+    "portfolioFull": "You've reached the maximum number of photos.",
     "finish": "Finish",
     "errorSave": "Could not save.",
     "editTitle": "Edit profile",
@@ -299,6 +301,8 @@
     "notifyBidsHint": "New offers and offer decisions",
     "notifyShootUpdatesLabel": "Shoot updates",
     "notifyShootUpdatesHint": "Cancellations and changes to your shoots",
+    "notifyMessagesLabel": "Messages",
+    "notifyMessagesHint": "New messages from clients and photographers",
     "prefsSaved": "Saved.",
     "termsAccepted": "Terms accepted",
     "disciplines": "Discipline",
@@ -342,7 +346,7 @@
     "dsRightsTitle": "Your rights",
     "dsRights": "You have the right at any time to request access to your stored data, to correct inaccurate information, and to request deletion of your account and associated data. You may exercise these rights via the contact address below. We will respond to your request within 30 days.",
     "dsContactTitle": "Data protection contact",
-    "dsContactPlaceholder": "[TO COMPLETE: data protection contact email address] — This information must be accurate before public launch.",
+    "dsContactPlaceholder": "For questions about data protection, contact us at Rinormustafi@hotmail.com.",
     "dsUpdated": "Last updated: June 2026",
     "footerImpressum": "Legal notice",
     "footerDatenschutz": "Privacy",
@@ -361,7 +365,7 @@
     "agbS5T": "5. Shoots, offers & contracts",
     "agbS5B": "When a client accepts an offer, the contract is formed directly between the client and the photographer. Rintakez is not a party to it.",
     "agbS6T": "6. Fees",
-    "agbS6B": "The current fee structure is shown transparently before any paid use. [To be completed before launch.]",
+    "agbS6B": "Use of the platform is currently free of charge. Any future fee structure will be shown transparently before any paid use.",
     "agbS7T": "7. Content & rights",
     "agbS7B": "You keep the rights to your uploaded content and grant Rintakez the right to display it to present your profile or shoot.",
     "agbS8T": "8. Prohibited conduct",
@@ -412,7 +416,8 @@
     "bid_received": "New offer received",
     "bid_accepted": "Your offer was accepted",
     "bid_declined": "Your offer was declined",
-    "shoot_cancelled": "A shoot was cancelled"
+    "shoot_cancelled": "A shoot was cancelled",
+    "message_received": "New message received"
   },
   "review": {
     "title": "Review",

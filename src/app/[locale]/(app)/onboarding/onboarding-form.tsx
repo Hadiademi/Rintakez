@@ -14,6 +14,9 @@ import { errorKey } from "@/lib/error-messages";
 
 type PortfolioItem = { id: string; url: string };
 
+// Soft client-side cap mirroring the server limit; prevents obvious over-upload.
+const MAX_PORTFOLIO = 20;
+
 type InitialDetails = {
   specialties: string[];
   disciplines: string[];
@@ -44,6 +47,7 @@ export default function OnboardingForm({
   const t = useTranslations("onboarding");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
+  const tCommon = useTranslations("common");
   const router = useRouter();
 
   const [specialties, setSpecialties] = useState<string[]>(initial.specialties);
@@ -77,13 +81,21 @@ export default function OnboardingForm({
     const files = Array.from(e.target.files ?? []);
     if (!files.length) return;
 
+    setSaveError(null);
     setUploading(true);
     for (const file of files) {
-      const fd = new FormData();
-      fd.append("file", file);
-      const result = await addPortfolioImage(fd);
-      if (result.ok) {
-        setPortfolio((prev) => [...prev, { id: result.id, url: result.url }]);
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const result = await addPortfolioImage(fd);
+        if (result.ok) {
+          setPortfolio((prev) => [...prev, { id: result.id, url: result.url }]);
+        } else {
+          // Surface the failure instead of dropping the photo silently.
+          setSaveError(tErr(errorKey(result.error)));
+        }
+      } catch {
+        setSaveError(tErr("generic"));
       }
     }
     setUploading(false);
@@ -95,6 +107,8 @@ export default function OnboardingForm({
     const result = await removePortfolioImage(id);
     if (result.ok) {
       setPortfolio((prev) => prev.filter((p) => p.id !== id));
+    } else {
+      setSaveError(tErr(errorKey(result.error)));
     }
   }
 
@@ -197,19 +211,23 @@ export default function OnboardingForm({
       <div className="flex flex-col gap-3">
         <label className="label text-mute">{t("portfolio")}</label>
 
-        <label className="press inline-flex cursor-pointer items-center gap-2 border border-line px-4 py-2 text-sm text-mute w-fit">
-          {uploading ? "…" : t("addPhotos")}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            data-testid="onboarding-portfolio-input"
-            onChange={handleFileChange}
-            disabled={uploading}
-          />
-        </label>
+        {portfolio.length < MAX_PORTFOLIO ? (
+          <label className="press inline-flex cursor-pointer items-center gap-2 border border-line px-4 py-2 text-sm text-mute w-fit">
+            {uploading ? "…" : t("addPhotos")}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              data-testid="onboarding-portfolio-input"
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
+          </label>
+        ) : (
+          <p className="text-[13px] text-mute">{t("portfolioFull")}</p>
+        )}
 
         {portfolio.length > 0 && (
           <div
@@ -228,8 +246,8 @@ export default function OnboardingForm({
                 <button
                   type="button"
                   onClick={() => handleRemove(item.id)}
-                  className="press absolute top-1 right-1 bg-paper/80 border border-line px-1.5 py-0.5 text-xs text-ink opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Remove"
+                  className="press absolute top-1 right-1 bg-paper/80 border border-line px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+                  aria-label={tCommon("remove")}
                 >
                   ✕
                 </button>

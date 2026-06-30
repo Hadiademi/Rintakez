@@ -15,8 +15,13 @@ import {
 let rtSeq = 0;
 
 function hrefFor(item: NotificationItem): string {
-  // Client (bid_received) → the shoot's offers. Photographer → their bids.
-  if (item.type === "bid_received" && item.shootId)
+  // New message → the inbox. Client (bid_received) / cancellation → the shoot.
+  // Photographer bid outcomes → their bids.
+  if (item.type === "message_received") return "/messages";
+  if (
+    (item.type === "bid_received" || item.type === "shoot_cancelled") &&
+    item.shootId
+  )
     return `/shoots/${item.shootId}`;
   return "/my-bids";
 }

@@ -46,7 +46,7 @@ export default async function ProfilePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, terms_accepted_at, terms_version"
+      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, notify_messages, terms_accepted_at, terms_version"
     )
     .eq("id", user.id)
     .single();
@@ -366,6 +366,7 @@ export default async function ProfilePage() {
             <NotificationPrefs
               notifyBids={profile.notify_bids}
               notifyShootUpdates={profile.notify_shoot_updates}
+              notifyMessages={profile.notify_messages}
             />
           </Section>
 

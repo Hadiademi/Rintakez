@@ -47,22 +47,26 @@ function Toggle({
 export function NotificationPrefs({
   notifyBids,
   notifyShootUpdates,
+  notifyMessages,
 }: {
   notifyBids: boolean;
   notifyShootUpdates: boolean;
+  notifyMessages: boolean;
 }) {
   const t = useTranslations("profile");
   const [bids, setBids] = useState(notifyBids);
   const [shoots, setShoots] = useState(notifyShootUpdates);
+  const [msgs, setMsgs] = useState(notifyMessages);
   const [pending, start] = useTransition();
   const [saved, setSaved] = useState(false);
 
-  function persist(nextBids: boolean, nextShoots: boolean) {
+  function persist(nextBids: boolean, nextShoots: boolean, nextMsgs: boolean) {
     setSaved(false);
     start(async () => {
       const r = await updateNotificationPrefs({
         notifyBids: nextBids,
         notifyShootUpdates: nextShoots,
+        notifyMessages: nextMsgs,
       });
       if (r.ok) setSaved(true);
     });
@@ -77,7 +81,7 @@ export function NotificationPrefs({
         hint={t("notifyBidsHint")}
         onChange={(v) => {
           setBids(v);
-          persist(v, shoots);
+          persist(v, shoots, msgs);
         }}
       />
       <Toggle
@@ -87,7 +91,17 @@ export function NotificationPrefs({
         hint={t("notifyShootUpdatesHint")}
         onChange={(v) => {
           setShoots(v);
-          persist(bids, v);
+          persist(bids, v, msgs);
+        }}
+      />
+      <Toggle
+        checked={msgs}
+        disabled={pending}
+        label={t("notifyMessagesLabel")}
+        hint={t("notifyMessagesHint")}
+        onChange={(v) => {
+          setMsgs(v);
+          persist(bids, shoots, v);
         }}
       />
       {saved && <p className="pt-3 text-[13px] text-mute">{t("prefsSaved")}</p>}

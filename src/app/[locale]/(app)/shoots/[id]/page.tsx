@@ -258,13 +258,28 @@ export default async function ShootDetailPage({
         ) : (
           <p className="text-mute">{tBid("notOpen")}</p>
         )}
-        {messageLink}
         {(shoot.status === "assigned" || shoot.status === "completed") &&
         myBid?.status === "accepted" ? (
-          <div className="border-t border-line pt-6">
-            <DisputePanel shootId={id} existingStatus={disputeStatus} />
+          <div className="space-y-4">
+            {/* Symmetric with the client view: the winning photographer also
+                gets the client's contact, the message thread and a calendar
+                file (the ICS route and get_counterparty_email both authorize
+                the assigned photographer). */}
+            <ContactReveal shootId={id} />
+            {messageLink}
+            <a
+              href={`/api/shoots/${id}/ics`}
+              className="press inline-flex items-center gap-2 text-sm text-accent hover:opacity-70"
+            >
+              {tShoot("addToCalendar")} ↓
+            </a>
+            <div className="border-t border-line pt-6">
+              <DisputePanel shootId={id} existingStatus={disputeStatus} />
+            </div>
           </div>
-        ) : null}
+        ) : (
+          messageLink
+        )}
         <div className="border-t border-line pt-6">
           <ReportButton targetType="shoot" targetId={id} />
         </div>

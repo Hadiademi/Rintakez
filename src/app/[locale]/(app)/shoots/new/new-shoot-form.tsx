@@ -27,6 +27,7 @@ export default function NewShootForm() {
   const t = useTranslations("createShoot");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -289,8 +290,8 @@ export default function NewShootForm() {
                     <button
                       type="button"
                       onClick={() => removeRefImage(img.url)}
-                      className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-0 transition-opacity group-hover:opacity-100"
-                      aria-label="Remove"
+                      className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+                      aria-label={tCommon("remove")}
                     >
                       ✕
                     </button>

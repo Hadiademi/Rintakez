@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { notifyEmail } from "@/lib/email";
 
 type ErrResult = { ok: false; error: string };
 
@@ -200,9 +201,13 @@ export async function getThread(
 export async function sendMessage(
   conversationId: string,
   raw: unknown
-): Promise<{ ok: true } | ErrResult> {
+): Promise<{ ok: true; message: ThreadMessage } | ErrResult> {
   const parsed = messageSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  // Reject whitespace-only bodies that pass the raw min(1) length check.
+  const body = parsed.data.body.trim();
+  if (!body) return { ok: false, error: "invalid_input" };
 
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
@@ -215,22 +220,54 @@ export async function sendMessage(
   // "forbidden" instead of a raw database error and avoids a wasted insert.
   const { data: conv } = await supabase
     .from("conversations")
-    .select("client_id, photographer_id")
+    .select("client_id, photographer_id, shoot_id")
     .eq("id", conversationId)
     .maybeSingle();
   if (!conv || (conv.client_id !== user.id && conv.photographer_id !== user.id))
     return { ok: false, error: "forbidden" };
 
-  const { error } = await supabase.from("messages").insert({
-    conversation_id: conversationId,
-    sender_id: user.id,
-    body: parsed.data.body.trim(),
-  });
-  if (error) return { ok: false, error: dbError(error, "messages") };
+  // Return the inserted row so the client can render the message immediately,
+  // instead of waiting (forever, if the socket is down) for the realtime echo.
+  const { data: inserted, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      body,
+    })
+    .select("id, sender_id, body, created_at")
+    .single();
+  if (error || !inserted)
+    return { ok: false, error: error ? dbError(error, "messages") : "generic" };
+
+  // Mirror to email (gated + non-blocking; no-op without the service role).
+  const recipientId =
+    conv.client_id === user.id ? conv.photographer_id : conv.client_id;
+  if (recipientId && recipientId !== user.id) {
+    const { data: shoot } = await supabase
+      .from("shoots")
+      .select("title")
+      .eq("id", conv.shoot_id)
+      .maybeSingle();
+    await notifyEmail({
+      kind: "message_received",
+      recipientId,
+      shootId: conv.shoot_id,
+      shootTitle: shoot?.title ?? null,
+    });
+  }
 
   revalidatePath("/[locale]/(app)/messages/[id]", "page");
   revalidatePath("/[locale]/(app)/messages", "page");
-  return { ok: true };
+  return {
+    ok: true,
+    message: {
+      id: inserted.id,
+      senderId: inserted.sender_id,
+      body: inserted.body,
+      createdAt: inserted.created_at,
+    },
+  };
 }
 
 /** Block another user — they can no longer message the current user. */
@@ -299,5 +336,8 @@ export async function markConversationRead(
     .update(patch)
     .eq("id", conversationId);
   if (error) return { ok: false, error: dbError(error, "messages") };
+
+  // Refresh the inbox so the unread dot clears without a full reload.
+  revalidatePath("/[locale]/(app)/messages", "page");
   return { ok: true };
 }

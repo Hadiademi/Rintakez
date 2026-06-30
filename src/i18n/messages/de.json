@@ -9,7 +9,8 @@
     "back": "Zurück",
     "next": "Weiter",
     "cancel": "Abbrechen",
-    "save": "Speichern"
+    "save": "Speichern",
+    "remove": "Entfernen"
   },
   "nav": {
     "home": "Home",
@@ -122,6 +123,7 @@
     "instagram": "Instagram (optional)",
     "portfolio": "Portfolio",
     "addPhotos": "Fotos hinzufügen",
+    "portfolioFull": "Du hast die maximale Anzahl an Fotos erreicht.",
     "finish": "Fertig",
     "errorSave": "Konnte nicht gespeichert werden.",
     "editTitle": "Profil bearbeiten",
@@ -299,6 +301,8 @@
     "notifyBidsHint": "Neue Angebote und Entscheidungen zu Angeboten",
     "notifyShootUpdatesLabel": "Shooting-Updates",
     "notifyShootUpdatesHint": "Absagen und Änderungen an deinen Shootings",
+    "notifyMessagesLabel": "Nachrichten",
+    "notifyMessagesHint": "Neue Nachrichten von Auftraggeber:innen und Fotograf:innen",
     "prefsSaved": "Gespeichert.",
     "termsAccepted": "Bedingungen akzeptiert",
     "disciplines": "Disziplin",
@@ -342,7 +346,7 @@
     "dsRightsTitle": "Deine Rechte",
     "dsRights": "Du hast jederzeit das Recht auf Auskunft über deine gespeicherten Daten, auf Berichtigung unrichtiger Angaben sowie auf Löschung deines Kontos und der damit verbundenen Daten. Diese Rechte kannst du über die Kontaktadresse unten geltend machen. Wir bearbeiten dein Anliegen innert 30 Tagen.",
     "dsContactTitle": "Kontakt für Datenschutz",
-    "dsContactPlaceholder": "[BITTE AUSFÜLLEN: Datenschutz-Kontakt-E-Mail-Adresse] — Diese Angabe muss vor dem öffentlichen Launch korrekt sein.",
+    "dsContactPlaceholder": "Bei Fragen zum Datenschutz erreichst du uns unter Rinormustafi@hotmail.com.",
     "dsUpdated": "Stand: Juni 2026",
     "footerImpressum": "Impressum",
     "footerDatenschutz": "Datenschutz",
@@ -361,7 +365,7 @@
     "agbS5T": "5. Aufträge, Angebote & Verträge",
     "agbS5B": "Nimmt eine Auftraggeber:in ein Angebot an, kommt der Vertrag direkt zwischen Auftraggeber:in und Fotograf:in zustande. Rintakez ist daran nicht beteiligt.",
     "agbS6T": "6. Gebühren",
-    "agbS6B": "Die aktuelle Gebührenstruktur wird vor einer kostenpflichtigen Nutzung transparent ausgewiesen. [Vor dem Start zu vervollständigen.]",
+    "agbS6B": "Die Nutzung der Plattform ist derzeit kostenlos. Eine allfällige künftige Gebührenstruktur wird vor einer kostenpflichtigen Nutzung transparent ausgewiesen.",
     "agbS7T": "7. Inhalte & Rechte",
     "agbS7B": "Du behältst die Rechte an deinen hochgeladenen Inhalten und räumst Rintakez das Recht ein, sie zur Darstellung deines Profils bzw. Auftrags zu zeigen.",
     "agbS8T": "8. Verbotenes Verhalten",
@@ -412,7 +416,8 @@
     "bid_received": "Neues Angebot erhalten",
     "bid_accepted": "Dein Angebot wurde angenommen",
     "bid_declined": "Dein Angebot wurde abgelehnt",
-    "shoot_cancelled": "Ein Shooting wurde abgesagt"
+    "shoot_cancelled": "Ein Shooting wurde abgesagt",
+    "message_received": "Neue Nachricht erhalten"
   },
   "review": {
     "title": "Bewertung",

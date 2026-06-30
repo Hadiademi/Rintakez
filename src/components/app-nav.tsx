@@ -9,6 +9,7 @@ import { NavSearch } from "@/components/nav-search";
 import { Wordmark } from "@/components/wordmark";
 import { NotificationBell } from "@/components/notification-bell";
 import { getNotificationData } from "@/lib/actions/notifications";
+import { getUnreadConversationCount } from "@/lib/actions/messages";
 
 interface AppNavProps {
   role: "client" | "photographer";
@@ -33,8 +34,8 @@ export async function AppNav({
   isAdmin,
 }: AppNavProps) {
   const t = await getTranslations("nav");
-  const { items: notifItems, unread: notifUnread } =
-    await getNotificationData();
+  const [{ items: notifItems, unread: notifUnread }, messagesUnread] =
+    await Promise.all([getNotificationData(), getUnreadConversationCount()]);
   const adminLink = isAdmin
     ? ([{ href: "/admin", label: t("admin") }] as const)
     : ([] as const);
@@ -69,7 +70,7 @@ export async function AppNav({
           <Link href="/home" className="text-lg shrink-0">
             <Wordmark />
           </Link>
-          <NavLinks links={links} />
+          <NavLinks links={links} messagesUnread={messagesUnread} />
 
           {/* Search — grows to fill, capped */}
           <NavSearch className="ml-auto w-full max-w-sm" />
@@ -133,7 +134,7 @@ export async function AppNav({
       </nav>
 
       {/* Mobile bottom tab bar — client component, lg:hidden */}
-      <MobileTabBar role={role} />
+      <MobileTabBar role={role} messagesUnread={messagesUnread} />
     </>
   );
 }
