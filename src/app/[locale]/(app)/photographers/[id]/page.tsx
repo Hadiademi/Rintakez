@@ -72,7 +72,7 @@ export default async function PhotographerProfilePage({
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, role, city, canton, bio, avatar_url")
+        .select("id, display_name, role, city, canton, bio, avatar_url, created_at")
         .eq("id", id)
         .maybeSingle();
 
@@ -114,6 +114,16 @@ export default async function PhotographerProfilePage({
         .select("avg_rating, review_count")
         .eq("photographer_id", id)
         .maybeSingle();
+
+      // Completed-shoots trust signal. shoots/bids aren't publicly readable
+      // (RLS only allows the shoot's own client/accepted photographer), so this
+      // goes through a SECURITY DEFINER function that returns just the count —
+      // see photographer_completed_shoots_count in
+      // supabase/migrations/20260701090000_photographer_completed_shoots.sql.
+      const { data: completedShoots } = await supabase.rpc(
+        "photographer_completed_shoots_count",
+        { p_photographer_id: id }
+      );
 
       const { data: reviewRows } = await supabase
         .from("reviews")
@@ -187,6 +197,7 @@ export default async function PhotographerProfilePage({
         rating,
         reviewRows: reviews,
         unavailableDates: (unavailableRows ?? []).map((r) => r.date),
+        completedShoots: completedShoots ?? 0,
       };
     },
     ["photographer-public", id],
@@ -204,6 +215,7 @@ export default async function PhotographerProfilePage({
     rating,
     reviewRows,
     unavailableDates,
+    completedShoots,
   } = data;
 
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
@@ -343,6 +355,18 @@ export default async function PhotographerProfilePage({
                     </span>
                   </div>
                 ) : null}
+                <p className="tabular text-[13px] text-mute">
+                  {[
+                    t("memberSince", {
+                      year: new Date(profile.created_at).getFullYear(),
+                    }),
+                    completedShoots > 0
+                      ? t("completedShoots", { count: completedShoots })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
               </div>
             </div>
 

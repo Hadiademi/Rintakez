@@ -943,6 +943,10 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      photographer_completed_shoots_count: {
+        Args: { p_photographer_id: string }
+        Returns: number
+      }
       request_verification: { Args: never; Returns: undefined }
       set_initial_role: {
         Args: { p_role: Database["public"]["Enums"]["user_role"] }

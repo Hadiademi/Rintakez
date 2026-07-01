@@ -5,7 +5,6 @@ import { PhotographerFilters } from "@/components/photographer-filters";
 import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
-import { photographerAvatar } from "@/lib/shoot-image";
 
 export const dynamic = "force-dynamic";
 
@@ -199,9 +198,7 @@ export default async function PhotographersDirectoryPage({
                   city: x.profile.city,
                   canton: x.profile.canton,
                   avatarUrl: publicUrl("avatars", x.profile.avatar_url),
-                  coverUrl:
-                    publicUrl("portfolio", coverPath) ??
-                    photographerAvatar(x.profile_id, 600, 450),
+                  coverUrl: publicUrl("portfolio", coverPath),
                   verified: x.verification_status === "verified",
                   disciplineLabels: (x.disciplines ?? []).map((d) =>
                     tShoot(`disciplines.${d}`)
@@ -211,6 +208,7 @@ export default async function PhotographersDirectoryPage({
                   ),
                   rating: x.rating,
                   hourlyRate: x.hourly_rate_chf,
+                  memberSinceYear: new Date(x.profile.created_at).getFullYear(),
                 }}
               />
             );

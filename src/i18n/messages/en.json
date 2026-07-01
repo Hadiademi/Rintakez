@@ -334,7 +334,9 @@
     "inviteCreateShoot": "Create a shoot",
     "inviteSuccess": "Invitation sent",
     "inviteAlready": "Already invited",
-    "inviteError": "Could not send invitation"
+    "inviteError": "Could not send invitation",
+    "memberSince": "Member since {year}",
+    "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}"
   },
   "profileBasics": {
     "edit": "Edit name & location",

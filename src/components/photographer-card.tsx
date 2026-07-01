@@ -18,6 +18,7 @@ export type PhotographerCardData = {
   specialtyLabels?: string[];
   rating?: { avg: number; count: number } | null;
   hourlyRate?: number | null;
+  memberSinceYear?: number | null;
 };
 
 /**
@@ -35,10 +36,14 @@ export async function PhotographerCard({
   newLabel: string;
 }) {
   const tShoot = await getTranslations("shoot");
+  const tProfile = await getTranslations("profile");
   const location = [data.city, data.canton].filter(Boolean).join(", ");
   const rated = data.rating && data.rating.count > 0;
   const disciplines = data.disciplineLabels ?? [];
   const specialties = data.specialtyLabels ?? [];
+  const memberSince = data.memberSinceYear
+    ? tProfile("memberSince", { year: data.memberSinceYear })
+    : null;
 
   return (
     <Link
@@ -71,8 +76,10 @@ export async function PhotographerCard({
           <Avatar name={data.name} src={data.avatarUrl} size={36} />
           <div className="min-w-0">
             <p className="truncate font-medium text-ink">{data.name}</p>
-            {location && (
-              <p className="truncate text-[13px] text-mute">{location}</p>
+            {(location || memberSince) && (
+              <p className="truncate text-[13px] text-mute">
+                {[location, memberSince].filter(Boolean).join(" · ")}
+              </p>
             )}
           </div>
         </div>

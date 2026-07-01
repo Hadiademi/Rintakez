@@ -334,7 +334,9 @@
     "inviteCreateShoot": "Shooting erstellen",
     "inviteSuccess": "Einladung gesendet",
     "inviteAlready": "Bereits eingeladen",
-    "inviteError": "Einladung fehlgeschlagen"
+    "inviteError": "Einladung fehlgeschlagen",
+    "memberSince": "Mitglied seit {year}",
+    "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}"
   },
   "profileBasics": {
     "edit": "Name & Ort bearbeiten",

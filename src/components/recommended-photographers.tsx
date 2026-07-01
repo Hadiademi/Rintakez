@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { PhotographerCard } from "@/components/photographer-card";
-import { photographerAvatar } from "@/lib/shoot-image";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Canton = Database["public"]["Enums"]["canton"];
@@ -156,9 +155,7 @@ export async function RecommendedPhotographers({
                 city: p.city,
                 canton: p.canton,
                 avatarUrl: publicUrl("avatars", p.avatar_url),
-                coverUrl:
-                  publicUrl("portfolio", coverPath) ??
-                  photographerAvatar(p.id, 600, 450),
+                coverUrl: publicUrl("portfolio", coverPath),
                 verified: d?.verification_status === "verified",
                 disciplineLabels: (d?.disciplines ?? []).map((x) =>
                   tShoot(`disciplines.${x}`)
@@ -168,6 +165,7 @@ export async function RecommendedPhotographers({
                 ),
                 rating: p.rating,
                 hourlyRate: d?.hourly_rate_chf ?? null,
+                memberSinceYear: new Date(p.created_at).getFullYear(),
               }}
             />
           );

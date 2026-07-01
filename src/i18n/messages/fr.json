@@ -334,7 +334,9 @@
     "inviteCreateShoot": "Créer une séance",
     "inviteSuccess": "Invitation envoyée",
     "inviteAlready": "Déjà invité",
-    "inviteError": "Échec de l'invitation"
+    "inviteError": "Échec de l'invitation",
+    "memberSince": "Membre depuis {year}",
+    "completedShoots": "{count, plural, one {# séance réalisée} other {# séances réalisées}}"
   },
   "profileBasics": {
     "edit": "Modifier nom & lieu",
