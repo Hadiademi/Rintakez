@@ -10,7 +10,8 @@
     "next": "Weiter",
     "cancel": "Abbrechen",
     "save": "Speichern",
-    "remove": "Entfernen"
+    "remove": "Entfernen",
+    "close": "Schliessen"
   },
   "nav": {
     "home": "Home",
@@ -265,6 +266,7 @@
     "role": "Rolle",
     "viewPublic": "Öffentliches Profil ansehen",
     "changePhoto": "Foto ändern",
+    "viewPhoto": "Foto ansehen",
     "editDetails": "Details bearbeiten",
     "dangerZone": "Konto löschen",
     "deleteAccount": "Konto endgültig löschen",

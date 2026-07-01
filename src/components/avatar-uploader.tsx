@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { uploadAvatar } from "@/lib/actions/profile";
 import { errorKey } from "@/lib/error-messages";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 export function AvatarUploader({
   initialUrl,
@@ -17,7 +18,15 @@ export function AvatarUploader({
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Clicking the avatar VIEWS it larger; changing it is the separate control
+  // below. With no photo yet, the click falls back to adding one.
+  function onAvatarClick() {
+    if (url) setPreview(true);
+    else inputRef.current?.click();
+  }
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -41,10 +50,10 @@ export function AvatarUploader({
     <div className="flex flex-col items-start gap-2">
       <button
         type="button"
-        onClick={() => inputRef.current?.click()}
+        onClick={onAvatarClick}
         disabled={busy}
         className="press group relative h-16 w-16 overflow-hidden rounded-full border border-line"
-        aria-label={t("changePhoto")}
+        aria-label={url ? t("viewPhoto") : t("changePhoto")}
       >
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -59,18 +68,36 @@ export function AvatarUploader({
           </span>
         )}
         <span className="absolute inset-0 flex items-center justify-center bg-ink/55 opacity-0 transition-opacity group-hover:opacity-100">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            className="text-paper"
-          >
-            <path d="M3 7h3l2-2h8l2 2h3v12H3z" />
-            <circle cx="12" cy="13" r="3.5" />
-          </svg>
+          {url ? (
+            // Expand / view icon — clicking previews the photo.
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-paper"
+            >
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+          ) : (
+            // Camera icon — clicking adds a photo (none yet).
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              className="text-paper"
+            >
+              <path d="M3 7h3l2-2h8l2 2h3v12H3z" />
+              <circle cx="12" cy="13" r="3.5" />
+            </svg>
+          )}
         </span>
       </button>
 
@@ -94,6 +121,14 @@ export function AvatarUploader({
       </button>
 
       {error && <p className="text-[12px] text-accent">{error}</p>}
+
+      {preview && url && (
+        <ImageLightbox
+          src={url}
+          alt={t("viewPhoto")}
+          onClose={() => setPreview(false)}
+        />
+      )}
     </div>
   );
 }

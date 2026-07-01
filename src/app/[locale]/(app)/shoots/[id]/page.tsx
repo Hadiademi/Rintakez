@@ -8,6 +8,7 @@ import { shootImage } from "@/lib/shoot-image";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
+import { ShootRefGallery } from "@/components/shoot-ref-gallery";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
 import { CompleteShootButton } from "@/components/complete-shoot-button";
@@ -143,29 +144,7 @@ export default async function ShootDetailPage({
 
   const hero =
     refImages.length > 0 ? (
-      <div className="space-y-2">
-        <div className="aspect-[16/9] w-full overflow-hidden bg-chip">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={refImages[0].url}
-            alt=""
-            className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
-          />
-        </div>
-        {refImages.length > 1 && (
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-            {refImages.slice(1).map((img) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={img.id}
-                src={img.url}
-                alt=""
-                className="aspect-square w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      <ShootRefGallery images={refImages} />
     ) : (
       <div className="aspect-[16/9] w-full overflow-hidden bg-chip">
         {/* eslint-disable-next-line @next/next/no-img-element */}

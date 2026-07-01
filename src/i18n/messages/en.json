@@ -10,7 +10,8 @@
     "next": "Next",
     "cancel": "Cancel",
     "save": "Save",
-    "remove": "Remove"
+    "remove": "Remove",
+    "close": "Close"
   },
   "nav": {
     "home": "Home",
@@ -265,6 +266,7 @@
     "role": "Role",
     "viewPublic": "View public profile",
     "changePhoto": "Change photo",
+    "viewPhoto": "View photo",
     "editDetails": "Edit details",
     "dangerZone": "Delete account",
     "deleteAccount": "Permanently delete account",
