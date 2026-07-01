@@ -606,6 +606,7 @@
   "dispute": {
     "open": "Signaler un problème",
     "placeholder": "Décris le problème…",
+    "minChars": "Au moins 10 caractères — {count}/10",
     "submit": "Ouvrir un litige",
     "cancel": "Annuler",
     "error": "Une erreur s’est produite.",

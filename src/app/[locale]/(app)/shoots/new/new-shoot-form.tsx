@@ -143,7 +143,24 @@ export default function NewShootForm() {
         {stepHeadings[step]}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-10 flex flex-col gap-5">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        onKeyDown={(e) => {
+          // Enter advances the step (matching the last step's submit) instead of
+          // doing nothing; Shift+Enter / textareas keep their newline behaviour.
+          if (
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            step < STEP_COUNT - 1 &&
+            (e.target as HTMLElement).tagName !== "TEXTAREA"
+          ) {
+            e.preventDefault();
+            handleNext();
+          }
+        }}
+        noValidate
+        className="mt-10 flex flex-col gap-5"
+      >
         {/* ── Step 0: Type of shoot — editorial option rows ── */}
         {step === 0 && (
           <div className="flex flex-col gap-3">

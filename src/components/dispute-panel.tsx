@@ -60,9 +60,15 @@ export function DisputePanel({
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={3}
+        autoFocus
         placeholder={t("placeholder")}
         className="w-full resize-none border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
       />
+      {reason.trim().length < 10 && (
+        <p className="text-[12px] text-mute-2">
+          {t("minChars", { count: reason.trim().length })}
+        </p>
+      )}
       {error && <p className="text-[13px] text-accent">{error}</p>}
       <div className="flex items-center gap-3">
         <button

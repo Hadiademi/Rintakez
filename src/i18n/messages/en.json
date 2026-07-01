@@ -606,6 +606,7 @@
   "dispute": {
     "open": "Report a problem",
     "placeholder": "Describe the problem…",
+    "minChars": "At least 10 characters — {count}/10",
     "submit": "Open dispute",
     "cancel": "Cancel",
     "error": "Something went wrong.",

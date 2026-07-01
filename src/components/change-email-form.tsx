@@ -14,6 +14,7 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<ChangeEmailInput>({ resolver: zodResolver(changeEmailSchema) });
 
@@ -30,6 +31,9 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
       setServerError(t("genericError"));
       return;
     }
+    // Clear the field so re-submitting doesn't re-fire updateUser for the same
+    // address (which would send a duplicate confirmation email).
+    reset({ email: "" });
     setDone(true);
   }
 

@@ -56,6 +56,7 @@ export function ReportButton({
       <textarea
         id="report-reason"
         data-testid="report-reason"
+        autoFocus
         rows={3}
         value={reason}
         onChange={(e) => setReason(e.target.value)}

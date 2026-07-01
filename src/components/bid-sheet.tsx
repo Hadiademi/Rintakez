@@ -59,6 +59,8 @@ export function BidSheet({
               data-testid="bid-amount"
               type="number"
               inputMode="numeric"
+              min={1}
+              step={1}
               {...register("amountChf", { valueAsNumber: true })}
               className="tabular w-full bg-transparent text-4xl font-semibold tracking-tight text-ink focus:outline-none"
             />
