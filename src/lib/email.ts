@@ -27,7 +27,8 @@ export type EmailKind =
   | "welcome"
   | "onboarding_reminder"
   | "zero_bid_rescue"
-  | "review_request";
+  | "review_request"
+  | "admin_alert";
 type Locale = "de" | "fr" | "en";
 
 // Which notification-preference column gates each email kind (missing = always
@@ -142,6 +143,8 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
     path = `/${locale}/onboarding`;
   } else if (kind === "message_received") {
     path = `/${locale}/messages`;
+  } else if (kind === "admin_alert") {
+    path = `/${locale}/admin`;
   } else if (
     (kind === "bid_received" ||
       kind === "shoot_cancelled" ||
@@ -216,6 +219,11 @@ const COPY: Record<
     de: { subject: "Wie war dein Shooting?", lead: "Dein Shooting ist abgeschlossen — hinterlasse jetzt eine Bewertung", cta: "Bewertung abgeben" },
     fr: { subject: "Comment s’est passée ta séance ?", lead: "Ta séance est terminée — laisse une évaluation dès maintenant", cta: "Laisser une évaluation" },
     en: { subject: "How was your shoot?", lead: "Your shoot is complete — leave a review now", cta: "Leave a review" },
+  },
+  admin_alert: {
+    de: { subject: "Neuer Vorgang zur Prüfung", lead: "Ein neuer Vorgang muss moderiert werden", cta: "Admin öffnen" },
+    fr: { subject: "Nouveau signalement à examiner", lead: "Un nouvel élément nécessite une modération", cta: "Ouvrir l’admin" },
+    en: { subject: "New report/dispute to review", lead: "A new item needs moderation", cta: "Open admin" },
   },
 };
 
