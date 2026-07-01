@@ -29,6 +29,11 @@ export async function exportMyData(): Promise<
     reviewsWritten,
     reviewsReceived,
     favorites,
+    reports,
+    disputes,
+    userBlocks,
+    notifications,
+    shootInvitations,
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase
@@ -46,6 +51,18 @@ export async function exportMyData(): Promise<
     supabase.from("reviews").select("*").eq("client_id", user.id),
     supabase.from("reviews").select("*").eq("photographer_id", user.id),
     supabase.from("favorites").select("*").eq("user_id", user.id),
+    supabase.from("reports").select("*").eq("reporter_id", user.id),
+    // No "other party" column on disputes (only shoot_id + opened_by); RLS
+    // ("disputes_select_participant") already scopes rows to disputes on
+    // shoots the user is a party to (client or accepted photographer), so an
+    // unfiltered select returns exactly what this user is entitled to.
+    supabase.from("disputes").select("*"),
+    supabase.from("user_blocks").select("*").eq("blocker_id", user.id),
+    supabase.from("notifications").select("*").eq("user_id", user.id),
+    supabase
+      .from("shoot_invitations")
+      .select("*")
+      .or(`client_id.eq.${user.id},photographer_id.eq.${user.id}`),
   ]);
 
   return {
@@ -62,6 +79,11 @@ export async function exportMyData(): Promise<
       reviews_written: reviewsWritten.data ?? [],
       reviews_received: reviewsReceived.data ?? [],
       favorites: favorites.data ?? [],
+      reports: reports.data ?? [],
+      disputes: disputes.data ?? [],
+      user_blocks: userBlocks.data ?? [],
+      notifications: notifications.data ?? [],
+      shoot_invitations: shootInvitations.data ?? [],
     },
   };
 }

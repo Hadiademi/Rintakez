@@ -188,6 +188,9 @@ export default async function HomePage() {
     const assigned = all.filter((s) => s.status === "assigned").length;
     const recent = all.slice(0, 5);
     const featured = all.find((s) => s.status !== "cancelled") ?? all[0];
+    // Recent shoot types (newest few, already loaded above) — a cheap signal
+    // to nudge "Recommended photographers" toward the client's specialties.
+    const recentTypes = [...new Set(all.slice(0, 5).map((s) => s.type))];
 
     const steps: Step[] = [
       { n: 1, title: t("stepClient1Title"), desc: t("stepClient1Desc") },
@@ -264,28 +267,71 @@ export default async function HomePage() {
           <HowItWorks heading={t("howItWorks")} steps={steps} />
         )}
 
-        <RecommendedPhotographers />
+        <RecommendedPhotographers
+          viewerCanton={profile.canton}
+          viewerTypes={recentTypes}
+        />
       </div>
     );
   }
 
   // Photographer
-  const [{ data: openShoots }, { data: myBids }] = await Promise.all([
+  const OPEN_SHOOTS_COLUMNS =
+    "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf";
+  const OPEN_SHOOTS_LIMIT = 7;
+  const MIN_PERSONALIZED_RESULTS = 3;
+
+  const [{ data: details }, { data: myBids }] = await Promise.all([
     supabase
-      .from("shoots")
-      .select(
-        "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf"
-      )
-      .eq("status", "open")
-      .order("created_at", { ascending: false })
-      .limit(7),
+      .from("photographer_details")
+      .select("coverage_cantons, disciplines")
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
     supabase.from("bids").select("id,status").eq("photographer_id", profile.id),
   ]);
+
+  const coverageCantons = details?.coverage_cantons ?? [];
+  const disciplines = details?.disciplines ?? [];
+
+  let personalizedQuery = supabase
+    .from("shoots")
+    .select(OPEN_SHOOTS_COLUMNS)
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+    .limit(OPEN_SHOOTS_LIMIT);
+  if (coverageCantons.length > 0) {
+    personalizedQuery = personalizedQuery.in("canton", coverageCantons);
+  }
+  if (disciplines.length > 0) {
+    personalizedQuery = personalizedQuery.in("discipline", disciplines);
+  }
+  const { data: personalizedShoots } = await personalizedQuery;
+
+  const open = personalizedShoots ?? [];
+
+  // Photographers with little/no coverage or brand-new accounts can get a
+  // sparse (or empty) personalized result — top it up with the newest global
+  // open shoots so the feed is never empty, de-duplicated by id.
+  if (open.length < MIN_PERSONALIZED_RESULTS) {
+    const { data: globalShoots } = await supabase
+      .from("shoots")
+      .select(OPEN_SHOOTS_COLUMNS)
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(OPEN_SHOOTS_LIMIT);
+
+    const seen = new Set(open.map((s) => s.id));
+    for (const shoot of globalShoots ?? []) {
+      if (open.length >= OPEN_SHOOTS_LIMIT) break;
+      if (seen.has(shoot.id)) continue;
+      seen.add(shoot.id);
+      open.push(shoot);
+    }
+  }
 
   const bids = myBids ?? [];
   const pending = bids.filter((b) => b.status === "pending").length;
   const accepted = bids.filter((b) => b.status === "accepted").length;
-  const open = openShoots ?? [];
   const featured = open[0];
   const rest = open.slice(1, 7);
 

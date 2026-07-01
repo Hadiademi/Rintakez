@@ -6,6 +6,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { formatCHF } from "@/lib/format";
 import { acceptBidAction, declineBidAction } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
+import { track } from "@/lib/track";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -42,11 +43,15 @@ export function BidCard({
       ? `${photographer.city}, ${photographer.canton}`
       : photographer?.city || photographer?.canton || null;
 
-  function run(action: () => Promise<{ ok: true } | { ok: false; error: string }>) {
+  function run(
+    action: () => Promise<{ ok: true } | { ok: false; error: string }>,
+    onOk?: () => void
+  ) {
     setError(null);
     startTransition(async () => {
       const res = await action();
       if (res.ok) {
+        onOk?.();
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));
@@ -58,7 +63,10 @@ export function BidCard({
     if (typeof window !== "undefined" && !window.confirm(t("acceptConfirm"))) {
       return;
     }
-    run(() => acceptBidAction(bid.id));
+    run(
+      () => acceptBidAction(bid.id),
+      () => track("accept_bid")
+    );
   }
 
   function onDecline() {

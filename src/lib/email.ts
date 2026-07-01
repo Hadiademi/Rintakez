@@ -21,31 +21,53 @@ export type EmailKind =
   | "bid_accepted"
   | "bid_declined"
   | "shoot_cancelled"
-  | "message_received";
+  | "message_received"
+  | "shoot_invitation"
+  | "shoot_match"
+  | "welcome"
+  | "onboarding_reminder"
+  | "zero_bid_rescue"
+  | "review_request"
+  | "admin_alert";
 type Locale = "de" | "fr" | "en";
 
-// Which notification-preference column gates each email kind (null = always send).
-const PREF_COLUMN: Record<
-  EmailKind,
-  "notify_bids" | "notify_shoot_updates" | "notify_messages"
+// Which notification-preference column gates each email kind (missing = always
+// send). Partial: the lifecycle kinds (welcome/onboarding_reminder/
+// zero_bid_rescue/review_request) are enqueued directly into email_outbox by a
+// DB trigger or the cron scans in lifecycle.ts, never via notifyEmail, so they
+// have no entry here — the `if (prefColumn)` guard below treats that as
+// "always send" (harmless; notifyEmail simply isn't the enqueue path for them).
+const PREF_COLUMN: Partial<
+  Record<EmailKind, "notify_bids" | "notify_shoot_updates" | "notify_messages">
 > = {
   bid_received: "notify_bids",
   bid_accepted: "notify_bids",
   bid_declined: "notify_bids",
   shoot_cancelled: "notify_shoot_updates",
   message_received: "notify_messages",
+  shoot_invitation: "notify_shoot_updates",
+  shoot_match: "notify_shoot_updates",
 };
 
 /**
  * Enqueue the email mirror of an in-app notification. Fast, non-blocking, and a
  * no-op when the service role is not configured. Respects the recipient's
  * notification preferences. Never throws into the caller.
+ *
+ * `dedupeWindowMs`, when set, collapses a burst of the same notification into
+ * ~one email per window: before inserting, we check email_outbox for an
+ * existing row with the same recipient_id + kind + shoot_id created within
+ * the window, and skip the insert if one is found. This is what keeps a busy
+ * back-and-forth message thread from sending one email per message (and
+ * training the recipient to mark the sender as spam). Callers that omit
+ * dedupeWindowMs keep the old always-enqueue behaviour.
  */
 export async function notifyEmail(opts: {
   kind: EmailKind;
   recipientId: string;
   shootId?: string | null;
   shootTitle?: string | null;
+  dedupeWindowMs?: number;
 }): Promise<void> {
   const admin = createAdminClient();
   if (!admin) return;
@@ -60,6 +82,24 @@ export async function notifyEmail(opts: {
         .maybeSingle();
       const enabled = (pref as Record<string, boolean> | null)?.[prefColumn];
       if (enabled === false) return;
+    }
+
+    if (opts.dedupeWindowMs) {
+      const since = new Date(Date.now() - opts.dedupeWindowMs).toISOString();
+      let dedupeQuery = admin
+        .from("email_outbox")
+        .select("id")
+        .eq("recipient_id", opts.recipientId)
+        .eq("kind", opts.kind)
+        .gte("created_at", since);
+      // `.eq` can't match NULL in SQL semantics, so branch on whether this
+      // kind carries a shoot_id (message_received always does — a
+      // conversation is 1:1 with its shoot).
+      dedupeQuery = opts.shootId
+        ? dedupeQuery.eq("shoot_id", opts.shootId)
+        : dedupeQuery.is("shoot_id", null);
+      const { data: recent } = await dedupeQuery.limit(1).maybeSingle();
+      if (recent) return;
     }
 
     await admin.from("email_outbox").insert({
@@ -97,10 +137,21 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 function link(kind: EmailKind, locale: Locale, shootId?: string | null): string {
   let path: string;
-  if (kind === "message_received") {
+  if (kind === "welcome") {
+    path = `/${locale}/home`;
+  } else if (kind === "onboarding_reminder") {
+    path = `/${locale}/onboarding`;
+  } else if (kind === "message_received") {
     path = `/${locale}/messages`;
+  } else if (kind === "admin_alert") {
+    path = `/${locale}/admin`;
   } else if (
-    (kind === "bid_received" || kind === "shoot_cancelled") &&
+    (kind === "bid_received" ||
+      kind === "shoot_cancelled" ||
+      kind === "shoot_invitation" ||
+      kind === "shoot_match" ||
+      kind === "zero_bid_rescue" ||
+      kind === "review_request") &&
     shootId
   ) {
     path = `/${locale}/shoots/${shootId}`;
@@ -139,6 +190,51 @@ const COPY: Record<
     fr: { subject: "Nouveau message sur Rintakez", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
     en: { subject: "New message on Rintakez", lead: "You received a new message", cta: "Open message" },
   },
+  shoot_invitation: {
+    de: { subject: "Ein Kunde hat dich zu seinem Shooting eingeladen", lead: "Du wurdest eingeladen, ein Angebot abzugeben", cta: "Shooting ansehen" },
+    fr: { subject: "Un client t’a invité à sa séance", lead: "Tu as été invité à faire une offre", cta: "Voir la séance" },
+    en: { subject: "A client invited you to their shoot", lead: "You've been invited to bid on a shoot", cta: "View shoot" },
+  },
+  shoot_match: {
+    de: { subject: "Neues Shooting in deiner Region", lead: "Ein neues Shooting passt zu deinem Profil", cta: "Shooting ansehen" },
+    fr: { subject: "Nouvelle séance dans ta région", lead: "Une nouvelle séance correspond à ton profil", cta: "Voir la séance" },
+    en: { subject: "New shoot in your area", lead: "A new shoot matches your coverage", cta: "View shoot" },
+  },
+  welcome: {
+    de: { subject: "Willkommen bei Rintakez", lead: "Willkommen bei Rintakez — schön, dass du da bist", cta: "Los geht’s" },
+    fr: { subject: "Bienvenue sur Rintakez", lead: "Bienvenue sur Rintakez — ravis de t’avoir avec nous", cta: "C’est parti" },
+    en: { subject: "Welcome to Rintakez", lead: "Welcome to Rintakez — glad to have you here", cta: "Get started" },
+  },
+  onboarding_reminder: {
+    de: { subject: "Vervollständige dein Fotografen-Profil", lead: "Dein Profil ist fast fertig — ergänze deine Angaben, um Aufträge zu erhalten", cta: "Profil vervollständigen" },
+    fr: { subject: "Complète ton profil de photographe", lead: "Ton profil est presque prêt — complète tes informations pour recevoir des mandats", cta: "Compléter mon profil" },
+    en: { subject: "Complete your photographer profile", lead: "Your profile is almost ready — finish it to start receiving shoots", cta: "Complete profile" },
+  },
+  zero_bid_rescue: {
+    de: { subject: "Noch keine Angebote für dein Shooting", lead: "Dein Shooting hat noch keine Angebote erhalten", cta: "Shooting ansehen" },
+    fr: { subject: "Pas encore d’offre pour ta séance", lead: "Ta séance n’a pas encore reçu d’offre", cta: "Voir la séance" },
+    en: { subject: "No offers yet for your shoot", lead: "Your shoot hasn't received any offers yet", cta: "View shoot" },
+  },
+  review_request: {
+    de: { subject: "Wie war dein Shooting?", lead: "Dein Shooting ist abgeschlossen — hinterlasse jetzt eine Bewertung", cta: "Bewertung abgeben" },
+    fr: { subject: "Comment s’est passée ta séance ?", lead: "Ta séance est terminée — laisse une évaluation dès maintenant", cta: "Laisser une évaluation" },
+    en: { subject: "How was your shoot?", lead: "Your shoot is complete — leave a review now", cta: "Leave a review" },
+  },
+  admin_alert: {
+    de: { subject: "Neuer Vorgang zur Prüfung", lead: "Ein neuer Vorgang muss moderiert werden", cta: "Admin öffnen" },
+    fr: { subject: "Nouveau signalement à examiner", lead: "Un nouvel élément nécessite une modération", cta: "Ouvrir l’admin" },
+    en: { subject: "New report/dispute to review", lead: "A new item needs moderation", cta: "Open admin" },
+  },
+};
+
+// Footer link to the notification-preferences section of the profile page.
+// Shown on every email so a recipient annoyed by volume can turn a category
+// off instead of hitting "mark as spam" (which hurts sender reputation for
+// everyone). Kept short and muted so it doesn't compete with the main CTA.
+const FOOTER: Record<Locale, string> = {
+  de: "Benachrichtigungen verwalten",
+  fr: "Gérer tes préférences de notifications",
+  en: "Manage your notification preferences",
 };
 
 function render(
@@ -153,6 +249,7 @@ function render(
   const titleLine = shootTitle
     ? `<p style="margin:0 0 16px;color:#666;font-size:14px">${shootTitle}</p>`
     : "";
+  const prefsUrl = `${SITE_URL}/${locale}/profile#notifications`;
   const html = `
   <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
     <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Rintakez</p>
@@ -160,6 +257,9 @@ function render(
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.01em">${c.lead}</h1>
     ${titleLine}
     <a href="${url}" style="display:inline-block;margin-top:16px;background:#111;color:#fff;text-decoration:none;padding:12px 22px;font-size:14px">${c.cta}</a>
+    <p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#999">
+      <a href="${prefsUrl}" style="color:#999;text-decoration:underline">${FOOTER[locale]}</a>
+    </p>
   </div>`;
   return { subject: c.subject, html };
 }

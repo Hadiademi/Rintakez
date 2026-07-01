@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocale, useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
+import { forgotPasswordAction } from "@/lib/actions/auth";
+import { errorKey } from "@/lib/error-messages";
 import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
@@ -12,8 +13,9 @@ import {
 
 export default function ForgotPasswordForm() {
   const t = useTranslations("auth");
-  const locale = useLocale();
+  const tErr = useTranslations("errors");
   const [sent, setSent] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -24,10 +26,12 @@ export default function ForgotPasswordForm() {
   });
 
   async function onSubmit(values: ForgotPasswordInput) {
-    const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=/${locale}/reset-password&locale=${locale}`;
-    // Ignore the result to avoid leaking whether an account exists.
-    await supabase.auth.resetPasswordForEmail(values.email, { redirectTo });
+    setServerError(null);
+    const result = await forgotPasswordAction(values);
+    if (!result.ok) {
+      setServerError(tErr(errorKey(result.error)));
+      return;
+    }
     setSent(true);
   }
 
@@ -65,6 +69,8 @@ export default function ForgotPasswordForm() {
           <p className="text-[12px] text-accent">{errors.email.message}</p>
         )}
       </div>
+
+      {serverError && <p className="text-[13px] text-accent">{serverError}</p>}
 
       <button
         type="submit"

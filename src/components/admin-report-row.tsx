@@ -19,22 +19,28 @@ export function AdminReportRow({
   targetSuspended,
   targetLabel,
   targetHref,
+  category,
   reason,
   createdAt,
 }: {
   id: string;
   reporterName: string;
   targetTypeLabel: string;
-  targetKind: "profile" | "shoot";
+  targetKind: "profile" | "shoot" | "review" | "message";
   targetId: string;
   targetSuspended: boolean;
   targetLabel: string;
   targetHref: string | null;
+  category: "spam" | "harassment" | "scam" | "inappropriate_content" | "other";
   reason: string;
   createdAt: string;
 }) {
   const t = useTranslations("admin");
+  const tReport = useTranslations("report");
   const tErr = useTranslations("errors");
+  // Suspension is only meaningful for profile/shoot targets (they carry an
+  // is_suspended flag); reviews and messages have no such action here.
+  const canSuspend = targetKind === "profile" || targetKind === "shoot";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
@@ -50,6 +56,7 @@ export function AdminReportRow({
   }
 
   function toggleSuspension() {
+    if (!canSuspend) return;
     setError(null);
     startTransition(async () => {
       const r =
@@ -78,6 +85,8 @@ export function AdminReportRow({
           </span>
         ) : null}
         <span className="text-mute-2">·</span>
+        <span className="label">{tReport(`categories.${category}`)}</span>
+        <span className="text-mute-2">·</span>
         <span>
           {t("reporter")}: {reporterName}
         </span>
@@ -96,20 +105,22 @@ export function AdminReportRow({
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleSuspension}
-          disabled={isPending}
-          className="press border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-900 dark:text-red-300"
-        >
-          {targetSuspended
-            ? targetKind === "profile"
-              ? t("unsuspendUser")
-              : t("unsuspendShoot")
-            : targetKind === "profile"
-              ? t("suspendUser")
-              : t("suspendShoot")}
-        </button>
+        {canSuspend ? (
+          <button
+            type="button"
+            onClick={toggleSuspension}
+            disabled={isPending}
+            className="press border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50 dark:border-red-900 dark:text-red-300"
+          >
+            {targetSuspended
+              ? targetKind === "profile"
+                ? t("unsuspendUser")
+                : t("unsuspendShoot")
+              : targetKind === "profile"
+                ? t("suspendUser")
+                : t("suspendShoot")}
+          </button>
+        ) : null}
         <span className="flex-1" />
         <button
           type="button"

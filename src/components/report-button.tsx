@@ -2,21 +2,26 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { submitReport } from "@/lib/actions/reports";
+import { submitReport, REPORT_CATEGORIES } from "@/lib/actions/reports";
+import type { ReportCategory } from "@/lib/actions/reports";
 import { errorKey } from "@/lib/error-messages";
 
 export function ReportButton({
   targetType,
   targetId,
+  compact = false,
 }: {
-  targetType: "profile" | "shoot";
+  targetType: "profile" | "shoot" | "review" | "message";
   targetId: string;
+  /** Smaller, unobtrusive trigger for dense lists (reviews, message bubbles). */
+  compact?: boolean;
 }) {
   const t = useTranslations("report");
   const tErr = useTranslations("errors");
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
   const [reason, setReason] = useState("");
+  const [category, setCategory] = useState<ReportCategory>("other");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -24,7 +29,7 @@ export function ReportButton({
     if (!reason.trim()) return;
     setError(null);
     startTransition(async () => {
-      const res = await submitReport({ targetType, targetId, reason });
+      const res = await submitReport({ targetType, targetId, reason, category });
       if (res.ok) setDone(true);
       else setError(tErr(errorKey(res.error)));
     });
@@ -40,7 +45,11 @@ export function ReportButton({
         type="button"
         data-testid="report-open"
         onClick={() => setOpen(true)}
-        className="press text-[13px] text-mute underline underline-offset-2 hover:text-ink"
+        className={
+          compact
+            ? "press text-[11px] text-mute-2 underline underline-offset-2 hover:text-mute"
+            : "press text-[13px] text-mute underline underline-offset-2 hover:text-ink"
+        }
       >
         {t("report")}
       </button>
@@ -50,6 +59,22 @@ export function ReportButton({
   return (
     <div className="flex max-w-md flex-col gap-3 border border-line p-4">
       <p className="label text-mute">{t("reportTitle")}</p>
+      <label htmlFor="report-category" className="text-[13px] text-mute">
+        {t("reportCategory")}
+      </label>
+      <select
+        id="report-category"
+        data-testid="report-category"
+        value={category}
+        onChange={(e) => setCategory(e.target.value as ReportCategory)}
+        className="w-full border border-line bg-surface px-3.5 py-2.5 text-[14px] text-ink focus:border-ink focus:outline-none"
+      >
+        {REPORT_CATEGORIES.map((c) => (
+          <option key={c} value={c}>
+            {t(`categories.${c}`)}
+          </option>
+        ))}
+      </select>
       <label htmlFor="report-reason" className="text-[13px] text-mute">
         {t("reportReason")}
       </label>

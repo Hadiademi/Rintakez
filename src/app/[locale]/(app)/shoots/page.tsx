@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
@@ -8,10 +9,25 @@ import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 12;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    title: t("shootsTitle"),
+    description: t("shootsDescription"),
+    alternates: buildAlternates(locale, "/shoots"),
+  };
+}
 
 export default async function BrowseShootsPage({
   searchParams,

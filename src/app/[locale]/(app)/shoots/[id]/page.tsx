@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { buildAlternates } from "@/lib/seo";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
@@ -20,6 +23,50 @@ import { ReportButton } from "@/components/report-button";
 import { DisputePanel } from "@/components/dispute-panel";
 
 export const dynamic = "force-dynamic";
+
+const BRIEF_DESCRIPTION_MAX_LENGTH = 160;
+
+function truncate(text: string, maxLength: number): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { locale, id } = await params;
+  // Public client: metadata must reflect what an anonymous crawler can see,
+  // not viewer-specific RLS rows (mirrors the photographer profile page).
+  const supabase = createPublicClient();
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("title, type, brief")
+    .eq("id", id)
+    .maybeSingle();
+
+  const tMeta = await getTranslations({ locale, namespace: "meta" });
+
+  if (!shoot) {
+    return {
+      title: tMeta("shootFallbackTitle"),
+      alternates: buildAlternates(locale, `/shoots/${id}`),
+    };
+  }
+
+  const tShoot = await getTranslations({ locale, namespace: "shoot" });
+  const typeLabel = tShoot(`types.${shoot.type}`);
+
+  return {
+    title: `${shoot.title} — ${typeLabel}`,
+    description: shoot.brief
+      ? truncate(shoot.brief, BRIEF_DESCRIPTION_MAX_LENGTH)
+      : undefined,
+    alternates: buildAlternates(locale, `/shoots/${id}`),
+  };
+}
 
 export default async function ShootDetailPage({
   params,
@@ -379,7 +426,18 @@ export default async function ShootDetailPage({
       <section className="space-y-4">
         <SectionLabel title={t("offers")} />
         {bidList.length === 0 ? (
-          <p className="text-mute">{t("noOffers")}</p>
+          <div className="space-y-4">
+            <p className="text-mute">{t("noOffers")}</p>
+            {shoot.status === "open" ? (
+              <Link
+                href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
+                data-testid="find-photographers-cta"
+                className="press inline-flex items-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper"
+              >
+                {tShoot("findPhotographersCta")}
+              </Link>
+            ) : null}
+          </div>
         ) : visibleBids.length === 0 ? (
           <p className="text-mute">
             {hiddenBidCount > 0

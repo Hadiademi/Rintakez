@@ -8,6 +8,7 @@ import { registerAction } from "@/lib/actions/auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { errorKey } from "@/lib/error-messages";
 import { GoogleButton } from "@/components/google-button";
+import { track } from "@/lib/track";
 import { useState } from "react";
 
 export default function RegisterForm() {
@@ -38,6 +39,7 @@ export default function RegisterForm() {
     setServerError(null);
     const result = await registerAction({ ...values, locale });
     if (result.ok) {
+      track("signup");
       // Always land on the login page. `registered` = account is ready to use;
       // `confirm` = email confirmation is required first.
       router.push(result.session ? "/login?registered=1" : "/login?confirm=1");

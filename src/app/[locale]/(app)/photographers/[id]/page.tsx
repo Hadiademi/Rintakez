@@ -11,6 +11,9 @@ import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
+import { InvitePhotographerButton } from "@/components/invite-photographer-button";
+import { RecordProfileView } from "@/components/record-profile-view";
+import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +31,10 @@ export async function generateMetadata({
     .maybeSingle();
 
   if (!data || data.role !== "photographer") {
-    return { title: "Rintakez" };
+    return {
+      title: "Rintakez",
+      alternates: buildAlternates(locale, `/photographers/${id}`),
+    };
   }
 
   const { display_name, city } = data;
@@ -51,6 +57,7 @@ export async function generateMetadata({
   return {
     title: display_name,
     description: `${display_name} — ${role}${location}`,
+    alternates: buildAlternates(locale, `/photographers/${id}`),
   };
 }
 
@@ -71,7 +78,7 @@ export default async function PhotographerProfilePage({
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, display_name, role, city, canton, bio, avatar_url")
+        .select("id, display_name, role, city, canton, bio, avatar_url, created_at")
         .eq("id", id)
         .maybeSingle();
 
@@ -113,6 +120,16 @@ export default async function PhotographerProfilePage({
         .select("avg_rating, review_count")
         .eq("photographer_id", id)
         .maybeSingle();
+
+      // Completed-shoots trust signal. shoots/bids aren't publicly readable
+      // (RLS only allows the shoot's own client/accepted photographer), so this
+      // goes through a SECURITY DEFINER function that returns just the count —
+      // see photographer_completed_shoots_count in
+      // supabase/migrations/20260701090000_photographer_completed_shoots.sql.
+      const { data: completedShoots } = await supabase.rpc(
+        "photographer_completed_shoots_count",
+        { p_photographer_id: id }
+      );
 
       const { data: reviewRows } = await supabase
         .from("reviews")
@@ -186,6 +203,7 @@ export default async function PhotographerProfilePage({
         rating,
         reviewRows: reviews,
         unavailableDates: (unavailableRows ?? []).map((r) => r.date),
+        completedShoots: completedShoots ?? 0,
       };
     },
     ["photographer-public", id],
@@ -203,11 +221,13 @@ export default async function PhotographerProfilePage({
     rating,
     reviewRows,
     unavailableDates,
+    completedShoots,
   } = data;
 
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
   const viewer = await getProfile();
   let isSaved = false;
+  let openShoots: { id: string; title: string; shoot_date: string }[] = [];
   if (viewer && viewer.id !== id) {
     const supabase = await createClient();
     const { data: fav } = await supabase
@@ -217,6 +237,15 @@ export default async function PhotographerProfilePage({
       .eq("photographer_id", id)
       .maybeSingle();
     isSaved = !!fav;
+    if (viewer.role === "client") {
+      const { data: os } = await supabase
+        .from("shoots")
+        .select("id, title, shoot_date")
+        .eq("client_id", viewer.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false });
+      openShoots = os ?? [];
+    }
   }
 
   const t = await getTranslations("profile");
@@ -265,6 +294,13 @@ export default async function PhotographerProfilePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      {/* Best-effort profile-view collection for a future analytics
+          dashboard — records anon + non-owner logged-in views only. Renders
+          nothing and never blocks the page (see record-profile-view.tsx). */}
+      {(!viewer || viewer.id !== profile.id) && (
+        <RecordProfileView photographerId={profile.id} />
+      )}
 
       {/* Cover band — first portfolio image, else a monogram band */}
       <div className="relative h-48 w-full overflow-hidden border-b border-line bg-chip sm:h-60">
@@ -332,6 +368,18 @@ export default async function PhotographerProfilePage({
                     </span>
                   </div>
                 ) : null}
+                <p className="tabular text-[13px] text-mute">
+                  {[
+                    t("memberSince", {
+                      year: new Date(profile.created_at).getFullYear(),
+                    }),
+                    completedShoots > 0
+                      ? t("completedShoots", { count: completedShoots })
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
               </div>
             </div>
 
@@ -354,12 +402,11 @@ export default async function PhotographerProfilePage({
                   viewing a peer shouldn't be bounced to /shoots/new, and anons
                   get a sign-in CTA instead of a silent login redirect. */}
               {viewer?.role === "client" ? (
-                <Link
-                  href="/shoots/new"
-                  className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
-                >
-                  {t("postShootCta")}
-                </Link>
+                <InvitePhotographerButton
+                  photographerId={profile.id}
+                  openShoots={openShoots}
+                  unavailableDates={unavailableDates}
+                />
               ) : !viewer ? (
                 <Link
                   href="/login"
@@ -377,28 +424,46 @@ export default async function PhotographerProfilePage({
           {/* Main column */}
           <div className="mt-10 min-w-0 space-y-10 lg:mt-2">
 
-        {unavailableDates.length > 0 && (
-          <div className="space-y-2">
-            <p className="label text-mute">{t("availUnavailable")}</p>
-            <div className="flex flex-wrap gap-2">
-              {unavailableDates.map((d) => (
-                <span
-                  key={d}
-                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
-                >
-                  {formatSwissDate(d)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Bio */}
         {profile.bio && (
           <p className="text-[15px] text-mute whitespace-pre-line leading-relaxed">
             {profile.bio}
           </p>
         )}
+
+        {/* Portfolio */}
+        <div className="space-y-4 border-t border-line pt-8">
+          <p className="label text-mute">{t("portfolio")}</p>
+          {portfolioImages.length > 0 ? (
+            <PortfolioGrid images={portfolioImages} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex aspect-square items-center justify-center border border-dashed border-line bg-chip/40 text-mute-2"
+                  aria-hidden
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="1" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+              ))}
+              <p className="col-span-full text-[14px] text-mute">
+                {t("noPortfolio")}
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Details section */}
         {(specialties.length > 0 ||
@@ -486,39 +551,21 @@ export default async function PhotographerProfilePage({
           </div>
         )}
 
-        {/* Portfolio */}
-        <div className="space-y-4 border-t border-line pt-8">
-          <p className="label text-mute">{t("portfolio")}</p>
-          {portfolioImages.length > 0 ? (
-            <PortfolioGrid images={portfolioImages} />
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="flex aspect-square items-center justify-center border border-dashed border-line bg-chip/40 text-mute-2"
-                  aria-hidden
+        {unavailableDates.length > 0 && (
+          <div className="space-y-2">
+            <p className="label text-mute">{t("availUnavailable")}</p>
+            <div className="flex flex-wrap gap-2">
+              {unavailableDates.map((d) => (
+                <span
+                  key={d}
+                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
                 >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="1" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                </div>
+                  {formatSwissDate(d)}
+                </span>
               ))}
-              <p className="col-span-full text-[14px] text-mute">
-                {t("noPortfolio")}
-              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
           {/* Reviews */}
           <div className="space-y-5 border-t border-line pt-8">
@@ -538,15 +585,19 @@ export default async function PhotographerProfilePage({
                         {r.comment}
                       </p>
                     ) : null}
-                    <p className="text-[13px] text-mute">
-                      {[
-                        r.reviewerName,
-                        r.shootType ? tShoot(`types.${r.shootType}`) : null,
-                        formatSwissDate(r.created_at.slice(0, 10)),
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-mute">
+                      <span>
+                        {[
+                          r.reviewerName,
+                          r.shootType ? tShoot(`types.${r.shootType}`) : null,
+                          formatSwissDate(r.created_at.slice(0, 10)),
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <ReportButton targetType="review" targetId={r.id} compact />
+                    </div>
                   </li>
                 ))}
               </ul>

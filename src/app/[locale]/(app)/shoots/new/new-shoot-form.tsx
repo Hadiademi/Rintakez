@@ -9,6 +9,7 @@ import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot
 import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
+import { track } from "@/lib/track";
 
 const STEP_COUNT = 3;
 const MAX_REF_IMAGES = 6;
@@ -88,6 +89,7 @@ export default function NewShootForm() {
       setServerError(tErr(errorKey(result.error)));
       return;
     }
+    track("post_shoot");
     // Upload reference images now that we have the shoot id. Failures are
     // non-fatal (the shoot already exists), but must not be silently swallowed
     // or let an exception strand the user on the form — count them and tell the

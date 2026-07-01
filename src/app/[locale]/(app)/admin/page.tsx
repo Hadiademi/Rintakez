@@ -4,13 +4,35 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-function Metric({ value, label }: { value: number; label: string }) {
+function Metric({
+  value,
+  label,
+}: {
+  value: number | string;
+  label: string;
+}) {
   return (
     <div className="border border-line p-5">
       <div className="tabular text-3xl font-semibold text-ink">{value}</div>
       <div className="label mt-1 text-mute">{label}</div>
     </div>
   );
+}
+
+// Renders a median that may be null (no data yet) as an em dash instead of 0,
+// so "no shoots have received a bid yet" isn't confused with "0 hours".
+function formatMedian(value: number | null): string {
+  if (value === null) return "—";
+  return String(Math.round(value * 10) / 10);
+}
+
+// Hours-to-first-bid, formatted at a sensible unit: minutes when under an
+// hour, hours (1 decimal) under a day, otherwise whole days.
+function formatHours(value: number | null): string {
+  if (value === null) return "—";
+  if (value < 1) return `${Math.round(value * 60)}m`;
+  if (value < 24) return `${Math.round(value * 10) / 10}h`;
+  return `${Math.round((value / 24) * 10) / 10}d`;
 }
 
 function Attention({
@@ -65,6 +87,7 @@ export default async function AdminDashboardPage() {
     openDisputes,
     signups7,
     signups30,
+    liquidityStats,
   ] = await Promise.all([
     admin.from("profiles").select("id", head),
     admin.from("profiles").select("id", head).eq("role", "photographer"),
@@ -80,7 +103,15 @@ export default async function AdminDashboardPage() {
     admin.from("disputes").select("id", head).eq("status", "open"),
     admin.from("profiles").select("id", head).gte("created_at", days(7)),
     admin.from("profiles").select("id", head).gte("created_at", days(30)),
+    admin.rpc("admin_liquidity_stats"),
   ]);
+
+  const liquidity = liquidityStats.data as {
+    zero_bid_open: number;
+    median_bids_per_open_shoot: number | null;
+    median_hours_to_first_bid: number | null;
+    invites_sent_7d: number;
+  } | null;
 
   return (
     <div className="space-y-10">
@@ -94,6 +125,25 @@ export default async function AdminDashboardPage() {
         <Metric value={openShoots.count ?? 0} label={t("metricOpenShoots")} />
         <Metric value={signups7.count ?? 0} label={t("metricSignups7")} />
         <Metric value={signups30.count ?? 0} label={t("metricSignups30")} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Metric
+          value={liquidity?.zero_bid_open ?? 0}
+          label={t("metricZeroBidOpen")}
+        />
+        <Metric
+          value={formatMedian(liquidity?.median_bids_per_open_shoot ?? null)}
+          label={t("metricMedianBidsPerOpenShoot")}
+        />
+        <Metric
+          value={formatHours(liquidity?.median_hours_to_first_bid ?? null)}
+          label={t("metricMedianHoursToFirstBid")}
+        />
+        <Metric
+          value={liquidity?.invites_sent_7d ?? 0}
+          label={t("metricInvitesSent7")}
+        />
       </div>
 
       <section className="space-y-4">

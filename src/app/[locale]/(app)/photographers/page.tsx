@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
@@ -5,15 +6,33 @@ import { PhotographerFilters } from "@/components/photographer-filters";
 import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
-import { photographerAvatar } from "@/lib/shoot-image";
+import { buildAlternates } from "@/lib/seo";
+import { PopularSearches } from "@/components/popular-searches";
+import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 12;
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    title: t("photographersTitle"),
+    description: t("photographersDescription"),
+    alternates: buildAlternates(locale, "/photographers"),
+  };
+}
+
 export default async function PhotographersDirectoryPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     type?: string;
     canton?: string;
@@ -26,6 +45,7 @@ export default async function PhotographersDirectoryPage({
     page?: string;
   }>;
 }) {
+  const { locale } = await params;
   const {
     type,
     canton,
@@ -199,9 +219,7 @@ export default async function PhotographersDirectoryPage({
                   city: x.profile.city,
                   canton: x.profile.canton,
                   avatarUrl: publicUrl("avatars", x.profile.avatar_url),
-                  coverUrl:
-                    publicUrl("portfolio", coverPath) ??
-                    photographerAvatar(x.profile_id, 600, 450),
+                  coverUrl: publicUrl("portfolio", coverPath),
                   verified: x.verification_status === "verified",
                   disciplineLabels: (x.disciplines ?? []).map((d) =>
                     tShoot(`disciplines.${d}`)
@@ -211,6 +229,7 @@ export default async function PhotographersDirectoryPage({
                   ),
                   rating: x.rating,
                   hourlyRate: x.hourly_rate_chf,
+                  memberSinceYear: new Date(x.profile.created_at).getFullYear(),
                 }}
               />
             );
@@ -224,6 +243,14 @@ export default async function PhotographersDirectoryPage({
         params={{ type, canton, minRating, sort, saved, verified, discipline, q }}
         basePath="/photographers"
       />
+
+      {/* Internal links into the canton x shoot-type landing pages, so
+          crawlers (and visitors) can discover them from the directory —
+          only on the unfiltered view, so it reads as a discovery aid rather
+          than clutter once someone's already narrowed their search. */}
+      {!type && !canton && !discipline && !minRating && !saved && !verified && !query ? (
+        <PopularSearches combos={await getActiveCantonTypeCombos()} locale={locale} />
+      ) : null}
     </div>
   );
 }

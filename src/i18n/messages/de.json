@@ -2,7 +2,14 @@
   "meta": {
     "title": "Rintakez — Foto- & Video-Marktplatz Schweiz",
     "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
-    "ogTitle": "Rintakez — Foto- & Video-Marktplatz Schweiz"
+    "ogTitle": "Rintakez — Foto- & Video-Marktplatz Schweiz",
+    "photographersTitle": "Fotografen & Videografen in der Schweiz",
+    "photographersDescription": "Entdecke verifizierte Fotograf:innen und Videograf:innen in der ganzen Schweiz und finde die passende Person für deinen Shoot.",
+    "shootsTitle": "Offene Shoots in der Schweiz",
+    "shootsDescription": "Entdecke offene Foto- und Video-Shoots von Kund:innen in der ganzen Schweiz und gib dein Angebot ab.",
+    "shootFallbackTitle": "Shoot",
+    "landingTitle": "{type} in {canton}",
+    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere verifizierte Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote."
   },
   "common": {
     "appName": "Rintakez",
@@ -202,7 +209,8 @@
       "video": "Video"
     },
     "edit": "Bearbeiten",
-    "addToCalendar": "Zum Kalender hinzufügen"
+    "addToCalendar": "Zum Kalender hinzufügen",
+    "findPhotographersCta": "Fotograf:innen finden & einladen"
   },
   "myShoots": {
     "title": "Meine Aufträge",
@@ -326,7 +334,17 @@
     "coverTitle": "Titelbild",
     "coverUpload": "Titelbild hochladen",
     "coverReplace": "Titelbild ersetzen",
-    "coverRemove": "Entfernen"
+    "coverRemove": "Entfernen",
+    "inviteCta": "Zu deinem Shooting einladen",
+    "invitePickTitle": "Shooting auswählen",
+    "inviteNoOpenShoots": "Du hast keine offenen Shootings.",
+    "inviteCreateShoot": "Shooting erstellen",
+    "inviteSuccess": "Einladung gesendet",
+    "inviteAlready": "Bereits eingeladen",
+    "inviteError": "Einladung fehlgeschlagen",
+    "inviteUnavailableDate": "An diesem Datum nicht verfügbar",
+    "memberSince": "Mitglied seit {year}",
+    "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}"
   },
   "profileBasics": {
     "edit": "Name & Ort bearbeiten",
@@ -450,7 +468,9 @@
     "shoot_reopened": "Eine Buchung wurde wieder geöffnet — die Fotograf:in ist nicht mehr verfügbar",
     "review_received": "Du hast eine neue Bewertung erhalten",
     "verification_approved": "Dein Profil wurde verifiziert",
-    "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt"
+    "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt",
+    "shoot_invitation": "Du wurdest zu einem Shooting eingeladen",
+    "shoot_match": "Neues Shooting in deiner Region"
   },
   "review": {
     "title": "Bewertung",
@@ -489,7 +509,8 @@
     "savedOnly": "Nur gespeicherte",
     "verified": "Verifiziert",
     "verifiedOnly": "Nur verifizierte",
-    "allDisciplines": "Alle Disziplinen"
+    "allDisciplines": "Alle Disziplinen",
+    "popularSearches": "Beliebte Suchen"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -509,11 +530,19 @@
   "report": {
     "report": "Melden",
     "reportTitle": "Inhalt melden",
+    "reportCategory": "Kategorie",
     "reportReason": "Was möchtest du melden?",
     "reportPlaceholder": "Beschreibe das Problem kurz …",
     "reportSubmit": "Melden",
     "reportThanks": "Danke. Wir prüfen deine Meldung.",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "categories": {
+      "spam": "Spam",
+      "harassment": "Belästigung",
+      "scam": "Betrug",
+      "inappropriate_content": "Unangemessener Inhalt",
+      "other": "Sonstiges"
+    }
   },
   "admin": {
     "navAdmin": "Admin",
@@ -551,6 +580,10 @@
     "tabEmail": "E-Mails",
     "metricSignups7": "Neu (7 T)",
     "metricSignups30": "Neu (30 T)",
+    "metricZeroBidOpen": "Offene Aufträge ohne Gebote",
+    "metricMedianBidsPerOpenShoot": "Median Gebote / offener Auftrag",
+    "metricMedianHoursToFirstBid": "Median Zeit bis erstes Gebot",
+    "metricInvitesSent7": "Einladungen versendet (7 T)",
     "needsAttention": "Handlungsbedarf",
     "suspendedUsers": "Gesperrte Nutzer:innen",
     "failedEmails": "Fehlgeschlagene E-Mails",
@@ -618,5 +651,31 @@
       "resolved": "Gelöst",
       "dismissed": "Abgewiesen"
     }
+  },
+  "landingSeo": {
+    "h1": {
+      "wedding": "Hochzeitsfotografen in {canton}",
+      "portrait": "Porträtfotografen in {canton}",
+      "commercial": "Commercial-Fotografen in {canton}",
+      "event": "Eventfotografen in {canton}",
+      "architecture": "Architekturfotografen in {canton}",
+      "family": "Familienfotografen in {canton}",
+      "other": "Fotograf:innen in {canton}"
+    },
+    "intro": {
+      "wedding": "Planst du eine Hochzeit in {canton}? Durchstöbere lokale Hochzeitsfotograf:innen, vergleiche Portfolios und Bewertungen und lade deine Favoriten zu einem Angebot ein.",
+      "portrait": "Suchst du ein Porträtshooting in {canton}? Vergleiche lokale Porträtfotograf:innen nach Stil, Preis und Bewertung, bevor du buchst.",
+      "commercial": "Brauchst du Commercial-Fotografie in {canton}? Durchstöbere Fotograf:innen mit Erfahrung in Produkt-, Kampagnen- und Editorial-Arbeit in deiner Region.",
+      "event": "Organisierst du ein Event in {canton}? Finde Eventfotograf:innen, die die lokalen Locations kennen und dein Event von Anfang bis Ende begleiten.",
+      "architecture": "Brauchst du Architekturfotografie in {canton}? Durchstöbere Fotograf:innen, die auf Innen- und Aussenaufnahmen in deiner Nähe spezialisiert sind.",
+      "family": "Suchst du ein Familienshooting in {canton}? Durchstöbere entspannte, lokale Familienfotograf:innen und sieh dir ihre aktuellen Arbeiten an, bevor du sie kontaktierst.",
+      "other": "Durchstöbere Fotograf:innen in {canton} für Shootings, die in keine Standardkategorie passen — beschreibe dein Projekt und vergleiche Angebote."
+    },
+    "snapshotHeading": "Fotograf:innen für {type} in {canton}",
+    "viewAllCta": "Alle {type} in {canton} ansehen",
+    "emptyTitle": "Noch keine Fotograf:innen hier",
+    "emptyDescription": "Für {type} in {canton} sind noch keine Fotograf:innen gelistet. Sei die/der Erste mit deinem Profil oder durchstöbere das ganze Verzeichnis.",
+    "emptyBrowseAll": "Alle Fotograf:innen ansehen",
+    "emptyJoin": "Als Fotograf:in registrieren"
   }
 }
