@@ -1,11 +1,14 @@
--- accept_bid availability guards from 20260701130000_accept_bid_availability.sql:
+-- accept_bid availability guards from 20260701130000_accept_bid_availability.sql
+-- (advisory-lock hardening in 20260701140000_accept_bid_lock.sql):
 -- acceptance refuses a photographer who has blocked the shoot's date
 -- (photographer_unavailable), refuses a photographer already assigned to
--- another shoot on the same date, and otherwise succeeds and assigns.
+-- another shoot on the same date, and otherwise succeeds and assigns —
+-- including when that same photographer has an unavailable/assigned date
+-- elsewhere, proving the guards are scoped to the shoot's own date.
 begin;
 create extension if not exists pgtap;
 
-select plan(4);
+select plan(8);
 
 -- 1 client + 2 photographers (both photo pros, one will be double-booked/blocked).
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -26,14 +29,21 @@ insert into public.photographer_details (profile_id, disciplines) values
   ('00000000-0000-0000-0000-0000000000b3', '{photo}');
 
 -- b2 has explicitly blocked 2027-12-05.
+-- b3 has explicitly blocked a DIFFERENT, unrelated date (2027-12-20) — used to
+-- prove the unavailable-date guard is scoped to the shoot's own date, not a
+-- blanket block on the photographer.
 insert into public.photographer_unavailable (photographer_id, date) values
-  ('00000000-0000-0000-0000-0000000000b2', '2027-12-05');
+  ('00000000-0000-0000-0000-0000000000b2', '2027-12-05'),
+  ('00000000-0000-0000-0000-0000000000b3', '2027-12-20');
 
 -- Shoots (all owned by the client):
 --   b5: on the blocked date, bid from b2 (must be refused).
 --   b6/b7: same date 2027-12-06, both biddable by b3 — b6 gets assigned first,
 --          then accepting b3's bid on b7 (same date) must be refused.
---   b8: a normal shoot on an unrelated date, bid from b3 (must succeed).
+--   b8: a normal shoot on an unrelated date, bid from b3 (must succeed) even
+--       though b3 is, by this point, already assigned to b6 on a different
+--       date (2027-12-06) AND has blocked an unrelated third date
+--       (2027-12-20) — proving both guards are date-scoped, not blanket.
 insert into public.shoots (id, client_id, title, type, brief, location_city,
                            canton, shoot_date, duration_hours,
                            budget_min_chf, budget_max_chf, discipline, is_suspended)
@@ -75,16 +85,48 @@ select lives_ok(
   'accept_bid accepts the first same-date booking'
 );
 
--- 3: the same photographer cannot also be awarded another shoot on that date.
+-- 3: prove the mutation actually happened, not just "no exception thrown" —
+-- the shoot is assigned and points at the accepted bid.
+select is(
+  (select status::text from public.shoots
+     where id = '10000000-0000-0000-0000-0000000000b6'),
+  'assigned',
+  'shoot b6 becomes assigned after acceptance'
+);
+select is(
+  (select accepted_bid_id from public.shoots
+     where id = '10000000-0000-0000-0000-0000000000b6'),
+  '20000000-0000-0000-0000-0000000000b6'::uuid,
+  'shoot b6 accepted_bid_id is set to the accepted bid'
+);
+
+-- 4: the same photographer cannot also be awarded another shoot on that date.
 select throws_ok(
   $$select public.accept_bid('20000000-0000-0000-0000-0000000000b7')$$,
   'P0001', null, 'accept_bid refuses a photographer already booked on that date'
 );
 
--- 4: an available photographer on an unrelated date is still accepted normally.
+-- 5: an available photographer on an unrelated date is still accepted
+-- normally — even though this same photographer (b3) is already assigned to
+-- another shoot on a different date and has blocked a third, unrelated date.
+-- This proves both availability guards are scoped to the shoot's own date.
 select lives_ok(
   $$select public.accept_bid('20000000-0000-0000-0000-0000000000b8')$$,
-  'accept_bid accepts a matching, available photographer'
+  'accept_bid accepts a matching, available photographer despite unrelated-date conflicts'
+);
+
+-- 6: again, prove the mutation, not just the absence of an exception.
+select is(
+  (select status::text from public.shoots
+     where id = '10000000-0000-0000-0000-0000000000b8'),
+  'assigned',
+  'shoot b8 becomes assigned after acceptance'
+);
+select is(
+  (select accepted_bid_id from public.shoots
+     where id = '10000000-0000-0000-0000-0000000000b8'),
+  '20000000-0000-0000-0000-0000000000b8'::uuid,
+  'shoot b8 accepted_bid_id is set to the accepted bid'
 );
 
 reset role;
