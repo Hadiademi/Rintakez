@@ -54,6 +54,14 @@ Those belong to the later "mobile app" phase.
 - **Local Supabase, single repo** for this phase. Real-device testing (which needs a
   cloud Supabase project) is deferred to the mobile phase. The Expo proof lives in a
   `/mobile` directory in this repo.
+- **Billing is web-only, permanently.** Subscriptions (Stripe, for photographers/
+  videographers only) are sold and managed exclusively on the **web** app. The native
+  app follows the "reader app" model: no subscribe button, no purchase flow — the
+  photographer logs in and uses whatever their web subscription unlocked. This avoids
+  the Apple/Google 15-30% in-app-purchase tax (up to ~CHF 15k/month at the CHF 50k
+  target). This constraint shapes the `core`/auth design now even though the billing
+  feature itself is a separate, later effort. Pricing tiers are undecided and do not
+  affect architecture.
 
 ## Components
 
