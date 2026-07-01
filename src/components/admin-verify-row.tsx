@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { setPhotographerVerification } from "@/lib/actions/admin";
+import { errorKey } from "@/lib/error-messages";
 
 export function AdminVerifyRow({
   id,
@@ -17,14 +18,18 @@ export function AdminVerifyRow({
   evidence: string | null;
 }) {
   const t = useTranslations("admin");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   function decide(status: "verified" | "rejected") {
+    setError(null);
     startTransition(async () => {
-      await setPhotographerVerification(id, status, note);
-      router.refresh();
+      const r = await setPhotographerVerification(id, status, note);
+      if (r.ok) router.refresh();
+      else setError(tErr(errorKey(r.error)));
     });
   }
 
@@ -73,6 +78,8 @@ export function AdminVerifyRow({
           {t("rejectVerification")}
         </button>
       </div>
+
+      {error ? <p className="text-sm text-accent">{error}</p> : null}
     </div>
   );
 }

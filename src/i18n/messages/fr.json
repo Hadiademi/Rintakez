@@ -11,7 +11,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "remove": "Supprimer",
-    "close": "Fermer"
+    "close": "Fermer",
+    "removeConfirm": "Supprimer ceci ? Cette action est irréversible."
   },
   "nav": {
     "home": "Accueil",
@@ -293,6 +294,7 @@
     },
     "dataPrivacy": "Données & confidentialité",
     "exportData": "Télécharger mes données",
+    "exporting": "Préparation…",
     "exportDataHint": "Télécharge une copie de toutes les données te concernant au format JSON.",
     "securityTitle": "Sécurité",
     "passwordTitle": "Changer le mot de passe",
@@ -453,6 +455,7 @@
     "title": "Évaluation",
     "markCompleted": "Marquer comme terminé",
     "completedHint": "Shooting terminé ? Marque-le comme terminé pour évaluer le/la photographe.",
+    "completeConfirm": "Marquer ce shooting comme terminé ? Cela débloque l'évaluation et est irréversible.",
     "leaveReview": "Évaluer le/la photographe",
     "yourRating": "Ton évaluation",
     "comment": "Commentaire (optionnel)",
@@ -557,6 +560,9 @@
     "makeAdmin": "Promouvoir admin",
     "revokeAdmin": "Retirer admin",
     "cannotRevokeSelf": "Tu ne peux pas retirer ton propre statut admin.",
+    "confirmSuspend": "Suspendre {name} ? Cette personne ne pourra plus créer de contenu.",
+    "confirmMakeAdmin": "Donner les droits admin à {name} ?",
+    "confirmRevokeAdmin": "Retirer les droits admin à {name} ?",
     "auditLog": "Journal d’audit",
     "noAudit": "Aucune entrée pour l’instant.",
     "auditBy": "par",

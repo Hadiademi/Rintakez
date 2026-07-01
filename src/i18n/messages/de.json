@@ -11,7 +11,8 @@
     "cancel": "Abbrechen",
     "save": "Speichern",
     "remove": "Entfernen",
-    "close": "Schliessen"
+    "close": "Schliessen",
+    "removeConfirm": "Wirklich entfernen? Das kann nicht rückgängig gemacht werden."
   },
   "nav": {
     "home": "Home",
@@ -293,6 +294,7 @@
     },
     "dataPrivacy": "Daten & Datenschutz",
     "exportData": "Meine Daten herunterladen",
+    "exporting": "Wird vorbereitet…",
     "exportDataHint": "Lade eine Kopie aller über dich gespeicherten Daten als JSON-Datei herunter.",
     "securityTitle": "Sicherheit",
     "passwordTitle": "Passwort ändern",
@@ -453,6 +455,7 @@
     "title": "Bewertung",
     "markCompleted": "Als abgeschlossen markieren",
     "completedHint": "Shooting fertig? Markiere es als abgeschlossen, um die Fotograf:in zu bewerten.",
+    "completeConfirm": "Dieses Shooting als abgeschlossen markieren? Das schaltet die Bewertung frei und kann nicht rückgängig gemacht werden.",
     "leaveReview": "Fotograf:in bewerten",
     "yourRating": "Deine Bewertung",
     "comment": "Kommentar (optional)",
@@ -557,6 +560,9 @@
     "makeAdmin": "Zu Admin machen",
     "revokeAdmin": "Admin entziehen",
     "cannotRevokeSelf": "Du kannst dir selbst den Admin-Status nicht entziehen.",
+    "confirmSuspend": "{name} sperren? Diese Person kann keine neuen Inhalte erstellen.",
+    "confirmMakeAdmin": "{name} zum Admin machen?",
+    "confirmRevokeAdmin": "{name} den Admin-Status entziehen?",
     "auditLog": "Audit-Log",
     "noAudit": "Noch keine Einträge.",
     "auditBy": "von",

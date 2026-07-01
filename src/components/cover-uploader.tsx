@@ -4,19 +4,23 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { setCoverImage, removeCover } from "@/lib/actions/photographer";
+import { errorKey } from "@/lib/error-messages";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
   const t = useTranslations("profile");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setError(null);
     setBusy(true);
     const fd = new FormData();
     fd.append("file", file);
@@ -24,17 +28,22 @@ export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
     if (res.ok) {
       setUrl(res.url);
       router.refresh();
+    } else {
+      setError(tErr(errorKey(res.error)));
     }
     setBusy(false);
     if (inputRef.current) inputRef.current.value = "";
   }
 
   async function onRemove() {
+    setError(null);
     setBusy(true);
     const res = await removeCover();
     if (res.ok) {
       setUrl(null);
       router.refresh();
+    } else {
+      setError(tErr(errorKey(res.error)));
     }
     setBusy(false);
   }
@@ -84,6 +93,8 @@ export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
           </button>
         )}
       </div>
+
+      {error && <p className="text-[12px] text-accent">{error}</p>}
 
       {preview && url && (
         <ImageLightbox

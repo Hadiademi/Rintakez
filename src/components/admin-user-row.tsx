@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { setUserSuspension, setUserAdmin } from "@/lib/actions/admin";
+import { errorKey } from "@/lib/error-messages";
 
 export function AdminUserRow({
   id,
@@ -23,29 +24,47 @@ export function AdminUserRow({
   isSelf: boolean;
 }) {
   const t = useTranslations("admin");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [note, setNote] = useState("");
   const [admin, setAdminState] = useState(isAdmin);
   const [suspended, setSuspended] = useState(isSuspended);
+  const [error, setError] = useState<string | null>(null);
 
   function toggleSuspend() {
+    // High blast radius — confirm the destructive direction, name-interpolated.
+    if (
+      !suspended &&
+      typeof window !== "undefined" &&
+      !window.confirm(t("confirmSuspend", { name }))
+    ) {
+      return;
+    }
+    setError(null);
     start(async () => {
       const r = await setUserSuspension(id, !suspended, note);
       if (r.ok) {
         setSuspended((v) => !v);
         router.refresh();
-      }
+      } else setError(tErr(errorKey(r.error)));
     });
   }
 
   function toggleAdmin() {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t(admin ? "confirmRevokeAdmin" : "confirmMakeAdmin", { name }))
+    ) {
+      return;
+    }
+    setError(null);
     start(async () => {
       const r = await setUserAdmin(id, !admin);
       if (r.ok) {
         setAdminState((v) => !v);
         router.refresh();
-      }
+      } else setError(tErr(errorKey(r.error)));
     });
   }
 
@@ -100,6 +119,8 @@ export function AdminUserRow({
           {t("viewTarget")}
         </Link>
       </div>
+
+      {error ? <p className="text-sm text-accent">{error}</p> : null}
     </div>
   );
 }

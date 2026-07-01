@@ -7,6 +7,7 @@ import {
   removePortfolioImage,
 } from "@/lib/actions/photographer";
 import { errorKey } from "@/lib/error-messages";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 
 type Item = { id: string; url: string };
 
@@ -18,6 +19,8 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
   const [items, setItems] = useState<Item[]>(initial);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [active, setActive] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -40,12 +43,21 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
   }
 
   async function onRemove(id: string) {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(tCommon("removeConfirm"))
+    ) {
+      return;
+    }
+    setError(null);
+    setRemovingId(id);
     const result = await removePortfolioImage(id);
     if (result.ok) {
       setItems((prev) => prev.filter((p) => p.id !== id));
     } else {
       setError(tErr(errorKey(result.error)));
     }
+    setRemovingId(null);
   }
 
   return (
@@ -72,30 +84,48 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
           className="grid grid-cols-3 gap-3 sm:grid-cols-4"
           data-testid="profile-portfolio-grid"
         >
-          {items.map((item) => (
-            <div key={item.id} className="group relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.url}
-                alt=""
-                className="aspect-square w-full border border-line object-cover grayscale transition-[filter] duration-500 group-hover:grayscale-0"
-              />
-              <button
-                type="button"
-                onClick={() => onRemove(item.id)}
-                className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
-                aria-label={tCommon("remove")}
+          {items.map((item) => {
+            const removing = removingId === item.id;
+            return (
+              <div
+                key={item.id}
+                className={`group relative transition-opacity ${removing ? "opacity-50" : ""}`}
               >
-                ✕
-              </button>
-            </div>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => setActive(item.url)}
+                  aria-label={t("viewPhoto")}
+                  className="press block w-full"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.url}
+                    alt=""
+                    className="aspect-square w-full border border-line object-cover grayscale transition-[filter] duration-500 group-hover:grayscale-0"
+                  />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onRemove(item.id)}
+                  disabled={removing}
+                  className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity disabled:opacity-50 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+                  aria-label={tCommon("remove")}
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="text-[14px] text-mute">{t("noPortfolio")}</p>
       )}
 
       {error && <p className="text-[12px] text-accent">{error}</p>}
+
+      {active && (
+        <ImageLightbox src={active} onClose={() => setActive(null)} />
+      )}
     </div>
   );
 }

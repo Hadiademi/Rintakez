@@ -4,19 +4,24 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { requestVerification } from "@/lib/actions/photographer";
+import { errorKey } from "@/lib/error-messages";
 
 type Status = "unverified" | "pending" | "verified" | "rejected";
 
 export function VerificationRequest({ status }: { status: Status }) {
   const t = useTranslations("profile");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   function request() {
+    setError(null);
     startTransition(async () => {
-      await requestVerification(note);
-      router.refresh();
+      const res = await requestVerification(note);
+      if (res.ok) router.refresh();
+      else setError(tErr(errorKey(res.error)));
     });
   }
 
@@ -50,6 +55,7 @@ export function VerificationRequest({ status }: { status: Status }) {
           >
             {t("requestVerification")}
           </button>
+          {error && <p className="text-[12px] text-accent">{error}</p>}
         </>
       ) : null}
     </div>

@@ -14,6 +14,11 @@ export function CompleteShootButton({ shootId }: { shootId: string }) {
   const [isPending, startTransition] = useTransition();
 
   function onComplete() {
+    // Completing is terminal (unlocks the review, can't be undone) — confirm,
+    // like accept/decline/cancel/withdraw already do.
+    if (typeof window !== "undefined" && !window.confirm(t("completeConfirm"))) {
+      return;
+    }
     setError(null);
     startTransition(async () => {
       const res = await completeShootAction(shootId);

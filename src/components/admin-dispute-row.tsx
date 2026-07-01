@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { resolveDispute } from "@/lib/actions/admin";
+import { errorKey } from "@/lib/error-messages";
 
 export function AdminDisputeRow({
   id,
@@ -21,14 +22,18 @@ export function AdminDisputeRow({
   createdAt: string;
 }) {
   const t = useTranslations("admin");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [note, setNote] = useState("");
   const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function decide(status: "resolved" | "dismissed") {
+    setError(null);
     start(async () => {
-      await resolveDispute(id, status, note);
-      router.refresh();
+      const r = await resolveDispute(id, status, note);
+      if (r.ok) router.refresh();
+      else setError(tErr(errorKey(r.error)));
     });
   }
 
@@ -75,6 +80,8 @@ export function AdminDisputeRow({
           {t("disputeDismiss")}
         </button>
       </div>
+
+      {error ? <p className="text-sm text-accent">{error}</p> : null}
     </div>
   );
 }

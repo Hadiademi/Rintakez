@@ -11,7 +11,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "remove": "Remove",
-    "close": "Close"
+    "close": "Close",
+    "removeConfirm": "Remove this? This can't be undone."
   },
   "nav": {
     "home": "Home",
@@ -293,6 +294,7 @@
     },
     "dataPrivacy": "Data & privacy",
     "exportData": "Download my data",
+    "exporting": "Preparing…",
     "exportDataHint": "Download a copy of all data we hold about you as a JSON file.",
     "securityTitle": "Security",
     "passwordTitle": "Change password",
@@ -453,6 +455,7 @@
     "title": "Review",
     "markCompleted": "Mark as completed",
     "completedHint": "Shoot done? Mark it completed to review the photographer.",
+    "completeConfirm": "Mark this shoot as completed? This unlocks the review and can't be undone.",
     "leaveReview": "Review the photographer",
     "yourRating": "Your rating",
     "comment": "Comment (optional)",
@@ -557,6 +560,9 @@
     "makeAdmin": "Make admin",
     "revokeAdmin": "Revoke admin",
     "cannotRevokeSelf": "You can’t revoke your own admin status.",
+    "confirmSuspend": "Suspend {name}? They won’t be able to create new content.",
+    "confirmMakeAdmin": "Grant admin to {name}?",
+    "confirmRevokeAdmin": "Revoke admin from {name}?",
     "auditLog": "Audit log",
     "noAudit": "No entries yet.",
     "auditBy": "by",

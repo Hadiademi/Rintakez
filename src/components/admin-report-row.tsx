@@ -8,6 +8,7 @@ import {
   setUserSuspension,
   setShootSuspension,
 } from "@/lib/actions/admin";
+import { errorKey } from "@/lib/error-messages";
 
 export function AdminReportRow({
   id,
@@ -33,25 +34,30 @@ export function AdminReportRow({
   createdAt: string;
 }) {
   const t = useTranslations("admin");
+  const tErr = useTranslations("errors");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   function resolve(status: "reviewed" | "dismissed") {
+    setError(null);
     startTransition(async () => {
-      await updateReportStatus(id, status, note);
-      router.refresh();
+      const r = await updateReportStatus(id, status, note);
+      if (r.ok) router.refresh();
+      else setError(tErr(errorKey(r.error)));
     });
   }
 
   function toggleSuspension() {
+    setError(null);
     startTransition(async () => {
-      if (targetKind === "profile") {
-        await setUserSuspension(targetId, !targetSuspended, note);
-      } else {
-        await setShootSuspension(targetId, !targetSuspended, note);
-      }
-      router.refresh();
+      const r =
+        targetKind === "profile"
+          ? await setUserSuspension(targetId, !targetSuspended, note)
+          : await setShootSuspension(targetId, !targetSuspended, note);
+      if (r.ok) router.refresh();
+      else setError(tErr(errorKey(r.error)));
     });
   }
 
@@ -122,6 +128,8 @@ export function AdminReportRow({
           {t("markDismissed")}
         </button>
       </div>
+
+      {error ? <p className="text-sm text-accent">{error}</p> : null}
     </div>
   );
 }
