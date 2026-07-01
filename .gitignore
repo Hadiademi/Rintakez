@@ -51,3 +51,8 @@ supabase/.temp
 /test-results
 /playwright-report
 /playwright/.cache
+
+# Expo mobile skeleton
+mobile/node_modules
+mobile/.env
+mobile/.expo
