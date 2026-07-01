@@ -242,6 +242,11 @@ export async function sendMessage(
       recipientId,
       shootId: conv.shoot_id,
       shootTitle: shoot?.title ?? null,
+      // Collapse a back-and-forth thread into ~one email per 15 minutes so
+      // recipients aren't trained to spam-mark the sender. shoot_id is a
+      // sound dedupe key here because conversations.shoot_id is unique — one
+      // conversation per shoot, so no cross-conversation collisions.
+      dedupeWindowMs: 900_000,
     });
   }
 

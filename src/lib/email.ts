@@ -52,12 +52,21 @@ const PREF_COLUMN: Partial<
  * Enqueue the email mirror of an in-app notification. Fast, non-blocking, and a
  * no-op when the service role is not configured. Respects the recipient's
  * notification preferences. Never throws into the caller.
+ *
+ * `dedupeWindowMs`, when set, collapses a burst of the same notification into
+ * ~one email per window: before inserting, we check email_outbox for an
+ * existing row with the same recipient_id + kind + shoot_id created within
+ * the window, and skip the insert if one is found. This is what keeps a busy
+ * back-and-forth message thread from sending one email per message (and
+ * training the recipient to mark the sender as spam). Callers that omit
+ * dedupeWindowMs keep the old always-enqueue behaviour.
  */
 export async function notifyEmail(opts: {
   kind: EmailKind;
   recipientId: string;
   shootId?: string | null;
   shootTitle?: string | null;
+  dedupeWindowMs?: number;
 }): Promise<void> {
   const admin = createAdminClient();
   if (!admin) return;
@@ -72,6 +81,24 @@ export async function notifyEmail(opts: {
         .maybeSingle();
       const enabled = (pref as Record<string, boolean> | null)?.[prefColumn];
       if (enabled === false) return;
+    }
+
+    if (opts.dedupeWindowMs) {
+      const since = new Date(Date.now() - opts.dedupeWindowMs).toISOString();
+      let dedupeQuery = admin
+        .from("email_outbox")
+        .select("id")
+        .eq("recipient_id", opts.recipientId)
+        .eq("kind", opts.kind)
+        .gte("created_at", since);
+      // `.eq` can't match NULL in SQL semantics, so branch on whether this
+      // kind carries a shoot_id (message_received always does — a
+      // conversation is 1:1 with its shoot).
+      dedupeQuery = opts.shootId
+        ? dedupeQuery.eq("shoot_id", opts.shootId)
+        : dedupeQuery.is("shoot_id", null);
+      const { data: recent } = await dedupeQuery.limit(1).maybeSingle();
+      if (recent) return;
     }
 
     await admin.from("email_outbox").insert({
@@ -192,6 +219,16 @@ const COPY: Record<
   },
 };
 
+// Footer link to the notification-preferences section of the profile page.
+// Shown on every email so a recipient annoyed by volume can turn a category
+// off instead of hitting "mark as spam" (which hurts sender reputation for
+// everyone). Kept short and muted so it doesn't compete with the main CTA.
+const FOOTER: Record<Locale, string> = {
+  de: "Benachrichtigungen verwalten",
+  fr: "Gérer tes préférences de notifications",
+  en: "Manage your notification preferences",
+};
+
 function render(
   kind: EmailKind,
   locale: Locale,
@@ -204,6 +241,7 @@ function render(
   const titleLine = shootTitle
     ? `<p style="margin:0 0 16px;color:#666;font-size:14px">${shootTitle}</p>`
     : "";
+  const prefsUrl = `${SITE_URL}/${locale}/profile#notifications`;
   const html = `
   <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
     <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Rintakez</p>
@@ -211,6 +249,9 @@ function render(
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.01em">${c.lead}</h1>
     ${titleLine}
     <a href="${url}" style="display:inline-block;margin-top:16px;background:#111;color:#fff;text-decoration:none;padding:12px 22px;font-size:14px">${c.cta}</a>
+    <p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#999">
+      <a href="${prefsUrl}" style="color:#999;text-decoration:underline">${FOOTER[locale]}</a>
+    </p>
   </div>`;
   return { subject: c.subject, html };
 }
