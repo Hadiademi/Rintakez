@@ -327,9 +327,9 @@
     "coverUpload": "Téléverser la couverture",
     "coverReplace": "Remplacer la couverture",
     "coverRemove": "Supprimer",
-    "inviteCta": "Inviter à votre séance",
+    "inviteCta": "Inviter à ta séance",
     "invitePickTitle": "Choisir une séance",
-    "inviteNoOpenShoots": "Vous n'avez aucune séance ouverte.",
+    "inviteNoOpenShoots": "Tu n'as aucune séance ouverte.",
     "inviteCreateShoot": "Créer une séance",
     "inviteSuccess": "Invitation envoyée",
     "inviteAlready": "Déjà invité",
@@ -458,7 +458,7 @@
     "review_received": "Tu as reçu une nouvelle évaluation",
     "verification_approved": "Ton profil a été vérifié",
     "verification_rejected": "Ta demande de vérification a été refusée",
-    "shoot_invitation": "Vous avez été invité à une séance"
+    "shoot_invitation": "Tu as été invité à une séance"
   },
   "review": {
     "title": "Évaluation",
