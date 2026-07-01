@@ -571,15 +571,19 @@ export default async function PhotographerProfilePage({
                         {r.comment}
                       </p>
                     ) : null}
-                    <p className="text-[13px] text-mute">
-                      {[
-                        r.reviewerName,
-                        r.shootType ? tShoot(`types.${r.shootType}`) : null,
-                        formatSwissDate(r.created_at.slice(0, 10)),
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-mute">
+                      <span>
+                        {[
+                          r.reviewerName,
+                          r.shootType ? tShoot(`types.${r.shootType}`) : null,
+                          formatSwissDate(r.created_at.slice(0, 10)),
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                      <span aria-hidden="true">·</span>
+                      <ReportButton targetType="review" targetId={r.id} compact />
+                    </div>
                   </li>
                 ))}
               </ul>

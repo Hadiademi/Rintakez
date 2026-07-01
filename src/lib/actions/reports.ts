@@ -8,10 +8,21 @@ import { rateLimit } from "@/lib/rate-limit";
 
 type ErrResult = { ok: false; error: string };
 
+export const REPORT_CATEGORIES = [
+  "spam",
+  "harassment",
+  "scam",
+  "inappropriate_content",
+  "other",
+] as const;
+
+export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
+
 const reportSchema = z.object({
-  targetType: z.enum(["profile", "shoot"]),
+  targetType: z.enum(["profile", "shoot", "review", "message"]),
   targetId: z.string().uuid(),
   reason: z.string().min(1).max(1000),
+  category: z.enum(REPORT_CATEGORIES).default("other"),
 });
 
 export async function submitReport(
@@ -31,6 +42,7 @@ export async function submitReport(
     target_type: parsed.data.targetType,
     target_id: parsed.data.targetId,
     reason: parsed.data.reason.trim(),
+    category: parsed.data.category,
   });
   if (error) return { ok: false, error: dbError(error, "reports") };
 

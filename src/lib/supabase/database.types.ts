@@ -599,6 +599,7 @@ export type Database = {
       reports: {
         Row: {
           admin_note: string | null
+          category: Database["public"]["Enums"]["report_category"]
           created_at: string
           id: string
           reason: string
@@ -611,6 +612,7 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
+          category?: Database["public"]["Enums"]["report_category"]
           created_at?: string
           id?: string
           reason: string
@@ -623,6 +625,7 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
+          category?: Database["public"]["Enums"]["report_category"]
           created_at?: string
           id?: string
           reason?: string
@@ -998,8 +1001,14 @@ export type Database = {
         | "verification_rejected"
         | "shoot_invitation"
         | "shoot_match"
+      report_category:
+        | "spam"
+        | "harassment"
+        | "scam"
+        | "inappropriate_content"
+        | "other"
       report_status: "open" | "reviewed" | "dismissed"
-      report_target: "profile" | "shoot"
+      report_target: "profile" | "shoot" | "review" | "message"
       shoot_status: "open" | "assigned" | "completed" | "cancelled"
       shoot_type:
         | "wedding"
@@ -1186,8 +1195,15 @@ export const Constants = {
         "shoot_invitation",
         "shoot_match",
       ],
+      report_category: [
+        "spam",
+        "harassment",
+        "scam",
+        "inappropriate_content",
+        "other",
+      ],
       report_status: ["open", "reviewed", "dismissed"],
-      report_target: ["profile", "shoot"],
+      report_target: ["profile", "shoot", "review", "message"],
       shoot_status: ["open", "assigned", "completed", "cancelled"],
       shoot_type: [
         "wedding",

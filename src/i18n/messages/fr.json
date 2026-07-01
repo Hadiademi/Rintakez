@@ -521,11 +521,19 @@
   "report": {
     "report": "Signaler",
     "reportTitle": "Signaler un contenu",
+    "reportCategory": "Catégorie",
     "reportReason": "Que souhaites-tu signaler ?",
     "reportPlaceholder": "Décris brièvement le problème …",
     "reportSubmit": "Signaler",
     "reportThanks": "Merci. Nous examinons ton signalement.",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "categories": {
+      "spam": "Spam",
+      "harassment": "Harcèlement",
+      "scam": "Arnaque",
+      "inappropriate_content": "Contenu inapproprié",
+      "other": "Autre"
+    }
   },
   "admin": {
     "navAdmin": "Admin",

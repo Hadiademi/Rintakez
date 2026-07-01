@@ -27,7 +27,9 @@ export default async function AdminReportsPage({
 
   const { data: reports } = await admin
     .from("reports")
-    .select("id, reporter_id, target_type, target_id, reason, created_at")
+    .select(
+      "id, reporter_id, target_type, target_id, reason, category, created_at"
+    )
     .eq("status", status)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -100,17 +102,26 @@ export default async function AdminReportsPage({
         <div className="space-y-3">
           {list.map((r) => {
             const isProfile = r.target_type === "profile";
+            const isShoot = r.target_type === "shoot";
             const targetProfile = targetProfileBy.get(r.target_id);
             const targetShoot = targetShootBy.get(r.target_id);
+            // Reviews/messages have no suspension flag and no dedicated
+            // lookup here; fall back to showing the raw target id.
             const targetLabel = isProfile
               ? (targetProfile?.display_name ?? r.target_id)
-              : (targetShoot?.title ?? r.target_id);
+              : isShoot
+                ? (targetShoot?.title ?? r.target_id)
+                : r.target_id;
             const targetSuspended = isProfile
               ? (targetProfile?.is_suspended ?? false)
-              : (targetShoot?.is_suspended ?? false);
+              : isShoot
+                ? (targetShoot?.is_suspended ?? false)
+                : false;
             const targetHref = isProfile
               ? `/photographers/${r.target_id}`
-              : `/shoots/${r.target_id}`;
+              : isShoot
+                ? `/shoots/${r.target_id}`
+                : null;
             return (
               <AdminReportRow
                 key={r.id}
@@ -122,6 +133,7 @@ export default async function AdminReportsPage({
                 targetSuspended={targetSuspended}
                 targetLabel={targetLabel}
                 targetHref={targetHref}
+                category={r.category}
                 reason={r.reason}
                 createdAt={r.created_at}
               />

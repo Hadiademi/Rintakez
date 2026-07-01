@@ -8,6 +8,7 @@ import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ReportButton } from "@/components/report-button";
 import { formatSwissDate } from "@/lib/format";
 import {
   sendMessage,
@@ -230,8 +231,11 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                   >
                     {m.body}
                   </span>
-                  <span className="mt-1 px-1 text-[11px] text-mute-2">
+                  <span className="mt-1 flex items-center gap-2 px-1 text-[11px] text-mute-2">
                     {hhmm(m.createdAt)}
+                    {!mine && (
+                      <ReportButton targetType="message" targetId={m.id} compact />
+                    )}
                   </span>
                 </div>
               </div>

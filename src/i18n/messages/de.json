@@ -521,11 +521,19 @@
   "report": {
     "report": "Melden",
     "reportTitle": "Inhalt melden",
+    "reportCategory": "Kategorie",
     "reportReason": "Was möchtest du melden?",
     "reportPlaceholder": "Beschreibe das Problem kurz …",
     "reportSubmit": "Melden",
     "reportThanks": "Danke. Wir prüfen deine Meldung.",
-    "cancel": "Abbrechen"
+    "cancel": "Abbrechen",
+    "categories": {
+      "spam": "Spam",
+      "harassment": "Belästigung",
+      "scam": "Betrug",
+      "inappropriate_content": "Unangemessener Inhalt",
+      "other": "Sonstiges"
+    }
   },
   "admin": {
     "navAdmin": "Admin",
