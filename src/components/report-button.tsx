@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { submitReport, REPORT_CATEGORIES } from "@/lib/actions/reports";
-import type { ReportCategory } from "@/lib/actions/reports";
+import { submitReport } from "@/lib/actions/reports";
+import { REPORT_CATEGORIES, type ReportCategory } from "@/lib/validation/report";
 import { errorKey } from "@/lib/error-messages";
 
 export function ReportButton({

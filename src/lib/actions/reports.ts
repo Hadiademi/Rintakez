@@ -5,18 +5,9 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { REPORT_CATEGORIES } from "@/lib/validation/report";
 
 type ErrResult = { ok: false; error: string };
-
-export const REPORT_CATEGORIES = [
-  "spam",
-  "harassment",
-  "scam",
-  "inappropriate_content",
-  "other",
-] as const;
-
-export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
 
 const reportSchema = z.object({
   targetType: z.enum(["profile", "shoot", "review", "message"]),
