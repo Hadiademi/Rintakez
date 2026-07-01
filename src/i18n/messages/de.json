@@ -459,7 +459,8 @@
     "review_received": "Du hast eine neue Bewertung erhalten",
     "verification_approved": "Dein Profil wurde verifiziert",
     "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt",
-    "shoot_invitation": "Du wurdest zu einem Shooting eingeladen"
+    "shoot_invitation": "Du wurdest zu einem Shooting eingeladen",
+    "shoot_match": "Neues Shooting in deiner Region"
   },
   "review": {
     "title": "Bewertung",

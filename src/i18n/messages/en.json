@@ -459,7 +459,8 @@
     "review_received": "You received a new review",
     "verification_approved": "Your profile was verified",
     "verification_rejected": "Your verification request was declined",
-    "shoot_invitation": "You were invited to a shoot"
+    "shoot_invitation": "You were invited to a shoot",
+    "shoot_match": "A new shoot matches your profile"
   },
   "review": {
     "title": "Review",

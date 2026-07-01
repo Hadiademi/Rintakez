@@ -459,7 +459,8 @@
     "review_received": "Tu as reçu une nouvelle évaluation",
     "verification_approved": "Ton profil a été vérifié",
     "verification_rejected": "Ta demande de vérification a été refusée",
-    "shoot_invitation": "Tu as été invité à une séance"
+    "shoot_invitation": "Tu as été invité à une séance",
+    "shoot_match": "Une nouvelle séance correspond à ton profil"
   },
   "review": {
     "title": "Évaluation",

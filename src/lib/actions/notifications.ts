@@ -15,7 +15,8 @@ export type NotificationItem = {
     | "review_received"
     | "verification_approved"
     | "verification_rejected"
-    | "shoot_invitation";
+    | "shoot_invitation"
+    | "shoot_match";
   shootId: string | null;
   conversationId: string | null;
   title: string | null;

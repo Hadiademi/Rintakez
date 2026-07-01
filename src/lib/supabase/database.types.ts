@@ -975,6 +975,7 @@ export type Database = {
         | "verification_approved"
         | "verification_rejected"
         | "shoot_invitation"
+        | "shoot_match"
       report_status: "open" | "reviewed" | "dismissed"
       report_target: "profile" | "shoot"
       shoot_status: "open" | "assigned" | "completed" | "cancelled"
@@ -1161,6 +1162,7 @@ export const Constants = {
         "verification_approved",
         "verification_rejected",
         "shoot_invitation",
+        "shoot_match",
       ],
       report_status: ["open", "reviewed", "dismissed"],
       report_target: ["profile", "shoot"],
