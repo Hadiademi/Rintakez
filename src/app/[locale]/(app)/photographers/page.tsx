@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
@@ -5,10 +6,25 @@ import { PhotographerFilters } from "@/components/photographer-filters";
 import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 12;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    title: t("photographersTitle"),
+    description: t("photographersDescription"),
+    alternates: buildAlternates(locale, "/photographers"),
+  };
+}
 
 export default async function PhotographersDirectoryPage({
   searchParams,

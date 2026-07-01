@@ -28,9 +28,14 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     title: { default: t("title"), template: "%s — Rintakez" },
     description: t("description"),
-    alternates: {
-      languages: { de: "/de", fr: "/fr", en: "/en" },
-    },
+    // No path-aware `alternates` here: this layout applies to every route,
+    // and next-intl's `getPathname` needs to know the *current* path per
+    // locale (not just the locale) to build correct hreflang. A static
+    // "/de" / "/fr" / "/en" map would make every page advertise the locale
+    // homepages as its alternates, which is actively harmful for SEO. Pages
+    // set their own path-aware `alternates` via `buildAlternates()`
+    // (see src/lib/seo.ts); this default is intentionally omitted so a page
+    // that forgets to set it doesn't silently inherit a wrong one.
     openGraph: {
       title: t("ogTitle"),
       description: t("description"),

@@ -2,7 +2,12 @@
   "meta": {
     "title": "Rintakez — Marché photo & vidéo en Suisse",
     "description": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
-    "ogTitle": "Rintakez — Marché photo & vidéo en Suisse"
+    "ogTitle": "Rintakez — Marché photo & vidéo en Suisse",
+    "photographersTitle": "Photographes & vidéastes en Suisse",
+    "photographersDescription": "Découvre des photographes et vidéastes vérifiés partout en Suisse et trouve la bonne personne pour ton projet.",
+    "shootsTitle": "Projets ouverts en Suisse",
+    "shootsDescription": "Découvre les projets photo et vidéo ouverts publiés par des clients partout en Suisse et propose ton offre.",
+    "shootFallbackTitle": "Projet"
   },
   "common": {
     "appName": "Rintakez",

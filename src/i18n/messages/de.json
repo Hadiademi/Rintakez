@@ -2,7 +2,12 @@
   "meta": {
     "title": "Rintakez — Foto- & Video-Marktplatz Schweiz",
     "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
-    "ogTitle": "Rintakez — Foto- & Video-Marktplatz Schweiz"
+    "ogTitle": "Rintakez — Foto- & Video-Marktplatz Schweiz",
+    "photographersTitle": "Fotografen & Videografen in der Schweiz",
+    "photographersDescription": "Entdecke verifizierte Fotograf:innen und Videograf:innen in der ganzen Schweiz und finde die passende Person für deinen Shoot.",
+    "shootsTitle": "Offene Shoots in der Schweiz",
+    "shootsDescription": "Entdecke offene Foto- und Video-Shoots von Kund:innen in der ganzen Schweiz und gib dein Angebot ab.",
+    "shootFallbackTitle": "Shoot"
   },
   "common": {
     "appName": "Rintakez",
