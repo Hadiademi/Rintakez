@@ -31,7 +31,9 @@ export async function ShootCard({
     shoot.discipline ? tShoot(`disciplines.${shoot.discipline}`) : null,
     shoot.location_city,
     formatSwissDate(shoot.shoot_date),
-    shoot.duration_hours ? `${shoot.duration_hours} STD` : null,
+    shoot.duration_hours
+      ? tShoot("hours", { count: shoot.duration_hours })
+      : null,
   ]
     .filter(Boolean)
     .join(" · ");

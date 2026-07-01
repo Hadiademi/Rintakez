@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getProfile } from "@/lib/auth";
 import { formatCHF, formatSwissDate } from "@/lib/format";
+import { initials } from "@/lib/name";
 import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
@@ -224,13 +225,9 @@ export default async function PhotographerProfilePage({
   const tDir = await getTranslations("directory");
   const tMarket = await getTranslations("marketplace");
 
-  // Initials for avatar placeholder
-  const initials = profile.display_name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  // Initials for avatar placeholder (shared helper — surrogate-safe, matches
+  // the card and the app nav).
+  const initialsStr = initials(profile.display_name);
 
   const specialties = details?.specialties ?? [];
   const coverageCantons = details?.coverage_cantons ?? [];
@@ -307,7 +304,7 @@ export default async function PhotographerProfilePage({
               ) : (
                 <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-paper bg-chip shadow-sm">
                   <span className="text-[30px] font-medium text-mute">
-                    {initials}
+                    {initialsStr}
                   </span>
                 </div>
               )}
@@ -389,7 +386,7 @@ export default async function PhotographerProfilePage({
                   key={d}
                   className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
                 >
-                  {d}
+                  {formatSwissDate(d)}
                 </span>
               ))}
             </div>

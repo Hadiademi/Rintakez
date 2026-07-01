@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { CoverImage } from "@/components/ui/cover-image";
@@ -24,7 +25,7 @@ export type PhotographerCardData = {
  * Leads with the photographer's work (cover, else first portfolio image, else a
  * tinted monogram band) so a photography marketplace actually shows photography.
  */
-export function PhotographerCard({
+export async function PhotographerCard({
   data,
   verifiedLabel,
   newLabel,
@@ -33,6 +34,7 @@ export function PhotographerCard({
   verifiedLabel: string;
   newLabel: string;
 }) {
+  const tShoot = await getTranslations("shoot");
   const location = [data.city, data.canton].filter(Boolean).join(", ");
   const rated = data.rating && data.rating.count > 0;
   const disciplines = data.disciplineLabels ?? [];
@@ -109,7 +111,8 @@ export function PhotographerCard({
           )}
           {data.hourlyRate != null && (
             <span className="tabular text-[13px] text-mute">
-              {formatCHF(data.hourlyRate)}/h
+              {formatCHF(data.hourlyRate)}
+              {tShoot("perHour")}
             </span>
           )}
         </div>

@@ -170,6 +170,7 @@
     "type": "Type",
     "statusOpen": "Open",
     "hours": "{count} h",
+    "perHour": "/hr",
     "types": {
       "wedding": "Wedding",
       "portrait": "Portrait",

@@ -67,6 +67,7 @@ export function NotificationBell({
   initialUnread: number;
 }) {
   const t = useTranslations("notifications");
+  const tCommon = useTranslations("common");
   const [items, setItems] = useState<NotificationItem[]>(initialItems);
   const [unread, setUnread] = useState(initialUnread);
   const [open, setOpen] = useState(false);
@@ -241,20 +242,30 @@ export function NotificationBell({
         </div>
       )}
 
-      {/* Realtime toast */}
+      {/* Realtime toast — the whole card navigates; a ✕ dismisses it. */}
       {toast && (
         <div
           data-testid="notification-toast"
-          className="fixed right-5 top-20 z-[60] w-72 border border-line bg-ink px-4 py-3 text-paper shadow-xl"
+          className="fixed right-5 top-20 z-[60] w-72 border border-line bg-ink text-paper shadow-xl"
         >
-          <p className="label text-paper/60">{t("title")}</p>
           <Link
             href={hrefFor(toast)}
             onClick={() => setToast(null)}
-            className="mt-1 block text-[14px] font-medium underline-offset-2 hover:underline"
+            className="press block px-4 py-3 pr-9"
           >
-            {t(toast.type)}
+            <span className="label block text-paper/60">{t("title")}</span>
+            <span className="mt-1 block text-[14px] font-medium">
+              {t(toast.type)}
+            </span>
           </Link>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            aria-label={tCommon("close")}
+            className="press absolute right-1 top-1 flex h-7 w-7 items-center justify-center text-paper/70 hover:text-paper"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>

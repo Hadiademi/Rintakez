@@ -170,6 +170,7 @@
     "type": "Art",
     "statusOpen": "Offen",
     "hours": "{count} Std",
+    "perHour": "/Std",
     "types": {
       "wedding": "Hochzeit",
       "portrait": "Porträt",
