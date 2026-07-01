@@ -186,13 +186,13 @@ export function NotificationBell({
         aria-haspopup="menu"
         aria-expanded={open}
         data-testid="notification-bell"
-        className="press relative text-mute hover:text-ink"
+        className="press relative -m-2 flex h-10 w-10 items-center justify-center text-mute hover:text-ink"
       >
         <BellIcon />
         {unread > 0 && (
           <span
             data-testid="notification-badge"
-            className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-paper"
+            className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-paper"
           >
             {unread > 9 ? "9+" : unread}
           </span>

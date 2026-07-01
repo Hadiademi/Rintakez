@@ -481,6 +481,7 @@
     "sortPriceAsc": "Preis aufsteigend",
     "searchName": "Nach Name suchen",
     "search": "Suchen",
+    "clear": "Zurücksetzen",
     "minRating": "Mind. Bewertung",
     "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
     "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",

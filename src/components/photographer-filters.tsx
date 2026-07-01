@@ -21,6 +21,22 @@ export function PhotographerFilters() {
     router.push(`${pathname}?${next.toString()}`);
   }
 
+  // Any active filter (ignoring pagination) enables the reset.
+  const hasFilters = [
+    "type",
+    "canton",
+    "discipline",
+    "minRating",
+    "saved",
+    "verified",
+    "sort",
+    "q",
+  ].some((k) => params.get(k));
+
+  function clearAll() {
+    router.push(pathname);
+  }
+
   return (
     <div className="space-y-3">
       <form
@@ -126,7 +142,18 @@ export function PhotographerFilters() {
         ✓ {t("verifiedOnly")}
       </button>
 
-      <div className="ml-auto">
+      {hasFilters && (
+        <button
+          type="button"
+          data-testid="filter-clear"
+          onClick={clearAll}
+          className="press border border-line px-3 py-2 text-[14px] text-mute hover:border-ink hover:text-ink"
+        >
+          {t("clear")}
+        </button>
+      )}
+
+      <div className="w-full lg:ml-auto lg:w-auto">
         <Select
           data-testid="filter-sort"
           value={params.get("sort") ?? "rating"}

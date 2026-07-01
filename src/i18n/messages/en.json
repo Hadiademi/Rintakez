@@ -481,6 +481,7 @@
     "sortPriceAsc": "Price: low to high",
     "searchName": "Search by name",
     "search": "Search",
+    "clear": "Clear",
     "minRating": "Min. rating",
     "empty": "No photographers match your filters.",
     "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}",
