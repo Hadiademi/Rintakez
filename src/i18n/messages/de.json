@@ -7,7 +7,9 @@
     "photographersDescription": "Entdecke verifizierte Fotograf:innen und Videograf:innen in der ganzen Schweiz und finde die passende Person für deinen Shoot.",
     "shootsTitle": "Offene Shoots in der Schweiz",
     "shootsDescription": "Entdecke offene Foto- und Video-Shoots von Kund:innen in der ganzen Schweiz und gib dein Angebot ab.",
-    "shootFallbackTitle": "Shoot"
+    "shootFallbackTitle": "Shoot",
+    "landingTitle": "{type} in {canton}",
+    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere verifizierte Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote."
   },
   "common": {
     "appName": "Rintakez",
@@ -507,7 +509,8 @@
     "savedOnly": "Nur gespeicherte",
     "verified": "Verifiziert",
     "verifiedOnly": "Nur verifizierte",
-    "allDisciplines": "Alle Disziplinen"
+    "allDisciplines": "Alle Disziplinen",
+    "popularSearches": "Beliebte Suchen"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -644,5 +647,31 @@
       "resolved": "Gelöst",
       "dismissed": "Abgewiesen"
     }
+  },
+  "landingSeo": {
+    "h1": {
+      "wedding": "Hochzeitsfotografen in {canton}",
+      "portrait": "Porträtfotografen in {canton}",
+      "commercial": "Commercial-Fotografen in {canton}",
+      "event": "Eventfotografen in {canton}",
+      "architecture": "Architekturfotografen in {canton}",
+      "family": "Familienfotografen in {canton}",
+      "other": "Fotograf:innen in {canton}"
+    },
+    "intro": {
+      "wedding": "Planst du eine Hochzeit in {canton}? Durchstöbere lokale Hochzeitsfotograf:innen, vergleiche Portfolios und Bewertungen und lade deine Favoriten zu einem Angebot ein.",
+      "portrait": "Suchst du ein Porträtshooting in {canton}? Vergleiche lokale Porträtfotograf:innen nach Stil, Preis und Bewertung, bevor du buchst.",
+      "commercial": "Brauchst du Commercial-Fotografie in {canton}? Durchstöbere Fotograf:innen mit Erfahrung in Produkt-, Kampagnen- und Editorial-Arbeit in deiner Region.",
+      "event": "Organisierst du ein Event in {canton}? Finde Eventfotograf:innen, die die lokalen Locations kennen und dein Event von Anfang bis Ende begleiten.",
+      "architecture": "Brauchst du Architekturfotografie in {canton}? Durchstöbere Fotograf:innen, die auf Innen- und Aussenaufnahmen in deiner Nähe spezialisiert sind.",
+      "family": "Suchst du ein Familienshooting in {canton}? Durchstöbere entspannte, lokale Familienfotograf:innen und sieh dir ihre aktuellen Arbeiten an, bevor du sie kontaktierst.",
+      "other": "Durchstöbere Fotograf:innen in {canton} für Shootings, die in keine Standardkategorie passen — beschreibe dein Projekt und vergleiche Angebote."
+    },
+    "snapshotHeading": "Fotograf:innen für {type} in {canton}",
+    "viewAllCta": "Alle {type} in {canton} ansehen",
+    "emptyTitle": "Noch keine Fotograf:innen hier",
+    "emptyDescription": "Für {type} in {canton} sind noch keine Fotograf:innen gelistet. Sei die/der Erste mit deinem Profil oder durchstöbere das ganze Verzeichnis.",
+    "emptyBrowseAll": "Alle Fotograf:innen ansehen",
+    "emptyJoin": "Als Fotograf:in registrieren"
   }
 }

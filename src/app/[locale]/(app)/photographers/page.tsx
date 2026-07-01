@@ -7,6 +7,8 @@ import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
+import { PopularSearches } from "@/components/popular-searches";
+import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +29,10 @@ export async function generateMetadata({
 }
 
 export default async function PhotographersDirectoryPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     type?: string;
     canton?: string;
@@ -41,6 +45,7 @@ export default async function PhotographersDirectoryPage({
     page?: string;
   }>;
 }) {
+  const { locale } = await params;
   const {
     type,
     canton,
@@ -238,6 +243,14 @@ export default async function PhotographersDirectoryPage({
         params={{ type, canton, minRating, sort, saved, verified, discipline, q }}
         basePath="/photographers"
       />
+
+      {/* Internal links into the canton x shoot-type landing pages, so
+          crawlers (and visitors) can discover them from the directory —
+          only on the unfiltered view, so it reads as a discovery aid rather
+          than clutter once someone's already narrowed their search. */}
+      {!type && !canton && !discipline && !minRating && !saved && !verified && !query ? (
+        <PopularSearches combos={await getActiveCantonTypeCombos()} locale={locale} />
+      ) : null}
     </div>
   );
 }

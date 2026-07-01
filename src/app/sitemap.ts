@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/server";
 import { captureError } from "@/lib/observability";
+import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -76,6 +77,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch (err) {
     // DB unreachable at build time — static entries still emitted, but record it.
     captureError(err, { scope: "sitemap.shoots" });
+  }
+  // Programmatic canton x shoot-type landing pages — only combos that
+  // currently have >=1 matching, non-suspended photographer are worth an
+  // index entry (26 cantons x 7 types = 182 possible combos; emitting all of
+  // them regardless of listings would be exactly the low-value sitemap bloat
+  // we want to avoid). Shared with the directory page's "popular searches"
+  // block so both derive the same set of "real" combos from one query.
+  try {
+    const combos = await getActiveCantonTypeCombos();
+    for (const { canton, type } of combos) {
+      for (const locale of routing.locales) {
+        entries.push({
+          url: `${SITE_URL}/${locale}/photographers/${canton}/${type}`,
+          changeFrequency: "weekly",
+          priority: 0.6,
+        });
+      }
+    }
+  } catch (err) {
+    // DB unreachable at build time — static entries still emitted, but record it.
+    captureError(err, { scope: "sitemap.landingPages" });
   }
   return entries;
 }

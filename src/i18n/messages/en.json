@@ -7,7 +7,9 @@
     "photographersDescription": "Browse verified photographers and videographers across Switzerland and find the right match for your shoot.",
     "shootsTitle": "Open shoots in Switzerland",
     "shootsDescription": "Browse open photo and video shoots from clients across Switzerland and place your offer.",
-    "shootFallbackTitle": "Shoot"
+    "shootFallbackTitle": "Shoot",
+    "landingTitle": "{type} photographers in {canton}",
+    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse verified profiles, portfolios and reviews, then post your shoot for offers."
   },
   "common": {
     "appName": "Rintakez",
@@ -507,7 +509,8 @@
     "savedOnly": "Saved only",
     "verified": "Verified",
     "verifiedOnly": "Verified only",
-    "allDisciplines": "All disciplines"
+    "allDisciplines": "All disciplines",
+    "popularSearches": "Popular searches"
   },
   "messages": {
     "navMessages": "Messages",
@@ -644,5 +647,31 @@
       "resolved": "Resolved",
       "dismissed": "Dismissed"
     }
+  },
+  "landingSeo": {
+    "h1": {
+      "wedding": "Wedding photographers in {canton}",
+      "portrait": "Portrait photographers in {canton}",
+      "commercial": "Commercial photographers in {canton}",
+      "event": "Event photographers in {canton}",
+      "architecture": "Architecture photographers in {canton}",
+      "family": "Family photographers in {canton}",
+      "other": "Photographers in {canton}"
+    },
+    "intro": {
+      "wedding": "Planning a wedding in {canton}? Browse local wedding photographers, compare portfolios and reviews, then invite your favorites to bid on your day.",
+      "portrait": "Looking for a portrait session in {canton}? Compare local portrait photographers by style, price and rating before you book.",
+      "commercial": "Need commercial photography in {canton}? Browse photographers experienced with product, campaign and editorial work in your area.",
+      "event": "Hosting an event in {canton}? Find event photographers who know the local venues and can cover it start to finish.",
+      "architecture": "Need architecture photography in {canton}? Browse photographers who specialize in interiors and exteriors near you.",
+      "family": "Looking for a family shoot in {canton}? Browse relaxed, local family photographers and see their recent work before you reach out.",
+      "other": "Browse photographers covering {canton} for shoots that don't fit a standard category — describe your project and compare offers."
+    },
+    "snapshotHeading": "Photographers matching {type} in {canton}",
+    "viewAllCta": "View all {type} photographers in {canton}",
+    "emptyTitle": "No photographers here yet",
+    "emptyDescription": "No {type} photographers are listed for {canton} yet. Be the first to add your profile, or browse the full directory.",
+    "emptyBrowseAll": "Browse all photographers",
+    "emptyJoin": "Join as a photographer"
   }
 }
