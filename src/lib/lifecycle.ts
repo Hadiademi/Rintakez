@@ -18,6 +18,14 @@ import { captureError } from "@/lib/observability";
 // behavior, not deployment config, and keeping them in code keeps the scan
 // predicate and the "why" comment next to each other.
 //
+// Delivery guarantee: AT-LEAST-ONCE. Each subject's email_outbox row is
+// inserted BEFORE its lifecycle_email_log marker row (see the bulk inserts
+// below). If the process dies (or the marker insert fails) between the two,
+// the next cron tick will re-match the same subject and send a duplicate —
+// annoying but safe. The ordering is never reversed: writing the marker first
+// would risk the opposite failure (a subject marked "notified" whose email
+// never actually got enqueued), which is a silent drop and strictly worse.
+//
 // Test coverage note: this module is deliberately NOT unit-tested with a fake
 // Supabase client. The supabase-js query builder is a chainable thenable
 // (`.from().select().eq().lt().in().limit()`) — faking it meaningfully means
@@ -26,13 +34,20 @@ import { captureError } from "@/lib/observability";
 // "eligible") and the idempotency guard, and both are exercised where they can
 // fail for real: pgTAP (supabase/tests/database/lifecycle.test.sql) proves the
 // welcome trigger and the lifecycle_email_log RLS posture against a real
-// Postgres; the per-scan predicates (open+0 bids, completed+no review,
+// Postgres; the per-scan predicates (open+0 active bids, completed+no review,
 // photographer+no details) reuse column/predicate patterns already covered by
 // other pgTAP suites (reliability.test.sql, messaging_reviews.test.sql). New
 // predicate changes here should get a matching pgTAP case rather than a mock.
 const ONBOARDING_REMINDER_DAYS = 3;
 const ZERO_BID_RESCUE_DAYS = 3;
 const REVIEW_REQUEST_DAYS = 5;
+
+// Bids in these statuses still count as "the shoot has a live bid" — a
+// withdrawn (or declined) bid must NOT protect a shoot from the zero-bid
+// rescue email, since from the client's perspective they still have nobody
+// actively bidding. Mirrors withdrawBidAction, which sets status='withdrawn'
+// rather than deleting the row.
+const ACTIVE_BID_STATUSES = ["pending", "accepted"] as const;
 
 // Bound each scan's work per cron tick so a large backlog (or a bug) cannot
 // turn one invocation into an unbounded scan + fan-out.
@@ -55,9 +70,34 @@ async function alreadyLogged(
 }
 
 /**
+ * Given a set of profile ids, return the subset that is suspended. Used to
+ * exclude suspended subjects/recipients from every scan below, mirroring the
+ * `not p.is_suspended` guard in notify_matching_photographers
+ * (20260701040000_shoot_match_alerts.sql).
+ */
+async function suspendedIds(
+  admin: AdminClient,
+  ids: string[]
+): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const { data } = await admin
+    .from("profiles")
+    .select("id")
+    .in("id", ids)
+    .eq("is_suspended", true);
+  return new Set((data ?? []).map((p) => p.id as string));
+}
+
+/**
  * Photographers who signed up >= ONBOARDING_REMINDER_DAYS ago and still have
  * no photographer_details row (i.e. never finished onboarding). subject_id is
  * the profile id; recipient is the same profile.
+ *
+ * Intentionally NOT preference-gated: there is no notification-preference
+ * column that fits "reminders about my own onboarding" (notify_bids/
+ * notify_shoot_updates/notify_messages are all about other people's
+ * activity), so this scan always sends, same as before. It still excludes
+ * suspended photographers (see FIX 2).
  */
 async function scanOnboardingReminder(admin: AdminClient): Promise<number> {
   const cutoff = new Date(
@@ -68,6 +108,7 @@ async function scanOnboardingReminder(admin: AdminClient): Promise<number> {
     .from("profiles")
     .select("id")
     .eq("role", "photographer")
+    .eq("is_suspended", false)
     .lt("created_at", cutoff)
     .limit(BATCH_LIMIT);
   if (!candidates || candidates.length === 0) return 0;
@@ -80,30 +121,42 @@ async function scanOnboardingReminder(admin: AdminClient): Promise<number> {
     .in("profile_id", ids);
   const hasDetails = new Set((withDetails ?? []).map((d) => d.profile_id));
 
-  const logged = await alreadyLogged(
-    admin,
-    "onboarding_reminder",
-    ids
-  );
+  const logged = await alreadyLogged(admin, "onboarding_reminder", ids);
 
-  let count = 0;
-  for (const id of ids) {
-    if (hasDetails.has(id) || logged.has(id)) continue;
-    await admin.from("email_outbox").insert({
-      recipient_id: id,
-      kind: "onboarding_reminder",
-    });
-    await admin
-      .from("lifecycle_email_log")
-      .insert({ kind: "onboarding_reminder", subject_id: id });
-    count++;
-  }
-  return count;
+  const eligibleIds = ids.filter(
+    (id) => !hasDetails.has(id) && !logged.has(id)
+  );
+  if (eligibleIds.length === 0) return 0;
+
+  // Bulk insert: enqueue the email for the whole batch first, then write the
+  // markers — see the AT-LEAST-ONCE note above for why this order matters.
+  const outboxRows = eligibleIds.map((id) => ({
+    recipient_id: id,
+    kind: "onboarding_reminder" as const,
+  }));
+  const { error: outboxError } = await admin
+    .from("email_outbox")
+    .insert(outboxRows);
+  if (outboxError) throw outboxError;
+
+  const markerRows = eligibleIds.map((id) => ({
+    kind: "onboarding_reminder",
+    subject_id: id,
+  }));
+  const { error: markerError } = await admin
+    .from("lifecycle_email_log")
+    .insert(markerRows);
+  if (markerError) throw markerError;
+
+  return eligibleIds.length;
 }
 
 /**
- * Shoots still 'open' with zero bids >= ZERO_BID_RESCUE_DAYS after creation.
- * subject_id is the shoot id; recipient is the shoot's client.
+ * Shoots still 'open' with zero ACTIVE bids >= ZERO_BID_RESCUE_DAYS after
+ * creation. subject_id is the shoot id; recipient is the shoot's client.
+ * "Active" excludes 'withdrawn' and 'declined' bids — a shoot whose only bids
+ * were withdrawn has, in effect, zero bids and must still be eligible for the
+ * rescue email.
  */
 async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
   const cutoff = new Date(
@@ -123,26 +176,55 @@ async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
   const { data: bidRows } = await admin
     .from("bids")
     .select("shoot_id")
-    .in("shoot_id", ids);
-  const hasBids = new Set((bidRows ?? []).map((b) => b.shoot_id));
+    .in("shoot_id", ids)
+    .in("status", ACTIVE_BID_STATUSES);
+  const hasActiveBids = new Set((bidRows ?? []).map((b) => b.shoot_id));
 
   const logged = await alreadyLogged(admin, "zero_bid_rescue", ids);
 
-  let count = 0;
-  for (const shoot of candidates) {
-    if (hasBids.has(shoot.id) || logged.has(shoot.id)) continue;
-    await admin.from("email_outbox").insert({
-      recipient_id: shoot.client_id,
-      kind: "zero_bid_rescue",
-      shoot_id: shoot.id,
-      shoot_title: shoot.title,
-    });
-    await admin
-      .from("lifecycle_email_log")
-      .insert({ kind: "zero_bid_rescue", subject_id: shoot.id });
-    count++;
-  }
-  return count;
+  const clientIds = [...new Set(candidates.map((c) => c.client_id))];
+  const suspendedClients = await suspendedIds(admin, clientIds);
+
+  const eligible = candidates.filter(
+    (shoot) =>
+      !hasActiveBids.has(shoot.id) &&
+      !logged.has(shoot.id) &&
+      !suspendedClients.has(shoot.client_id)
+  );
+  if (eligible.length === 0) return 0;
+
+  // Respect the client's shoot-update preference, same column/default
+  // notify_matching_photographers uses (coalesce(..., true)).
+  const prefEligibleIds = await filterByNotifyShootUpdates(
+    admin,
+    eligible.map((s) => s.client_id)
+  );
+  const finalEligible = eligible.filter((s) =>
+    prefEligibleIds.has(s.client_id)
+  );
+  if (finalEligible.length === 0) return 0;
+
+  const outboxRows = finalEligible.map((shoot) => ({
+    recipient_id: shoot.client_id,
+    kind: "zero_bid_rescue" as const,
+    shoot_id: shoot.id,
+    shoot_title: shoot.title,
+  }));
+  const { error: outboxError } = await admin
+    .from("email_outbox")
+    .insert(outboxRows);
+  if (outboxError) throw outboxError;
+
+  const markerRows = finalEligible.map((shoot) => ({
+    kind: "zero_bid_rescue",
+    subject_id: shoot.id,
+  }));
+  const { error: markerError } = await admin
+    .from("lifecycle_email_log")
+    .insert(markerRows);
+  if (markerError) throw markerError;
+
+  return finalEligible.length;
 }
 
 /**
@@ -152,6 +234,11 @@ async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
  * approximation of "when it was completed" — slightly conservative (a shoot
  * usually completes some time after it's created, so the real wait before a
  * reminder is >= REVIEW_REQUEST_DAYS, never less).
+ *
+ * FOLLOW-UP: created_at is a proxy for "completed at" pending a real
+ * shoots.completed_at column; once that column exists this scan should key
+ * off it instead so the N-day window is measured from actual completion, not
+ * creation.
  */
 async function scanReviewRequest(admin: AdminClient): Promise<number> {
   const cutoff = new Date(
@@ -176,21 +263,69 @@ async function scanReviewRequest(admin: AdminClient): Promise<number> {
 
   const logged = await alreadyLogged(admin, "review_request", ids);
 
-  let count = 0;
-  for (const shoot of candidates) {
-    if (hasReview.has(shoot.id) || logged.has(shoot.id)) continue;
-    await admin.from("email_outbox").insert({
-      recipient_id: shoot.client_id,
-      kind: "review_request",
-      shoot_id: shoot.id,
-      shoot_title: shoot.title,
-    });
-    await admin
-      .from("lifecycle_email_log")
-      .insert({ kind: "review_request", subject_id: shoot.id });
-    count++;
-  }
-  return count;
+  const clientIds = [...new Set(candidates.map((c) => c.client_id))];
+  const suspendedClients = await suspendedIds(admin, clientIds);
+
+  const eligible = candidates.filter(
+    (shoot) =>
+      !hasReview.has(shoot.id) &&
+      !logged.has(shoot.id) &&
+      !suspendedClients.has(shoot.client_id)
+  );
+  if (eligible.length === 0) return 0;
+
+  const prefEligibleIds = await filterByNotifyShootUpdates(
+    admin,
+    eligible.map((s) => s.client_id)
+  );
+  const finalEligible = eligible.filter((s) =>
+    prefEligibleIds.has(s.client_id)
+  );
+  if (finalEligible.length === 0) return 0;
+
+  const outboxRows = finalEligible.map((shoot) => ({
+    recipient_id: shoot.client_id,
+    kind: "review_request" as const,
+    shoot_id: shoot.id,
+    shoot_title: shoot.title,
+  }));
+  const { error: outboxError } = await admin
+    .from("email_outbox")
+    .insert(outboxRows);
+  if (outboxError) throw outboxError;
+
+  const markerRows = finalEligible.map((shoot) => ({
+    kind: "review_request",
+    subject_id: shoot.id,
+  }));
+  const { error: markerError } = await admin
+    .from("lifecycle_email_log")
+    .insert(markerRows);
+  if (markerError) throw markerError;
+
+  return finalEligible.length;
+}
+
+/**
+ * Given client profile ids, return the subset whose notify_shoot_updates
+ * preference is not explicitly false (i.e. coalesce(notify_shoot_updates,
+ * true)), matching how notify_matching_photographers gates shoot_match
+ * emails.
+ */
+async function filterByNotifyShootUpdates(
+  admin: AdminClient,
+  clientIds: string[]
+): Promise<Set<string>> {
+  if (clientIds.length === 0) return new Set();
+  const { data } = await admin
+    .from("profiles")
+    .select("id, notify_shoot_updates")
+    .in("id", clientIds);
+  return new Set(
+    (data ?? [])
+      .filter((p) => p.notify_shoot_updates !== false)
+      .map((p) => p.id as string)
+  );
 }
 
 /**
