@@ -316,6 +316,24 @@ export type Database = {
           },
         ]
       }
+      lifecycle_email_log: {
+        Row: {
+          created_at: string
+          kind: string
+          subject_id: string
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          subject_id: string
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          subject_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string

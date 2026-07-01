@@ -23,13 +23,21 @@ export type EmailKind =
   | "shoot_cancelled"
   | "message_received"
   | "shoot_invitation"
-  | "shoot_match";
+  | "shoot_match"
+  | "welcome"
+  | "onboarding_reminder"
+  | "zero_bid_rescue"
+  | "review_request";
 type Locale = "de" | "fr" | "en";
 
-// Which notification-preference column gates each email kind (null = always send).
-const PREF_COLUMN: Record<
-  EmailKind,
-  "notify_bids" | "notify_shoot_updates" | "notify_messages"
+// Which notification-preference column gates each email kind (missing = always
+// send). Partial: the lifecycle kinds (welcome/onboarding_reminder/
+// zero_bid_rescue/review_request) are enqueued directly into email_outbox by a
+// DB trigger or the cron scans in lifecycle.ts, never via notifyEmail, so they
+// have no entry here — the `if (prefColumn)` guard below treats that as
+// "always send" (harmless; notifyEmail simply isn't the enqueue path for them).
+const PREF_COLUMN: Partial<
+  Record<EmailKind, "notify_bids" | "notify_shoot_updates" | "notify_messages">
 > = {
   bid_received: "notify_bids",
   bid_accepted: "notify_bids",
@@ -101,13 +109,19 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 function link(kind: EmailKind, locale: Locale, shootId?: string | null): string {
   let path: string;
-  if (kind === "message_received") {
+  if (kind === "welcome") {
+    path = `/${locale}/home`;
+  } else if (kind === "onboarding_reminder") {
+    path = `/${locale}/onboarding`;
+  } else if (kind === "message_received") {
     path = `/${locale}/messages`;
   } else if (
     (kind === "bid_received" ||
       kind === "shoot_cancelled" ||
       kind === "shoot_invitation" ||
-      kind === "shoot_match") &&
+      kind === "shoot_match" ||
+      kind === "zero_bid_rescue" ||
+      kind === "review_request") &&
     shootId
   ) {
     path = `/${locale}/shoots/${shootId}`;
@@ -155,6 +169,26 @@ const COPY: Record<
     de: { subject: "Neues Shooting in deiner Region", lead: "Ein neues Shooting passt zu deinem Profil", cta: "Shooting ansehen" },
     fr: { subject: "Nouvelle séance dans ta région", lead: "Une nouvelle séance correspond à ton profil", cta: "Voir la séance" },
     en: { subject: "New shoot in your area", lead: "A new shoot matches your coverage", cta: "View shoot" },
+  },
+  welcome: {
+    de: { subject: "Willkommen bei Rintakez", lead: "Willkommen bei Rintakez — schön, dass du da bist", cta: "Los geht’s" },
+    fr: { subject: "Bienvenue sur Rintakez", lead: "Bienvenue sur Rintakez — ravis de t’avoir avec nous", cta: "C’est parti" },
+    en: { subject: "Welcome to Rintakez", lead: "Welcome to Rintakez — glad to have you here", cta: "Get started" },
+  },
+  onboarding_reminder: {
+    de: { subject: "Vervollständige dein Fotografen-Profil", lead: "Dein Profil ist fast fertig — ergänze deine Angaben, um Aufträge zu erhalten", cta: "Profil vervollständigen" },
+    fr: { subject: "Complète ton profil de photographe", lead: "Ton profil est presque prêt — complète tes informations pour recevoir des mandats", cta: "Compléter mon profil" },
+    en: { subject: "Complete your photographer profile", lead: "Your profile is almost ready — finish it to start receiving shoots", cta: "Complete profile" },
+  },
+  zero_bid_rescue: {
+    de: { subject: "Noch keine Angebote für dein Shooting", lead: "Dein Shooting hat noch keine Angebote erhalten", cta: "Shooting ansehen" },
+    fr: { subject: "Pas encore d’offre pour ta séance", lead: "Ta séance n’a pas encore reçu d’offre", cta: "Voir la séance" },
+    en: { subject: "No offers yet for your shoot", lead: "Your shoot hasn't received any offers yet", cta: "View shoot" },
+  },
+  review_request: {
+    de: { subject: "Wie war dein Shooting?", lead: "Dein Shooting ist abgeschlossen — hinterlasse jetzt eine Bewertung", cta: "Bewertung abgeben" },
+    fr: { subject: "Comment s’est passée ta séance ?", lead: "Ta séance est terminée — laisse une évaluation dès maintenant", cta: "Laisser une évaluation" },
+    en: { subject: "How was your shoot?", lead: "Your shoot is complete — leave a review now", cta: "Leave a review" },
   },
 };
 
