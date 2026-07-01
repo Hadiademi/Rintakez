@@ -8,6 +8,7 @@ import { useRouter } from "@/i18n/navigation";
 import { createBidSchema, type CreateBidInput } from "@/lib/validation/bid";
 import { submitBidAction } from "@/lib/actions/bids";
 import { errorKey } from "@/lib/error-messages";
+import { track } from "@/lib/track";
 
 export function BidSheet({
   shootId,
@@ -36,6 +37,7 @@ export function BidSheet({
     startTransition(async () => {
       const res = await submitBidAction(shootId, values);
       if (res.ok) {
+        track("bid");
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));

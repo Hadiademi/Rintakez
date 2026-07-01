@@ -957,6 +957,7 @@ export type Database = {
     }
     Functions: {
       accept_bid: { Args: { p_bid_id: string }; Returns: undefined }
+      admin_liquidity_stats: { Args: never; Returns: Json }
       blocked_by: { Args: { p_other: string }; Returns: boolean }
       can_invite_to_shoot: { Args: { p_shoot_id: string }; Returns: boolean }
       can_view_shoot: { Args: { p_shoot_id: string }; Returns: boolean }
