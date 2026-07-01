@@ -307,7 +307,7 @@ export default async function HomePage() {
   }
   const { data: personalizedShoots } = await personalizedQuery;
 
-  let open = personalizedShoots ?? [];
+  const open = personalizedShoots ?? [];
 
   // Photographers with little/no coverage or brand-new accounts can get a
   // sparse (or empty) personalized result — top it up with the newest global
