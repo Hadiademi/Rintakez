@@ -31,7 +31,8 @@ function hrefFor(item: NotificationItem): string {
   if (
     (item.type === "bid_received" ||
       item.type === "shoot_cancelled" ||
-      item.type === "shoot_reopened") &&
+      item.type === "shoot_reopened" ||
+      item.type === "shoot_invitation") &&
     item.shootId
   )
     return `/shoots/${item.shootId}`;
