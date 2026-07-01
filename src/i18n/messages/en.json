@@ -335,6 +335,7 @@
     "inviteSuccess": "Invitation sent",
     "inviteAlready": "Already invited",
     "inviteError": "Could not send invitation",
+    "inviteUnavailableDate": "Unavailable on this date",
     "memberSince": "Member since {year}",
     "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}"
   },

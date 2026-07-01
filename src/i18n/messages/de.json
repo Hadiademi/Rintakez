@@ -335,6 +335,7 @@
     "inviteSuccess": "Einladung gesendet",
     "inviteAlready": "Bereits eingeladen",
     "inviteError": "Einladung fehlgeschlagen",
+    "inviteUnavailableDate": "An diesem Datum nicht verfügbar",
     "memberSince": "Mitglied seit {year}",
     "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}"
   },

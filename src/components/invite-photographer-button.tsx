@@ -5,14 +5,16 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { invitePhotographerAction } from "@/lib/actions/invites";
 
-type OpenShoot = { id: string; title: string };
+type OpenShoot = { id: string; title: string; shoot_date: string };
 
 export function InvitePhotographerButton({
   photographerId,
   openShoots,
+  unavailableDates = [],
 }: {
   photographerId: string;
   openShoots: OpenShoot[];
+  unavailableDates?: string[];
 }) {
   const t = useTranslations("profile");
   const [open, setOpen] = useState(false);
@@ -57,18 +59,26 @@ export function InvitePhotographerButton({
             </div>
           ) : (
             <ul className="space-y-1.5">
-              {openShoots.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    disabled={pending === s.id || done === s.id}
-                    onClick={() => invite(s.id)}
-                    className="press w-full truncate rounded border border-line bg-paper px-3 py-2 text-left text-[14px] text-ink disabled:opacity-60"
-                  >
-                    {done === s.id ? `✓ ${t("inviteSuccess")}` : s.title}
-                  </button>
-                </li>
-              ))}
+              {openShoots.map((s) => {
+                const isUnavailable = unavailableDates.includes(s.shoot_date);
+                return (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      disabled={pending === s.id || done === s.id || isUnavailable}
+                      onClick={() => invite(s.id)}
+                      className="press w-full truncate rounded border border-line bg-paper px-3 py-2 text-left text-[14px] text-ink disabled:opacity-60"
+                    >
+                      {done === s.id ? `✓ ${t("inviteSuccess")}` : s.title}
+                    </button>
+                    {isUnavailable && !done && (
+                      <p className="mt-1 text-[12px] text-mute">
+                        {t("inviteUnavailableDate")}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {error ? <p className="text-[13px] text-accent">{error}</p> : null}

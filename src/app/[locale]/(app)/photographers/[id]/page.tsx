@@ -221,7 +221,7 @@ export default async function PhotographerProfilePage({
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
   const viewer = await getProfile();
   let isSaved = false;
-  let openShoots: { id: string; title: string }[] = [];
+  let openShoots: { id: string; title: string; shoot_date: string }[] = [];
   if (viewer && viewer.id !== id) {
     const supabase = await createClient();
     const { data: fav } = await supabase
@@ -234,7 +234,7 @@ export default async function PhotographerProfilePage({
     if (viewer.role === "client") {
       const { data: os } = await supabase
         .from("shoots")
-        .select("id, title")
+        .select("id, title, shoot_date")
         .eq("client_id", viewer.id)
         .eq("status", "open")
         .order("created_at", { ascending: false });
@@ -392,6 +392,7 @@ export default async function PhotographerProfilePage({
                 <InvitePhotographerButton
                   photographerId={profile.id}
                   openShoots={openShoots}
+                  unavailableDates={unavailableDates}
                 />
               ) : !viewer ? (
                 <Link
