@@ -129,7 +129,9 @@ export function MobileTabBar({ role, messagesUnread = 0 }: MobileTabBarProps) {
       className="fixed bottom-0 inset-x-0 z-40 flex lg:hidden border-t border-line bg-paper pb-[env(safe-area-inset-bottom)]"
     >
       {tabs.map(({ href, label, icon }) => {
-        const isActive = pathname === href;
+        // Match the desktop nav: stay active on sub-routes (e.g. Messages on a
+        // thread, Shoots on a shoot detail), not just the exact path.
+        const isActive = pathname === href || pathname.startsWith(`${href}/`);
         const badge = href === "/messages" && messagesUnread > 0;
         return (
           <Link

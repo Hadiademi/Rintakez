@@ -68,9 +68,12 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-        <span className="text-base font-medium tracking-tight sm:text-lg">
+        <Link
+          href="/"
+          className="text-base font-medium tracking-tight sm:text-lg"
+        >
           Rintakez
-        </span>
+        </Link>
         <div className="flex items-center gap-2 sm:gap-4">
           {profile ? (
             <>

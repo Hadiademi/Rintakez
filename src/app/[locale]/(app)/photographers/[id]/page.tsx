@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { getSessionUser } from "@/lib/auth";
+import { getProfile } from "@/lib/auth";
 import { formatCHF, formatSwissDate } from "@/lib/format";
 import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
@@ -205,7 +205,7 @@ export default async function PhotographerProfilePage({
   } = data;
 
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
-  const viewer = await getSessionUser();
+  const viewer = await getProfile();
   let isSaved = false;
   if (viewer && viewer.id !== id) {
     const supabase = await createClient();
@@ -221,6 +221,8 @@ export default async function PhotographerProfilePage({
   const t = await getTranslations("profile");
   const tShoot = await getTranslations("shoot");
   const tReview = await getTranslations("review");
+  const tDir = await getTranslations("directory");
+  const tMarket = await getTranslations("marketplace");
 
   // Initials for avatar placeholder
   const initials = profile.display_name
@@ -282,10 +284,10 @@ export default async function PhotographerProfilePage({
           <div className="h-full w-full bg-gradient-to-br from-surface via-chip to-surface" />
         )}
         <Link
-          href="/"
+          href="/photographers"
           className="absolute left-5 top-5 inline-flex items-center gap-1 rounded-full border border-line bg-paper/85 px-3 py-1.5 text-[13px] text-ink backdrop-blur transition-opacity hover:opacity-80"
         >
-          ← Rintakez
+          ← {tDir("navPhotographers")}
         </Link>
       </div>
 
@@ -351,12 +353,24 @@ export default async function PhotographerProfilePage({
               {viewer && viewer.id !== profile.id && (
                 <SaveButton photographerId={profile.id} initialSaved={isSaved} />
               )}
-              <Link
-                href="/shoots/new"
-                className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
-              >
-                {t("postShootCta")}
-              </Link>
+              {/* "Post a shoot" only makes sense for clients; photographers
+                  viewing a peer shouldn't be bounced to /shoots/new, and anons
+                  get a sign-in CTA instead of a silent login redirect. */}
+              {viewer?.role === "client" ? (
+                <Link
+                  href="/shoots/new"
+                  className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
+                >
+                  {t("postShootCta")}
+                </Link>
+              ) : !viewer ? (
+                <Link
+                  href="/login"
+                  className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
+                >
+                  {tMarket("loginToPost")}
+                </Link>
+              ) : null}
               <div className="pt-1">
                 <ReportButton targetType="profile" targetId={profile.id} />
               </div>

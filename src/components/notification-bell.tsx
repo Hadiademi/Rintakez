@@ -17,7 +17,10 @@ let rtSeq = 0;
 function hrefFor(item: NotificationItem): string {
   // New message → the inbox. Client (bid_received) / cancellation → the shoot.
   // Photographer bid outcomes → their bids.
-  if (item.type === "message_received") return "/messages";
+  if (item.type === "message_received")
+    return item.conversationId
+      ? `/messages/${item.conversationId}`
+      : "/messages";
   // Review / verification outcomes land on the photographer's own profile.
   if (
     item.type === "review_received" ||
@@ -103,6 +106,8 @@ export function NotificationBell({
         id: row.id,
         type: row.type,
         shootId: row.shoot_id,
+        // Realtime payload has no conversation id; the inbox is the fallback.
+        conversationId: null,
         title: null,
         readAt: row.read_at,
         createdAt: row.created_at,

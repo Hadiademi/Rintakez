@@ -16,6 +16,7 @@ export type NotificationItem = {
     | "verification_approved"
     | "verification_rejected";
   shootId: string | null;
+  conversationId: string | null;
   title: string | null;
   readAt: string | null;
   createdAt: string;
@@ -56,10 +57,32 @@ export async function getNotificationData(): Promise<{
     for (const s of shoots ?? []) titles[s.id] = s.title;
   }
 
+  // Deep-link message notifications to the actual conversation (1:1 with the
+  // shoot), so the bell opens the thread instead of the inbox index.
+  const msgShootIds = [
+    ...new Set(
+      list
+        .filter((r) => r.type === "message_received" && r.shoot_id)
+        .map((r) => r.shoot_id as string)
+    ),
+  ];
+  const convByShoot: Record<string, string> = {};
+  if (msgShootIds.length) {
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id, shoot_id")
+      .in("shoot_id", msgShootIds);
+    for (const c of convs ?? []) convByShoot[c.shoot_id] = c.id;
+  }
+
   const items: NotificationItem[] = list.map((r) => ({
     id: r.id,
     type: r.type,
     shootId: r.shoot_id,
+    conversationId:
+      r.type === "message_received" && r.shoot_id
+        ? (convByShoot[r.shoot_id] ?? null)
+        : null,
     title: r.shoot_id ? (titles[r.shoot_id] ?? null) : null,
     readAt: r.read_at,
     createdAt: r.created_at,
