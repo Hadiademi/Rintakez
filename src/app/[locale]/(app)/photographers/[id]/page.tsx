@@ -12,6 +12,7 @@ import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
 import { InvitePhotographerButton } from "@/components/invite-photographer-button";
+import { RecordProfileView } from "@/components/record-profile-view";
 import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -293,6 +294,13 @@ export default async function PhotographerProfilePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
+      {/* Best-effort profile-view collection for a future analytics
+          dashboard — records anon + non-owner logged-in views only. Renders
+          nothing and never blocks the page (see record-profile-view.tsx). */}
+      {(!viewer || viewer.id !== profile.id) && (
+        <RecordProfileView photographerId={profile.id} />
+      )}
 
       {/* Cover band — first portfolio image, else a monogram band */}
       <div className="relative h-48 w-full overflow-hidden border-b border-line bg-chip sm:h-60">

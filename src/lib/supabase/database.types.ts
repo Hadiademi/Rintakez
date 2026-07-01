@@ -530,6 +530,45 @@ export type Database = {
           },
         ]
       }
+      profile_views: {
+        Row: {
+          created_at: string
+          id: number
+          photographer_id: string
+          viewed_on: string
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          photographer_id: string
+          viewed_on?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          photographer_id?: string
+          viewed_on?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -949,6 +988,14 @@ export type Database = {
       photographer_completed_shoots_count: {
         Args: { p_photographer_id: string }
         Returns: number
+      }
+      photographer_view_count: {
+        Args: { p_photographer_id: string; p_since?: string }
+        Returns: number
+      }
+      record_profile_view: {
+        Args: { p_photographer_id: string }
+        Returns: undefined
       }
       request_verification: { Args: never; Returns: undefined }
       set_initial_role: {
