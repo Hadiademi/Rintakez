@@ -188,6 +188,9 @@ export default async function HomePage() {
     const assigned = all.filter((s) => s.status === "assigned").length;
     const recent = all.slice(0, 5);
     const featured = all.find((s) => s.status !== "cancelled") ?? all[0];
+    // Recent shoot types (newest few, already loaded above) — a cheap signal
+    // to nudge "Recommended photographers" toward the client's specialties.
+    const recentTypes = [...new Set(all.slice(0, 5).map((s) => s.type))];
 
     const steps: Step[] = [
       { n: 1, title: t("stepClient1Title"), desc: t("stepClient1Desc") },
@@ -264,7 +267,10 @@ export default async function HomePage() {
           <HowItWorks heading={t("howItWorks")} steps={steps} />
         )}
 
-        <RecommendedPhotographers />
+        <RecommendedPhotographers
+          viewerCanton={profile.canton}
+          viewerTypes={recentTypes}
+        />
       </div>
     );
   }

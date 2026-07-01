@@ -2,13 +2,32 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { PhotographerCard } from "@/components/photographer-card";
 import { photographerAvatar } from "@/lib/shoot-image";
+import type { Database } from "@/lib/supabase/database.types";
+
+type Canton = Database["public"]["Enums"]["canton"];
+
+// Soft tiebreakers layered on top of rating — never enough to outrank a
+// meaningfully better-rated photographer, just nudges locals/specialists up
+// among otherwise-similar candidates.
+const CANTON_BOOST = 0.5;
+const SPECIALTY_BOOST = 0.15;
 
 /**
  * "Recommended photographers" — top photographers by average rating (rated ones
- * first), shown on the dashboard as image-led cards. Renders nothing when there
- * are no photographers.
+ * first), shown on the dashboard as image-led cards. When the viewer's canton
+ * (and optionally their recent shoot types) is known, candidates serving that
+ * canton or matching those types get a small boost so locality/relevance
+ * breaks ties among similarly-rated photographers — rating stays the base
+ * signal, and no photographer is excluded for lacking a locality match.
+ * Renders nothing when there are no photographers.
  */
-export async function RecommendedPhotographers() {
+export async function RecommendedPhotographers({
+  viewerCanton = null,
+  viewerTypes = [],
+}: {
+  viewerCanton?: Canton | null;
+  viewerTypes?: string[];
+} = {}) {
   const supabase = await createClient();
 
   const [{ data: photogs }, { data: ratings }] = await Promise.all([
@@ -27,6 +46,7 @@ export async function RecommendedPhotographers() {
   ]);
 
   if (!photogs || photogs.length === 0) return null;
+  type PhotogRow = (typeof photogs)[number];
 
   const ratingBy = new Map(
     (ratings ?? []).map((r) => [
@@ -35,11 +55,48 @@ export async function RecommendedPhotographers() {
     ])
   );
 
+  // Locality/specialty data is only needed to break ties, so fetch it for the
+  // whole candidate set up front (cheap: 60 rows, indexed on profile_id).
+  const candidateIds = photogs.map((p) => p.id);
+  const { data: coverageRows } = viewerCanton
+    ? await supabase
+        .from("photographer_details")
+        .select("profile_id, coverage_cantons, specialties")
+        .in("profile_id", candidateIds)
+    : { data: null };
+
+  const coverageBy = new Map(
+    (coverageRows ?? []).map((r) => [
+      r.profile_id,
+      {
+        cantons: r.coverage_cantons ?? [],
+        specialties: r.specialties ?? [],
+      },
+    ])
+  );
+
+  function localityBoost(p: PhotogRow) {
+    if (!viewerCanton) return 0;
+    const coverage = coverageBy.get(p.id);
+    const cantonMatch =
+      p.canton === viewerCanton ||
+      (coverage?.cantons ?? []).includes(viewerCanton);
+    const specialtyMatch =
+      viewerTypes.length > 0 &&
+      (coverage?.specialties ?? []).some((s) => viewerTypes.includes(s));
+    return (
+      (cantonMatch ? CANTON_BOOST : 0) + (specialtyMatch ? SPECIALTY_BOOST : 0)
+    );
+  }
+
   const ranked = photogs
-    .map((p) => ({ ...p, rating: ratingBy.get(p.id) ?? { avg: 0, count: 0 } }))
+    .map((p) => {
+      const rating = ratingBy.get(p.id) ?? { avg: 0, count: 0 };
+      return { ...p, rating, score: rating.avg + localityBoost(p) };
+    })
     .sort(
       (a, b) =>
-        b.rating.avg - a.rating.avg ||
+        b.score - a.score ||
         b.rating.count - a.rating.count ||
         a.display_name.localeCompare(b.display_name)
     )
