@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { invitePhotographer } from "@/lib/core/invites";
+import { notifyEmail } from "@/lib/email";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -27,6 +28,20 @@ export async function invitePhotographerAction(
     clientId: profile.id,
   });
   if (!result.ok) return result;
+
+  // Email the invited photographer (best-effort; gated on RESEND_API_KEY and
+  // the recipient's notify_shoot_updates preference inside notifyEmail).
+  const { data: shoot } = await supabase
+    .from("shoots")
+    .select("title")
+    .eq("id", shootId)
+    .maybeSingle();
+  await notifyEmail({
+    kind: "shoot_invitation",
+    recipientId: photographerId,
+    shootId,
+    shootTitle: shoot?.title ?? null,
+  });
 
   revalidatePath("/[locale]/(app)/photographers/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");

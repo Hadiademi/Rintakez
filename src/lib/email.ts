@@ -21,7 +21,8 @@ export type EmailKind =
   | "bid_accepted"
   | "bid_declined"
   | "shoot_cancelled"
-  | "message_received";
+  | "message_received"
+  | "shoot_invitation";
 type Locale = "de" | "fr" | "en";
 
 // Which notification-preference column gates each email kind (null = always send).
@@ -34,6 +35,7 @@ const PREF_COLUMN: Record<
   bid_declined: "notify_bids",
   shoot_cancelled: "notify_shoot_updates",
   message_received: "notify_messages",
+  shoot_invitation: "notify_shoot_updates",
 };
 
 /**
@@ -100,7 +102,9 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
   if (kind === "message_received") {
     path = `/${locale}/messages`;
   } else if (
-    (kind === "bid_received" || kind === "shoot_cancelled") &&
+    (kind === "bid_received" ||
+      kind === "shoot_cancelled" ||
+      kind === "shoot_invitation") &&
     shootId
   ) {
     path = `/${locale}/shoots/${shootId}`;
@@ -138,6 +142,11 @@ const COPY: Record<
     de: { subject: "Neue Nachricht auf Rintakez", lead: "Du hast eine neue Nachricht erhalten", cta: "Nachricht öffnen" },
     fr: { subject: "Nouveau message sur Rintakez", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
     en: { subject: "New message on Rintakez", lead: "You received a new message", cta: "Open message" },
+  },
+  shoot_invitation: {
+    de: { subject: "Ein Kunde hat dich zu seinem Shooting eingeladen", lead: "Du wurdest eingeladen, ein Angebot abzugeben", cta: "Shooting ansehen" },
+    fr: { subject: "Un client t’a invité à sa séance", lead: "Tu as été invité à faire une offre", cta: "Voir la séance" },
+    en: { subject: "A client invited you to their shoot", lead: "You've been invited to bid on a shoot", cta: "View shoot" },
   },
 };
 
