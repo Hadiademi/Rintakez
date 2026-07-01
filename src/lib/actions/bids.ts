@@ -7,6 +7,7 @@ import { getSessionUser, getProfile } from "@/lib/auth";
 import { createBidSchema } from "@/lib/validation/bid";
 import { notifyEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
+import { submitBid } from "@/lib/core/bids";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -26,40 +27,18 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   if (profile.role !== "photographer") return { ok: false, error: "forbidden" };
   if (!(await rateLimit(`bid:${profile.id}`, 20, 3_600_000)))
     return { ok: false, error: "limit_reached" };
+
   const supabase = await createClient();
-  const { error } = await supabase.from("bids").insert({
-    shoot_id: shootId,
-    photographer_id: profile.id,
-    amount_chf: parsed.data.amountChf,
+  const result = await submitBid(supabase, {
+    shootId,
+    amountChf: parsed.data.amountChf,
     message: parsed.data.message,
   });
-  if (error) {
-    if (error.code === "23505") {
-      // A bid already exists for this (shoot, photographer). If it was
-      // withdrawn, revive it as a fresh pending offer instead of dead-ending
-      // on "already bid" — the unique constraint otherwise locks the
-      // photographer out of re-bidding permanently.
-      const { data: revived, error: reviveErr } = await supabase
-        .from("bids")
-        .update({
-          amount_chf: parsed.data.amountChf,
-          message: parsed.data.message,
-          status: "pending",
-        })
-        .eq("shoot_id", shootId)
-        .eq("photographer_id", profile.id)
-        .eq("status", "withdrawn")
-        .select("id");
-      if (reviveErr) return { ok: false, error: dbError(reviveErr, "bids") };
-      if (!revived || revived.length === 0)
-        return { ok: false, error: "already_bid" };
-      // Revived — fall through to the email + revalidate below.
-    } else {
-      return { ok: false, error: dbError(error, "bids") };
-    }
-  }
+  if (!result.ok) return result;
 
-  // Email the shoot's client (best-effort; gated on RESEND_API_KEY).
+  // Email the shoot's client (best-effort; gated on RESEND_API_KEY). This side
+  // effect stays in the web action for now; moving bid notifications to a DB
+  // trigger so the native path also notifies is a documented follow-up.
   const { data: shoot } = await supabase
     .from("shoots")
     .select("client_id, title")
