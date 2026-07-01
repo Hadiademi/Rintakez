@@ -11,6 +11,7 @@ import { PortfolioGrid } from "@/components/portfolio-grid";
 import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
+import { InvitePhotographerButton } from "@/components/invite-photographer-button";
 
 export const dynamic = "force-dynamic";
 
@@ -208,6 +209,7 @@ export default async function PhotographerProfilePage({
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
   const viewer = await getProfile();
   let isSaved = false;
+  let openShoots: { id: string; title: string }[] = [];
   if (viewer && viewer.id !== id) {
     const supabase = await createClient();
     const { data: fav } = await supabase
@@ -217,6 +219,15 @@ export default async function PhotographerProfilePage({
       .eq("photographer_id", id)
       .maybeSingle();
     isSaved = !!fav;
+    if (viewer.role === "client") {
+      const { data: os } = await supabase
+        .from("shoots")
+        .select("id, title")
+        .eq("client_id", viewer.id)
+        .eq("status", "open")
+        .order("created_at", { ascending: false });
+      openShoots = os ?? [];
+    }
   }
 
   const t = await getTranslations("profile");
@@ -354,12 +365,10 @@ export default async function PhotographerProfilePage({
                   viewing a peer shouldn't be bounced to /shoots/new, and anons
                   get a sign-in CTA instead of a silent login redirect. */}
               {viewer?.role === "client" ? (
-                <Link
-                  href="/shoots/new"
-                  className="press bg-ink px-5 py-3 text-center text-sm font-medium text-paper"
-                >
-                  {t("postShootCta")}
-                </Link>
+                <InvitePhotographerButton
+                  photographerId={profile.id}
+                  openShoots={openShoots}
+                />
               ) : !viewer ? (
                 <Link
                   href="/login"
@@ -377,28 +386,46 @@ export default async function PhotographerProfilePage({
           {/* Main column */}
           <div className="mt-10 min-w-0 space-y-10 lg:mt-2">
 
-        {unavailableDates.length > 0 && (
-          <div className="space-y-2">
-            <p className="label text-mute">{t("availUnavailable")}</p>
-            <div className="flex flex-wrap gap-2">
-              {unavailableDates.map((d) => (
-                <span
-                  key={d}
-                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
-                >
-                  {formatSwissDate(d)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Bio */}
         {profile.bio && (
           <p className="text-[15px] text-mute whitespace-pre-line leading-relaxed">
             {profile.bio}
           </p>
         )}
+
+        {/* Portfolio */}
+        <div className="space-y-4 border-t border-line pt-8">
+          <p className="label text-mute">{t("portfolio")}</p>
+          {portfolioImages.length > 0 ? (
+            <PortfolioGrid images={portfolioImages} />
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex aspect-square items-center justify-center border border-dashed border-line bg-chip/40 text-mute-2"
+                  aria-hidden
+                >
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="1" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                </div>
+              ))}
+              <p className="col-span-full text-[14px] text-mute">
+                {t("noPortfolio")}
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Details section */}
         {(specialties.length > 0 ||
@@ -486,39 +513,21 @@ export default async function PhotographerProfilePage({
           </div>
         )}
 
-        {/* Portfolio */}
-        <div className="space-y-4 border-t border-line pt-8">
-          <p className="label text-mute">{t("portfolio")}</p>
-          {portfolioImages.length > 0 ? (
-            <PortfolioGrid images={portfolioImages} />
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="flex aspect-square items-center justify-center border border-dashed border-line bg-chip/40 text-mute-2"
-                  aria-hidden
+        {unavailableDates.length > 0 && (
+          <div className="space-y-2">
+            <p className="label text-mute">{t("availUnavailable")}</p>
+            <div className="flex flex-wrap gap-2">
+              {unavailableDates.map((d) => (
+                <span
+                  key={d}
+                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
                 >
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="1" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="M21 15l-5-5L5 21" />
-                  </svg>
-                </div>
+                  {formatSwissDate(d)}
+                </span>
               ))}
-              <p className="col-span-full text-[14px] text-mute">
-                {t("noPortfolio")}
-              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
           {/* Reviews */}
           <div className="space-y-5 border-t border-line pt-8">

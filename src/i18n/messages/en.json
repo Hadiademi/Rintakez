@@ -326,7 +326,14 @@
     "coverTitle": "Cover photo",
     "coverUpload": "Upload cover",
     "coverReplace": "Replace cover",
-    "coverRemove": "Remove"
+    "coverRemove": "Remove",
+    "inviteCta": "Invite to your shoot",
+    "invitePickTitle": "Choose a shoot",
+    "inviteNoOpenShoots": "You have no open shoots.",
+    "inviteCreateShoot": "Create a shoot",
+    "inviteSuccess": "Invitation sent",
+    "inviteAlready": "Already invited",
+    "inviteError": "Could not send invitation"
   },
   "profileBasics": {
     "edit": "Edit name & location",
@@ -450,7 +457,8 @@
     "shoot_reopened": "A booking reopened — the photographer is no longer available",
     "review_received": "You received a new review",
     "verification_approved": "Your profile was verified",
-    "verification_rejected": "Your verification request was declined"
+    "verification_rejected": "Your verification request was declined",
+    "shoot_invitation": "You were invited to a shoot"
   },
   "review": {
     "title": "Review",

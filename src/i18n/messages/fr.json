@@ -326,7 +326,14 @@
     "coverTitle": "Photo de couverture",
     "coverUpload": "Téléverser la couverture",
     "coverReplace": "Remplacer la couverture",
-    "coverRemove": "Supprimer"
+    "coverRemove": "Supprimer",
+    "inviteCta": "Inviter à votre séance",
+    "invitePickTitle": "Choisir une séance",
+    "inviteNoOpenShoots": "Vous n'avez aucune séance ouverte.",
+    "inviteCreateShoot": "Créer une séance",
+    "inviteSuccess": "Invitation envoyée",
+    "inviteAlready": "Déjà invité",
+    "inviteError": "Échec de l'invitation"
   },
   "profileBasics": {
     "edit": "Modifier nom & lieu",
@@ -450,7 +457,8 @@
     "shoot_reopened": "Une réservation a été rouverte — le/la photographe n'est plus disponible",
     "review_received": "Tu as reçu une nouvelle évaluation",
     "verification_approved": "Ton profil a été vérifié",
-    "verification_rejected": "Ta demande de vérification a été refusée"
+    "verification_rejected": "Ta demande de vérification a été refusée",
+    "shoot_invitation": "Vous avez été invité à une séance"
   },
   "review": {
     "title": "Évaluation",

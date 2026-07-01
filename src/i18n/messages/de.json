@@ -326,7 +326,14 @@
     "coverTitle": "Titelbild",
     "coverUpload": "Titelbild hochladen",
     "coverReplace": "Titelbild ersetzen",
-    "coverRemove": "Entfernen"
+    "coverRemove": "Entfernen",
+    "inviteCta": "Zu deinem Shooting einladen",
+    "invitePickTitle": "Shooting auswählen",
+    "inviteNoOpenShoots": "Du hast keine offenen Shootings.",
+    "inviteCreateShoot": "Shooting erstellen",
+    "inviteSuccess": "Einladung gesendet",
+    "inviteAlready": "Bereits eingeladen",
+    "inviteError": "Einladung fehlgeschlagen"
   },
   "profileBasics": {
     "edit": "Name & Ort bearbeiten",
@@ -450,7 +457,8 @@
     "shoot_reopened": "Eine Buchung wurde wieder geöffnet — die Fotograf:in ist nicht mehr verfügbar",
     "review_received": "Du hast eine neue Bewertung erhalten",
     "verification_approved": "Dein Profil wurde verifiziert",
-    "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt"
+    "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt",
+    "shoot_invitation": "Du wurdest zu einem Shooting eingeladen"
   },
   "review": {
     "title": "Bewertung",
