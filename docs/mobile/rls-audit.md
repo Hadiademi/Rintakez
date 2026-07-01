@@ -12,8 +12,8 @@ pre-existing `rls.test.sql`, `messaging_reviews.test.sql`, and
 | Table | RLS on | Read scoped | Write scoped | Notes |
 |-------|--------|-------------|--------------|-------|
 | profiles | ☑ | ☑ | ☑ | public read of display fields; self-write; is_admin/is_suspended excluded from column grant. Verified: rls.test.sql tests 19, 73. |
-| photographer_details | ☑ | ☑ | ☑ | public read; photographer-only self-write. Verified: rls.test.sql (schema/policy audit). |
-| portfolio_images | ☑ | ☑ | ☑ | public read; photographer inserts/deletes own rows. Verified: rls.test.sql (policy audit). |
+| photographer_details | ☑ | ☑ | ☑ | public read; photographer-only self-write. Verified: rls.test.sql (schema/policy audit); direct_connection_rls.test.sql test 5 (cross-user insert denial). |
+| portfolio_images | ☑ | ☑ | ☑ | public read; photographer inserts/deletes own rows. Verified: rls.test.sql (policy audit); direct_connection_rls.test.sql test 6 (cross-user insert denial). |
 | shoots | ☑ | ☑ | ☑ | open + unsuspended shoots public; owner-write; column grant limits to status/cancellation_reason. Verified: rls.test.sql tests 6, 20, 22-23. |
 | bids | ☑ | ☑ | ☑ | photographer-owned or shoot-client can read; photographer-only insert scoped to auth.uid(); submit_bid path. Verified: rls.test.sql tests 7-12; direct_connection_rls.test.sql tests 1-2. |
 | conversations | ☑ | ☑ | ☑ | participants-only SELECT; UPDATE moved to mark_conversation_read() SECURITY DEFINER (direct column grant revoked in 20260630050000_hardening.sql). Verified: rls.test.sql tests 61-62; messaging_reviews.test.sql tests 4-5, 9. |
@@ -25,7 +25,7 @@ pre-existing `rls.test.sql`, `messaging_reviews.test.sql`, and
 | reports | ☑ | ☑ | ☑ | reporter-only SELECT; INSERT scoped to reporter_id = auth.uid(), suspension-gated. Verified: rls.test.sql tests 70-72. |
 | disputes | ☑ | ☑ | ☑ | party-only SELECT/INSERT. Verified: disputes.test.sql. |
 | user_blocks | ☑ | ☑ | ☑ | owner-only SELECT/INSERT/DELETE. Verified: blocks.test.sql. |
-| audit_log | ☑ | ☑ | ☑ | no anon/authenticated grants; service_role only (RLS + no grant = complete denial). Verified: policy audit (20260622010000_moderation.sql). No direct pgTAP assertion for authenticated-read denial — add one if desired. |
+| audit_log | ☑ | ☑ | ☑ | no anon/authenticated grants; service_role only (RLS + no grant = complete denial). Verified: policy audit (20260622010000_moderation.sql); direct_connection_rls.test.sql test 4 (authenticated-read denial). |
 | email_outbox | ☑ | ☑ | ☑ | service-role only; no grants to authenticated/anon. Verified: reliability.test.sql test 2; direct_connection_rls.test.sql test 3. |
 | shoot_images | ☑ | ☑ | ☑ | shoot-owner INSERT/DELETE; SELECT follows shoot visibility (open shoots public). Verified: rls.test.sql tests 30-39. |
 

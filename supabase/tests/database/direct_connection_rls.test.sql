@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(3);
+select plan(6);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
                         email_confirmed_at, raw_user_meta_data, created_at, updated_at)
@@ -57,6 +57,33 @@ select throws_ok(
   '42501',
   null,
   'the email_outbox is not readable by an authenticated user'
+);
+
+-- 4: an authenticated user cannot read the audit_log at all.
+select throws_ok(
+  $$select * from public.audit_log$$,
+  '42501',
+  null,
+  'the audit_log is not readable by an authenticated user'
+);
+
+-- 5: P2 (e3) cannot INSERT a photographer_details row on behalf of P1 (e2).
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e3","role":"authenticated"}';
+select throws_ok(
+  $$insert into public.photographer_details (profile_id)
+    values ('00000000-0000-0000-0000-0000000000e2')$$,
+  '42501',
+  null,
+  'a photographer cannot insert photographer_details for another photographer'
+);
+
+-- 6: P2 (e3) cannot INSERT a portfolio_images row for P1 (e2).
+select throws_ok(
+  $$insert into public.portfolio_images (photographer_id, storage_path)
+    values ('00000000-0000-0000-0000-0000000000e2', 'fake/path.jpg')$$,
+  '42501',
+  null,
+  'a photographer cannot insert portfolio_images for another photographer'
 );
 
 select * from finish();
