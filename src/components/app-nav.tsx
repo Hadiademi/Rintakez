@@ -10,6 +10,7 @@ import { Wordmark } from "@/components/wordmark";
 import { NotificationBell } from "@/components/notification-bell";
 import { getNotificationData } from "@/lib/actions/notifications";
 import { getUnreadConversationCount } from "@/lib/actions/messages";
+import { initials } from "@/lib/name";
 
 interface AppNavProps {
   role: "client" | "photographer";
@@ -17,13 +18,6 @@ interface AppNavProps {
   userId: string;
   avatarUrl?: string | null;
   isAdmin?: boolean;
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 export async function AppNav({
