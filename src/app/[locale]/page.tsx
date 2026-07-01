@@ -8,8 +8,11 @@ import { SiteFooter } from "@/components/site-footer";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getProfile } from "@/lib/auth";
 import { shootImage } from "@/lib/shoot-image";
-import { Link } from "@/i18n/navigation";
+import { Link, getPathname } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
+import { buildAlternates } from "@/lib/seo";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 // The page stays dynamic for per-viewer nav (getProfile reads cookies), but the
 // public "latest open shoots" list is cached at the data layer so the DB is hit
@@ -41,10 +44,16 @@ export async function generateMetadata({
   return {
     title: { absolute: t("title") },
     description: t("subtitle"),
+    alternates: buildAlternates(locale, "/"),
   };
 }
 
-export default async function Home() {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const [t, tNav, tMarket, tHome, profile] = await Promise.all([
     getTranslations("landing"),
     getTranslations("nav"),
@@ -65,8 +74,43 @@ export default async function Home() {
 
   const featured = shoots[0] ?? null;
 
+  // Structured data — Organization identity + a WebSite SearchAction pointing
+  // search engines at the photographers directory's own `q` filter, so a
+  // sitelinks searchbox can query Rintakez directly.
+  const photographersSearchUrl = `${SITE_URL}${getPathname({
+    locale,
+    href: "/photographers",
+  })}?q={search_term_string}`;
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Rintakez",
+        url: SITE_URL,
+      },
+      {
+        "@type": "WebSite",
+        name: "Rintakez",
+        url: SITE_URL,
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: photographersSearchUrl,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         <Link
           href="/"

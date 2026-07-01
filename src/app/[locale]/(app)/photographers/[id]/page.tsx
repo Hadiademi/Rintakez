@@ -12,6 +12,7 @@ import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
 import { InvitePhotographerButton } from "@/components/invite-photographer-button";
+import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,10 @@ export async function generateMetadata({
     .maybeSingle();
 
   if (!data || data.role !== "photographer") {
-    return { title: "Rintakez" };
+    return {
+      title: "Rintakez",
+      alternates: buildAlternates(locale, `/photographers/${id}`),
+    };
   }
 
   const { display_name, city } = data;
@@ -52,6 +56,7 @@ export async function generateMetadata({
   return {
     title: display_name,
     description: `${display_name} — ${role}${location}`,
+    alternates: buildAlternates(locale, `/photographers/${id}`),
   };
 }
 

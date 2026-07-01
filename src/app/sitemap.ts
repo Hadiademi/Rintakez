@@ -24,6 +24,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   }
+  // Directory pages (photographers + shoots browse) — high-value discovery
+  // entry points, refreshed often as listings change.
+  for (const locale of routing.locales) {
+    for (const p of ["/photographers", "/shoots"]) {
+      entries.push({
+        url: `${SITE_URL}/${locale}${p}`,
+        changeFrequency: "daily",
+        priority: 0.7,
+      });
+    }
+  }
   // Public photographer profiles
   try {
     const supabase = await createClient();
@@ -43,6 +54,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch (err) {
     // DB unreachable at build time — static entries still emitted, but record it.
     captureError(err, { scope: "sitemap.photographers" });
+  }
+  // Open shoot detail pages — not suspended, still open for bids.
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("shoots")
+      .select("id, created_at")
+      .eq("status", "open")
+      .eq("is_suspended", false);
+    for (const row of data ?? []) {
+      for (const locale of routing.locales) {
+        entries.push({
+          url: `${SITE_URL}/${locale}/shoots/${row.id}`,
+          lastModified: row.created_at ? new Date(row.created_at) : undefined,
+          changeFrequency: "daily",
+          priority: 0.5,
+        });
+      }
+    }
+  } catch (err) {
+    // DB unreachable at build time — static entries still emitted, but record it.
+    captureError(err, { scope: "sitemap.shoots" });
   }
   return entries;
 }
