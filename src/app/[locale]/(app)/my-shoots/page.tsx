@@ -81,36 +81,53 @@ export default async function MyShootsPage() {
           className="divide-y divide-line border-y border-line"
         >
           {shootList.map((shoot) => (
-            <Link
+            <div
               key={shoot.id}
-              href={`/shoots/${shoot.id}`}
-              data-testid={`my-shoot-${shoot.id}`}
-              className="press flex items-center gap-4 py-5 transition-colors hover:bg-surface"
+              className="flex flex-col gap-2 py-5 transition-colors hover:bg-surface sm:gap-1"
             >
-              <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
-                <Image
-                  src={shootImage(shoot.type, shoot.id, 240, 160)}
-                  alt=""
-                  fill
-                  sizes="96px"
-                  className="object-cover grayscale"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="label uppercase text-mute">
-                  {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
-                  {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
-                </p>
-                <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
-                  {shoot.title}
-                </h2>
-                <p className="mt-0.5 tabular text-sm text-mute">
-                  {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)} ·{" "}
-                  {tShoot("bidsCount", { count: bidCountBy.get(shoot.id) ?? 0 })}
-                </p>
-              </div>
-              <ShootStatusBadge status={shoot.status} />
-            </Link>
+              <Link
+                href={`/shoots/${shoot.id}`}
+                data-testid={`my-shoot-${shoot.id}`}
+                className="press flex items-center gap-4"
+              >
+                <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
+                  <Image
+                    src={shootImage(shoot.type, shoot.id, 240, 160)}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    className="object-cover grayscale"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="label uppercase text-mute">
+                    {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
+                    {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
+                  </p>
+                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
+                    {shoot.title}
+                  </h2>
+                  <p className="mt-0.5 tabular text-sm text-mute">
+                    {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)}{" "}
+                    ·{" "}
+                    {tShoot("bidsCount", {
+                      count: bidCountBy.get(shoot.id) ?? 0,
+                    })}
+                  </p>
+                </div>
+                <ShootStatusBadge status={shoot.status} />
+              </Link>
+              {shoot.status === "open" &&
+              (bidCountBy.get(shoot.id) ?? 0) === 0 ? (
+                <Link
+                  href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
+                  data-testid={`find-photographers-cta-${shoot.id}`}
+                  className="press inline-block self-start pl-0 text-[13px] text-accent hover:opacity-70 sm:pl-[112px]"
+                >
+                  {tShoot("findPhotographersCta")}
+                </Link>
+              ) : null}
+            </div>
           ))}
         </div>
       )}

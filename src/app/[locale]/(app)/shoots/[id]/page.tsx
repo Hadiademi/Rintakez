@@ -379,7 +379,18 @@ export default async function ShootDetailPage({
       <section className="space-y-4">
         <SectionLabel title={t("offers")} />
         {bidList.length === 0 ? (
-          <p className="text-mute">{t("noOffers")}</p>
+          <div className="space-y-4">
+            <p className="text-mute">{t("noOffers")}</p>
+            {shoot.status === "open" ? (
+              <Link
+                href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
+                data-testid="find-photographers-cta"
+                className="press inline-flex items-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper"
+              >
+                {tShoot("findPhotographersCta")}
+              </Link>
+            ) : null}
+          </div>
         ) : visibleBids.length === 0 ? (
           <p className="text-mute">
             {hiddenBidCount > 0
