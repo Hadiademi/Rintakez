@@ -162,6 +162,15 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   }
 
   return (
+    // Mobile: 100dvh (which now shrinks with the on-screen keyboard, see the
+    // `viewport.interactiveWidget` export in [locale]/layout.tsx) minus the
+    // chrome that sits in document flow above/below this component on the
+    // (app) route group — the mobile AppNav bar (~60px) plus the shared
+    // container's `pt-10 pb-24` (the pb-24 reserves room for the fixed
+    // MobileTabBar + its safe-area inset). That total is ~12rem; changing
+    // it requires updating src/app/[locale]/(app)/layout.tsx in lockstep.
+    // Desktop: MessagesShell gives this component a real `h-full` inside its
+    // own `lg:h-[calc(100vh-9rem)]` grid, so `lg:h-full` takes over there.
     <div className="flex h-[calc(100dvh-12rem)] flex-col lg:h-full">
       <div className="mx-auto flex h-full w-full max-w-3xl flex-col lg:px-6">
       {/* Header */}
@@ -198,7 +207,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 space-y-1 overflow-y-auto py-5">
+      <div className="flex-1 min-h-0 space-y-1 overflow-y-auto overscroll-contain py-5">
         {messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <EmptyState description={t("threadEmpty")} />
@@ -279,7 +288,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
             }}
             rows={1}
             placeholder={t("placeholder")}
-            className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
+            className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-base text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none lg:text-[14px]"
           />
           <Button
             type="button"

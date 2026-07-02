@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
@@ -11,6 +11,18 @@ import { ClientErrorReporter } from "@/components/client-error-reporter";
 import "../globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+// `viewportFit: "cover"` lets the installed PWA draw under the safe areas so
+// `env(safe-area-inset-*)` actually resolves (otherwise it's inert and the
+// composer's safe-area padding below the home indicator does nothing).
+// `interactiveWidget: "resizes-content"` makes `100dvh` shrink when the
+// on-screen keyboard opens instead of leaving content hidden behind it.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+};
 
 const interTight = Inter_Tight({
   subsets: ["latin"],

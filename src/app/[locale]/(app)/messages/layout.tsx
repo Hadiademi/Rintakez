@@ -23,7 +23,7 @@ export default async function MessagesLayout({
           {t("title")}
         </h1>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain">
         {conversations.length === 0 ? (
           <div className="p-4">
             <EmptyState
