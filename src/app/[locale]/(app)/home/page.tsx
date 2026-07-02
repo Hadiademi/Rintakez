@@ -47,7 +47,7 @@ function Hero({
 }) {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-      <div className="order-2 lg:order-1">
+      <div className="order-1 lg:order-1">
         <p className="label text-mute">{label}</p>
         <h1 className="mt-5 text-4xl font-semibold leading-[1.02] tracking-tight text-ink sm:text-5xl lg:text-6xl">
           {greeting}
@@ -83,7 +83,7 @@ function Hero({
       {featured && (
         <Link
           href={`/shoots/${featured.id}`}
-          className="press group order-1 block lg:order-2"
+          className="press group order-2 block lg:order-2"
         >
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-chip">
             <Image
