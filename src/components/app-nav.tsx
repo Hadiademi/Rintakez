@@ -8,6 +8,7 @@ import { NavLinks } from "@/components/nav-links";
 import { NavSearch } from "@/components/nav-search";
 import { Wordmark } from "@/components/wordmark";
 import { NotificationBell } from "@/components/notification-bell";
+import { MessagesLive } from "@/components/messages-live";
 import { getNotificationData } from "@/lib/actions/notifications";
 import { getUnreadConversationCount } from "@/lib/actions/messages";
 import { initials } from "@/lib/name";
@@ -57,6 +58,9 @@ export async function AppNav({
 
   return (
     <>
+      {/* Invisible: keeps the inbox list + unread badge live on every page. */}
+      <MessagesLive userId={userId} />
+
       {/* Desktop top bar — hidden on mobile, shown on lg+ */}
       <nav className="hidden lg:block border-b border-line bg-paper">
         <div className="mx-auto flex max-w-7xl items-center gap-8 px-8 py-4">
