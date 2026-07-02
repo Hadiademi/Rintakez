@@ -32,6 +32,12 @@ export type ThreadMessage = {
   createdAt: string;
 };
 
+/** Newest-page size for a thread's initial load and each "load earlier" page.
+ *  Not exported: a "use server" file may only export async functions (plus
+ *  types, which are compile-time only) — a value export breaks the server
+ *  actions build. */
+const THREAD_PAGE = 50;
+
 export type ThreadData = {
   id: string;
   shootId: string;
@@ -43,6 +49,12 @@ export type ThreadData = {
   iBlocked: boolean;
   blockedByThem: boolean;
   messages: ThreadMessage[];
+  /**
+   * True when the initial load returned a full page (THREAD_PAGE messages),
+   * meaning there may be older messages not yet loaded. Drives the "load
+   * earlier messages" affordance in message-thread.tsx.
+   */
+  hasMore: boolean;
   /**
    * When the OTHER participant last read this conversation (ISO), or null if
    * they never have. Drives read receipts on my own messages: a message is
@@ -152,11 +164,15 @@ export async function getThread(
     { data: myBlock },
     { data: blockedByThem },
   ] = await Promise.all([
+    // Newest page only (pagination — see loadEarlierMessages for older pages).
+    // Fetched newest-first so `.limit` keeps the most recent N, then reversed
+    // below to ascending order for rendering.
     supabase
       .from("messages")
       .select("id, sender_id, body, created_at")
       .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true }),
+      .order("created_at", { ascending: false })
+      .limit(THREAD_PAGE),
     supabase
       .from("profiles")
       .select("display_name, avatar_url")
@@ -192,12 +208,94 @@ export async function getThread(
     iBlocked: !!myBlock,
     blockedByThem: blockedByThem ?? false,
     otherLastReadAt: otherLastReadAt ?? null,
-    messages: (messages ?? []).map((m) => ({
-      id: m.id,
-      senderId: m.sender_id,
-      body: m.body,
-      createdAt: m.created_at,
-    })),
+    // Reverse the newest-first page back to ascending (oldest → newest) for
+    // rendering; a full page means there may be older messages still unread.
+    hasMore: (messages?.length ?? 0) === THREAD_PAGE,
+    messages: (messages ?? [])
+      .slice()
+      .reverse()
+      .map((m) => ({
+        id: m.id,
+        senderId: m.sender_id,
+        body: m.body,
+        createdAt: m.created_at,
+      })),
+  };
+}
+
+export type EarlierMessagesResult = {
+  messages: ThreadMessage[];
+  hasMore: boolean;
+};
+
+const cursorSchema = z.object({
+  conversationId: z.string().uuid(),
+  beforeCreatedAt: z.string().datetime({ offset: true }),
+  beforeId: z.string().uuid(),
+});
+
+/**
+ * Previous page of a thread, strictly older than the given cursor
+ * (created_at, id) — used by the "load earlier messages" affordance once the
+ * initial getThread page has been exhausted. RLS already restricts messages
+ * to conversation participants, but we still confirm participation up front
+ * (same pattern as getThread) so a non-participant gets a clean null instead
+ * of relying solely on RLS to return an empty set.
+ */
+export async function loadEarlierMessages(
+  conversationId: string,
+  beforeCreatedAt: string,
+  beforeId: string
+): Promise<EarlierMessagesResult | null> {
+  // Cursor values are interpolated into a PostgREST `.or()` filter string
+  // below, so they're strictly shape-validated first (UUID / ISO timestamp)
+  // as a hard guard against filter-syntax injection — not just relying on
+  // the query builder's own escaping.
+  const parsed = cursorSchema.safeParse({
+    conversationId,
+    beforeCreatedAt,
+    beforeId,
+  });
+  if (!parsed.success) return null;
+
+  const user = await getSessionUser();
+  if (!user) return null;
+  const supabase = await createClient();
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("client_id, photographer_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conv || (conv.client_id !== user.id && conv.photographer_id !== user.id))
+    return null;
+
+  // Cursor pagination on (created_at, id): strictly-older created_at, OR the
+  // same created_at with a strictly-smaller id (tie-break for same-timestamp
+  // messages). Values were shape-validated above (UUID / ISO datetime), so
+  // this interpolation cannot smuggle extra filter clauses.
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("id, sender_id, body, created_at")
+    .eq("conversation_id", conversationId)
+    .or(
+      `created_at.lt.${beforeCreatedAt},and(created_at.eq.${beforeCreatedAt},id.lt.${beforeId})`
+    )
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(THREAD_PAGE);
+
+  return {
+    hasMore: (messages?.length ?? 0) === THREAD_PAGE,
+    messages: (messages ?? [])
+      .slice()
+      .reverse()
+      .map((m) => ({
+        id: m.id,
+        senderId: m.sender_id,
+        body: m.body,
+        createdAt: m.created_at,
+      })),
   };
 }
 

@@ -13,6 +13,7 @@ import {
   sendMessage,
   markConversationRead,
   getThread,
+  loadEarlierMessages,
   blockUser,
   unblockUser,
   type ThreadData,
@@ -68,6 +69,10 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   const [blocking, setBlocking] = useState(false);
   const [atBottom, setAtBottom] = useState(true);
   const [hasNew, setHasNew] = useState(false);
+  // Pagination: whether an older page exists (see loadEarlierMessages), and
+  // whether that page is currently being fetched.
+  const [hasMore, setHasMore] = useState(thread.hasMore);
+  const [loadingEarlier, setLoadingEarlier] = useState(false);
 
   // "Today"/"yesterday" local-day keys, seeded once at mount (a chat session
   // won't outlive a midnight rollover in practice). Lazy initializers are the
@@ -112,12 +117,61 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     });
   }, []);
 
+  // Prepend an older page (already ascending) ahead of what's loaded, deduped
+  // by id. Older pages never race the realtime append (which only ever adds
+  // at the end), so this is a plain merge-at-the-front.
+  const prependMessages = useCallback((older: ThreadMessage[]) => {
+    setMessages((prev) => {
+      const ids = new Set(prev.map((m) => m.id));
+      const fresh = older.filter((m) => !ids.has(m.id));
+      return fresh.length ? [...fresh, ...prev] : prev;
+    });
+  }, []);
+
   // The other side blocked me, or I blocked them → no new messages either way.
   const composerDisabled = iBlocked || thread.blockedByThem;
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
     bottomRef.current?.scrollIntoView({ behavior });
   }, []);
+
+  // Load the previous page of older messages, anchoring the scroll position on
+  // the message the user was already looking at. We capture scrollHeight
+  // before the DOM grows and restore scrollTop by the same delta after, so the
+  // viewport doesn't jump — jumping to top or bottom would lose the user's
+  // place mid-history.
+  async function onLoadEarlier() {
+    if (loadingEarlier || !hasMore || messages.length === 0) return;
+    setLoadingEarlier(true);
+    const oldest = messages[0];
+    const el = scrollerRef.current;
+    const prevScrollHeight = el?.scrollHeight ?? 0;
+    const prevScrollTop = el?.scrollTop ?? 0;
+    try {
+      const res = await loadEarlierMessages(
+        thread.id,
+        oldest.createdAt,
+        oldest.id
+      );
+      if (!res) {
+        setHasMore(false);
+        return;
+      }
+      if (res.messages.length > 0) {
+        prependMessages(res.messages);
+        // Restore the anchor after the DOM has grown with the prepended rows.
+        requestAnimationFrame(() => {
+          const node = scrollerRef.current;
+          if (!node) return;
+          const delta = node.scrollHeight - prevScrollHeight;
+          node.scrollTop = prevScrollTop + delta;
+        });
+      }
+      setHasMore(res.hasMore);
+    } finally {
+      setLoadingEarlier(false);
+    }
+  }
 
   async function onToggleBlock() {
     if (blocking) return;
@@ -467,7 +521,20 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
               <EmptyState description={t("threadEmpty")} />
             </div>
           ) : (
-            rows.map(({ message: m, showDay, prevSameGroup, isGroupEnd }) => {
+            <>
+              {hasMore && (
+                <div className="mb-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={onLoadEarlier}
+                    disabled={loadingEarlier}
+                    className="press rounded-full border border-line px-3.5 py-1.5 text-[12px] text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+                  >
+                    {loadingEarlier ? t("loadingEarlier") : t("loadEarlier")}
+                  </button>
+                </div>
+              )}
+              {rows.map(({ message: m, showDay, prevSameGroup, isGroupEnd }) => {
               const mine = m.senderId === thread.meId;
               const failed = m.status === "failed";
               const isRead =
@@ -551,7 +618,8 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                   </div>
                 </div>
               );
-            })
+              })}
+            </>
           )}
           <div ref={bottomRef} />
         </div>

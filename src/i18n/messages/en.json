@@ -520,6 +520,8 @@
     "send": "Send",
     "about": "About: {title}",
     "threadEmpty": "No messages yet. Write the first one.",
+    "loadEarlier": "Load earlier messages",
+    "loadingEarlier": "Loading…",
     "selectConversation": "Select a conversation.",
     "open": "Send a message",
     "block": "Block",

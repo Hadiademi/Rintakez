@@ -520,6 +520,8 @@
     "send": "Senden",
     "about": "Zu: {title}",
     "threadEmpty": "Noch keine Nachrichten. Schreib die erste.",
+    "loadEarlier": "Frühere Nachrichten laden",
+    "loadingEarlier": "Lädt …",
     "selectConversation": "Wähle ein Gespräch.",
     "open": "Nachricht senden",
     "block": "Blockieren",

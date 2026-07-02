@@ -520,6 +520,8 @@
     "send": "Envoyer",
     "about": "À propos de : {title}",
     "threadEmpty": "Pas encore de messages. Écris le premier.",
+    "loadEarlier": "Charger les messages précédents",
+    "loadingEarlier": "Chargement…",
     "selectConversation": "Choisis une conversation.",
     "open": "Envoyer un message",
     "block": "Bloquer",
