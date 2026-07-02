@@ -525,7 +525,18 @@
     "block": "Block",
     "unblock": "Unblock",
     "blockedNotice": "You blocked this person. Unblock to write.",
-    "blockedByNotice": "You can’t send messages to this person."
+    "blockedByNotice": "You can’t send messages to this person.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages": "New messages",
+    "back": "Back",
+    "you": "You",
+    "retry": "Send again",
+    "discard": "Discard",
+    "sendFailed": "Not sent",
+    "limitReached": "You're sending a little too fast. Wait a moment, then try again.",
+    "conversationLabel": "Conversation with {name}",
+    "inputLabel": "Write a message"
   },
   "report": {
     "report": "Report",

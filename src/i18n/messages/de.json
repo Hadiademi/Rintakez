@@ -525,7 +525,18 @@
     "block": "Blockieren",
     "unblock": "Blockierung aufheben",
     "blockedNotice": "Du hast diese Person blockiert. Hebe die Blockierung auf, um zu schreiben.",
-    "blockedByNotice": "Du kannst dieser Person keine Nachricht senden."
+    "blockedByNotice": "Du kannst dieser Person keine Nachricht senden.",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "newMessages": "Neue Nachrichten",
+    "back": "Zurück",
+    "you": "Du",
+    "retry": "Erneut senden",
+    "discard": "Verwerfen",
+    "sendFailed": "Nicht gesendet",
+    "limitReached": "Du schreibst etwas zu schnell. Warte kurz und versuche es dann erneut.",
+    "conversationLabel": "Unterhaltung mit {name}",
+    "inputLabel": "Nachricht schreiben"
   },
   "report": {
     "report": "Melden",

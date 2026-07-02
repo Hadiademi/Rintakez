@@ -43,6 +43,14 @@ export type ThreadData = {
   iBlocked: boolean;
   blockedByThem: boolean;
   messages: ThreadMessage[];
+  /**
+   * When the OTHER participant last read this conversation (ISO), or null if
+   * they never have. Drives read receipts on my own messages: a message is
+   * "read" once its created_at <= otherLastReadAt, otherwise merely "sent".
+   * Derived from the initial load; realtime updates to it aren't subscribed
+   * (see message-thread.tsx), so a receipt flips to ✓✓ on the next thread open.
+   */
+  otherLastReadAt: string | null;
 };
 
 /** All conversations for the current user, newest activity first. */
@@ -123,13 +131,19 @@ export async function getThread(
 
   const { data: conv } = await supabase
     .from("conversations")
-    .select("id, shoot_id, client_id, photographer_id")
+    .select(
+      "id, shoot_id, client_id, photographer_id, client_last_read_at, photographer_last_read_at"
+    )
     .eq("id", conversationId)
     .maybeSingle();
   if (!conv) return null;
 
-  const otherId =
-    conv.client_id === user.id ? conv.photographer_id : conv.client_id;
+  const iAmClient = conv.client_id === user.id;
+  const otherId = iAmClient ? conv.photographer_id : conv.client_id;
+  // The OTHER side's read marker — if I'm the client, that's the photographer's.
+  const otherLastReadAt = iAmClient
+    ? conv.photographer_last_read_at
+    : conv.client_last_read_at;
 
   const [
     { data: messages },
@@ -177,6 +191,7 @@ export async function getThread(
     meId: user.id,
     iBlocked: !!myBlock,
     blockedByThem: blockedByThem ?? false,
+    otherLastReadAt: otherLastReadAt ?? null,
     messages: (messages ?? []).map((m) => ({
       id: m.id,
       senderId: m.sender_id,

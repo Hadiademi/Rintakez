@@ -524,8 +524,19 @@
     "open": "Envoyer un message",
     "block": "Bloquer",
     "unblock": "Débloquer",
-    "blockedNotice": "Vous avez bloqué cette personne. Débloquez-la pour écrire.",
-    "blockedByNotice": "Vous ne pouvez pas envoyer de message à cette personne."
+    "blockedNotice": "Tu as bloqué cette personne. Débloque-la pour lui écrire.",
+    "blockedByNotice": "Tu ne peux pas écrire à cette personne.",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "newMessages": "Nouveaux messages",
+    "back": "Retour",
+    "you": "Toi",
+    "retry": "Renvoyer",
+    "discard": "Supprimer",
+    "sendFailed": "Non envoyé",
+    "limitReached": "Tu écris un peu trop vite. Attends un instant, puis réessaie.",
+    "conversationLabel": "Conversation avec {name}",
+    "inputLabel": "Écrire un message"
   },
   "report": {
     "report": "Signaler",
