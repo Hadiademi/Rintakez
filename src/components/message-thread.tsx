@@ -336,7 +336,12 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   }
 
   // Retry a failed message: flip it back to sending and re-run the round-trip.
+  // Re-entrancy guarded — a rapid double-tap on ↻ must not fire two concurrent
+  // sends for the same bubble (the retry button is also disabled while
+  // status === "sending", but the state flip is racy across two fast events
+  // so we re-check here too).
   async function onRetry(msg: LocalMessage) {
+    if (msg.status === "sending") return;
     const tempId = msg.id;
     setMessages((prev) =>
       prev.map((m) =>
@@ -508,16 +513,18 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                         <button
                           type="button"
                           onClick={() => onRetry(m)}
+                          disabled={m.status === "sending"}
                           aria-label={t("retry")}
-                          className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full hover:text-ink"
+                          className="press -m-1 flex h-11 w-11 items-center justify-center rounded-full hover:text-ink disabled:pointer-events-none disabled:opacity-50"
                         >
                           ↻
                         </button>
                         <button
                           type="button"
                           onClick={() => onDiscard(m.id)}
+                          disabled={m.status === "sending"}
                           aria-label={t("discard")}
-                          className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full hover:text-ink"
+                          className="press -m-1 flex h-11 w-11 items-center justify-center rounded-full hover:text-ink disabled:pointer-events-none disabled:opacity-50"
                         >
                           ✕
                         </button>
@@ -530,7 +537,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                             <span aria-hidden>{isRead ? "✓✓" : "✓"}</span>
                           )}
                           {!mine && (
-                            <span className="opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                            <span className="opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:focus-within:opacity-100">
                               <ReportButton
                                 targetType="message"
                                 targetId={m.id}
