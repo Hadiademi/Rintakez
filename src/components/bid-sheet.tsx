@@ -9,6 +9,7 @@ import { createBidSchema, type CreateBidInput } from "@/lib/validation/bid";
 import { submitBidAction } from "@/lib/actions/bids";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
+import { useToast } from "@/components/ui/toaster";
 
 export function BidSheet({
   shootId,
@@ -19,6 +20,8 @@ export function BidSheet({
 }) {
   const t = useTranslations("bidSheet");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -38,6 +41,7 @@ export function BidSheet({
       const res = await submitBidAction(shootId, values);
       if (res.ok) {
         track("bid");
+        toast(tToast("bidSubmitted"));
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));

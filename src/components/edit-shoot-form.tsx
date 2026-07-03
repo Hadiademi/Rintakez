@@ -9,6 +9,7 @@ import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot
 import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { updateShootAction } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
 const inputClass =
   "w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
@@ -23,6 +24,8 @@ export function EditShootForm({
   const t = useTranslations("createShoot");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -47,6 +50,7 @@ export function EditShootForm({
       setServerError(tErr(errorKey(r.error)));
       return;
     }
+    toast(tToast("shootUpdated"));
     router.push(`/shoots/${shootId}`);
     router.refresh();
   }

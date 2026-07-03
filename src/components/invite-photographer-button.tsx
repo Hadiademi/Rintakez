@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { invitePhotographerAction } from "@/lib/actions/invites";
+import { useToast } from "@/components/ui/toaster";
 
 type OpenShoot = { id: string; title: string; shoot_date: string };
 
@@ -17,6 +18,7 @@ export function InvitePhotographerButton({
   unavailableDates?: string[];
 }) {
   const t = useTranslations("profile");
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null); // shootId invited
@@ -29,6 +31,8 @@ export function InvitePhotographerButton({
     setPending(null);
     if (res.ok) {
       setDone(shootId);
+      // Keep the inline ✓ state on the row AND surface a toast confirmation.
+      toast(t("inviteSuccess"));
     } else {
       setError(res.error === "already_invited" ? t("inviteAlready") : t("inviteError"));
     }

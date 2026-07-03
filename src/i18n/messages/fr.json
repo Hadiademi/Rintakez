@@ -705,5 +705,14 @@
     "emptyDescription": "Aucun·e photographe {type} n'est encore référencé·e à {canton}. Sois le/la premier·ère à ajouter ton profil, ou parcours l'annuaire complet.",
     "emptyBrowseAll": "Voir tous les photographes",
     "emptyJoin": "S'inscrire comme photographe"
+  },
+  "toast": {
+    "dismiss": "Fermer",
+    "bidSubmitted": "Offre envoyée",
+    "bidWithdrawn": "Offre retirée",
+    "reviewSubmitted": "Avis envoyé",
+    "shootCreated": "Mission publiée",
+    "shootUpdated": "Mission mise à jour",
+    "availabilitySaved": "Disponibilité enregistrée"
   }
 }

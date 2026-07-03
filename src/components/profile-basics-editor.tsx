@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { CANTONS } from "@/lib/validation/photographer";
 import { updateProfileBasics } from "@/lib/actions/profile";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
 const inputClass =
   "w-full border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
@@ -23,6 +24,7 @@ export function ProfileBasicsEditor({
 }) {
   const t = useTranslations("profileBasics");
   const tErr = useTranslations("errors");
+  const { toast } = useToast();
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -47,6 +49,7 @@ export function ProfileBasicsEditor({
       if (res.ok) {
         setSaved(true);
         setOpen(false);
+        toast(t("saved"));
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));

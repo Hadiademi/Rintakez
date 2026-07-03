@@ -10,6 +10,7 @@ import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
+import { useToast } from "@/components/ui/toaster";
 
 const STEP_COUNT = 3;
 const MAX_REF_IMAGES = 6;
@@ -29,6 +30,8 @@ export default function NewShootForm() {
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -90,6 +93,9 @@ export default function NewShootForm() {
       return;
     }
     track("post_shoot");
+    // The ToasterProvider lives in the (app) layout, which persists across the
+    // client-side navigation below, so this confirmation survives the push.
+    toast(tToast("shootCreated"));
     // Upload reference images now that we have the shoot id. Failures are
     // non-fatal (the shoot already exists), but must not be silently swallowed
     // or let an exception strand the user on the form — count them and tell the

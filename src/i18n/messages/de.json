@@ -705,5 +705,14 @@
     "emptyDescription": "Für {type} in {canton} sind noch keine Fotograf:innen gelistet. Sei die/der Erste mit deinem Profil oder durchstöbere das ganze Verzeichnis.",
     "emptyBrowseAll": "Alle Fotograf:innen ansehen",
     "emptyJoin": "Als Fotograf:in registrieren"
+  },
+  "toast": {
+    "dismiss": "Schließen",
+    "bidSubmitted": "Angebot gesendet",
+    "bidWithdrawn": "Angebot zurückgezogen",
+    "reviewSubmitted": "Bewertung gesendet",
+    "shootCreated": "Auftrag veröffentlicht",
+    "shootUpdated": "Auftrag aktualisiert",
+    "availabilitySaved": "Verfügbarkeit gespeichert"
   }
 }

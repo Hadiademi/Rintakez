@@ -705,5 +705,14 @@
     "emptyDescription": "No {type} photographers are listed for {canton} yet. Be the first to add your profile, or browse the full directory.",
     "emptyBrowseAll": "Browse all photographers",
     "emptyJoin": "Join as a photographer"
+  },
+  "toast": {
+    "dismiss": "Dismiss",
+    "bidSubmitted": "Bid submitted",
+    "bidWithdrawn": "Bid withdrawn",
+    "reviewSubmitted": "Review submitted",
+    "shootCreated": "Shoot published",
+    "shootUpdated": "Shoot updated",
+    "availabilitySaved": "Availability saved"
   }
 }

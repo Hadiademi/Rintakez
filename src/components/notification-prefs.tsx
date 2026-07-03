@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { updateNotificationPrefs } from "@/lib/actions/settings";
+import { useToast } from "@/components/ui/toaster";
 
 function Toggle({
   checked,
@@ -54,6 +55,7 @@ export function NotificationPrefs({
   notifyMessages: boolean;
 }) {
   const t = useTranslations("profile");
+  const { toast } = useToast();
   const [bids, setBids] = useState(notifyBids);
   const [shoots, setShoots] = useState(notifyShootUpdates);
   const [msgs, setMsgs] = useState(notifyMessages);
@@ -68,7 +70,10 @@ export function NotificationPrefs({
         notifyShootUpdates: nextShoots,
         notifyMessages: nextMsgs,
       });
-      if (r.ok) setSaved(true);
+      if (r.ok) {
+        setSaved(true);
+        toast(t("prefsSaved"));
+      }
     });
   }
 

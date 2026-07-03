@@ -8,10 +8,13 @@ import {
   removeUnavailableDate,
 } from "@/lib/actions/availability";
 import { formatSwissDate } from "@/lib/format";
+import { useToast } from "@/components/ui/toaster";
 
 export function AvailabilityManager({ initial }: { initial: string[] }) {
   const t = useTranslations("profile");
   const tCommon = useTranslations("common");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [dates, setDates] = useState<string[]>(initial);
   const [value, setValue] = useState("");
@@ -27,7 +30,10 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
     startTransition(async () => {
       const res = await addUnavailableDate(date);
       if (!res.ok) setDates((prev) => prev.filter((d) => d !== date));
-      else router.refresh();
+      else {
+        toast(tToast("availabilitySaved"));
+        router.refresh();
+      }
     });
   }
 
