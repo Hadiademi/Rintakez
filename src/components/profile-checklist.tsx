@@ -66,7 +66,7 @@ export function ProfileChecklist({ result }: { result: ProfileCompleteness }) {
                   {t(`item.${item.key}`)}
                 </span>
                 <span className="tabular shrink-0 text-sm text-mute">
-                  +{item.weight}
+                  +{Math.round(item.weight - item.points)}
                   <span className="sr-only">%</span>
                   <svg
                     className="ml-1.5 inline-block"
