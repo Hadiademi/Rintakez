@@ -99,6 +99,80 @@ export async function getNotificationData(): Promise<{
   return { items, unread: count ?? 0 };
 }
 
+/**
+ * A page of the current user's notifications (most recent first), for the full
+ * `/notifications` history. Mirrors getNotificationData's shoot-title and
+ * message-conversation deep-link resolution. Returns `hasMore` so the client
+ * can offer a "load more" without a separate count query.
+ */
+export async function getNotificationsPage({
+  offset,
+  limit = 30,
+}: {
+  offset: number;
+  limit?: number;
+}): Promise<{ items: NotificationItem[]; hasMore: boolean }> {
+  const user = await getSessionUser();
+  if (!user) return { items: [], hasMore: false };
+
+  const supabase = await createClient();
+
+  // Fetch one extra row to detect a further page without a count query.
+  const { data: rows } = await supabase
+    .from("notifications")
+    .select("id, type, shoot_id, read_at, created_at")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit);
+
+  const all = rows ?? [];
+  const hasMore = all.length > limit;
+  const list = hasMore ? all.slice(0, limit) : all;
+
+  const shootIds = [
+    ...new Set(list.map((r) => r.shoot_id).filter((v): v is string => !!v)),
+  ];
+
+  const titles: Record<string, string> = {};
+  if (shootIds.length) {
+    const { data: shoots } = await supabase
+      .from("shoots")
+      .select("id, title")
+      .in("id", shootIds);
+    for (const s of shoots ?? []) titles[s.id] = s.title;
+  }
+
+  const msgShootIds = [
+    ...new Set(
+      list
+        .filter((r) => r.type === "message_received" && r.shoot_id)
+        .map((r) => r.shoot_id as string)
+    ),
+  ];
+  const convByShoot: Record<string, string> = {};
+  if (msgShootIds.length) {
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id, shoot_id")
+      .in("shoot_id", msgShootIds);
+    for (const c of convs ?? []) convByShoot[c.shoot_id] = c.id;
+  }
+
+  const items: NotificationItem[] = list.map((r) => ({
+    id: r.id,
+    type: r.type,
+    shootId: r.shoot_id,
+    conversationId:
+      r.type === "message_received" && r.shoot_id
+        ? (convByShoot[r.shoot_id] ?? null)
+        : null,
+    title: r.shoot_id ? (titles[r.shoot_id] ?? null) : null,
+    readAt: r.read_at,
+    createdAt: r.created_at,
+  }));
+
+  return { items, hasMore };
+}
+
 /** Mark all of the current user's unread notifications as read. */
 export async function markNotificationsRead(): Promise<{ ok: boolean }> {
   const user = await getSessionUser();

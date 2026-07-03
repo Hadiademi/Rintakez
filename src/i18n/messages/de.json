@@ -490,7 +490,13 @@
     "verification_approved": "Dein Profil wurde verifiziert",
     "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt",
     "shoot_invitation": "Du wurdest zu einem Shooting eingeladen",
-    "shoot_match": "Neues Shooting in deiner Region"
+    "shoot_match": "Neues Shooting in deiner Region",
+    "heading": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "loadMore": "Mehr laden",
+    "viewAll": "Alle ansehen",
+    "today": "Heute",
+    "yesterday": "Gestern"
   },
   "review": {
     "title": "Bewertung",

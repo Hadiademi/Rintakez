@@ -490,7 +490,13 @@
     "verification_approved": "Ton profil a été vérifié",
     "verification_rejected": "Ta demande de vérification a été refusée",
     "shoot_invitation": "Tu as été invité à une séance",
-    "shoot_match": "Une nouvelle séance correspond à ton profil"
+    "shoot_match": "Une nouvelle séance correspond à ton profil",
+    "heading": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "loadMore": "Voir plus",
+    "viewAll": "Tout voir",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier"
   },
   "review": {
     "title": "Évaluation",

@@ -490,7 +490,13 @@
     "verification_approved": "Your profile was verified",
     "verification_rejected": "Your verification request was declined",
     "shoot_invitation": "You were invited to a shoot",
-    "shoot_match": "A new shoot matches your profile"
+    "shoot_match": "A new shoot matches your profile",
+    "heading": "Notifications",
+    "markAllRead": "Mark all read",
+    "loadMore": "Load more",
+    "viewAll": "View all",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "review": {
     "title": "Review",

@@ -9,36 +9,12 @@ import {
   markNotificationsRead,
   type NotificationItem,
 } from "@/lib/actions/notifications";
+import { hrefFor } from "@/lib/notifications-href";
+import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
 
 // Unique storage key per realtime client so multiple instances never share an
 // auth-storage lock (which would log "Multiple GoTrueClient instances").
 let rtSeq = 0;
-
-function hrefFor(item: NotificationItem): string {
-  // New message → the inbox. Client (bid_received) / cancellation → the shoot.
-  // Photographer bid outcomes → their bids.
-  if (item.type === "message_received")
-    return item.conversationId
-      ? `/messages/${item.conversationId}`
-      : "/messages";
-  // Review / verification outcomes land on the photographer's own profile.
-  if (
-    item.type === "review_received" ||
-    item.type === "verification_approved" ||
-    item.type === "verification_rejected"
-  )
-    return "/profile";
-  if (
-    (item.type === "bid_received" ||
-      item.type === "shoot_cancelled" ||
-      item.type === "shoot_reopened" ||
-      item.type === "shoot_invitation" ||
-      item.type === "shoot_match") &&
-    item.shootId
-  )
-    return `/shoots/${item.shootId}`;
-  return "/my-bids";
-}
 
 function BellIcon() {
   return (
@@ -168,6 +144,22 @@ export function NotificationBell({
     };
   }, [open]);
 
+  // Zero the badge when notifications are marked read elsewhere (the full
+  // /notifications page). The bell persists across app navigation, so it won't
+  // re-seed its unread count on its own.
+  useEffect(() => {
+    function onRead() {
+      setUnread(0);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.readAt ? i : { ...i, readAt: new Date().toISOString() }
+        )
+      );
+    }
+    window.addEventListener(NOTIFICATIONS_READ_EVENT, onRead);
+    return () => window.removeEventListener(NOTIFICATIONS_READ_EVENT, onRead);
+  }, []);
+
   async function toggle() {
     const next = !open;
     setOpen(next);
@@ -241,6 +233,15 @@ export function NotificationBell({
               ))}
             </ul>
           )}
+          <div className="border-t border-line">
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="press flex min-h-11 items-center justify-center px-4 py-3 text-[13px] font-medium text-accent hover:bg-surface"
+            >
+              {t("viewAll")}
+            </Link>
+          </div>
         </div>
       )}
 

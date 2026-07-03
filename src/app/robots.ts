@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         "/*/my-shoots",
         "/*/my-bids",
         "/*/messages",
+        "/*/notifications",
         "/*/profile",
         "/*/onboarding",
         "/*/shoots/new",
