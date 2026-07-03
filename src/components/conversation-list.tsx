@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { formatMessageTime } from "@/lib/format";
@@ -13,12 +14,15 @@ export function ConversationList({
 }: {
   conversations: ConversationSummary[];
 }) {
+  const t = useTranslations("messages");
   const pathname = usePathname();
   return (
     <ul className="divide-y divide-line">
       {conversations.map((c) => {
         const active = pathname === `/messages/${c.id}`;
-        const preview = c.lastBody ?? c.shootTitle ?? "";
+        const preview = c.lastIsPhoto
+          ? t("photoPreview")
+          : c.lastBody ?? c.shootTitle ?? "";
         return (
           <li key={c.id}>
             <Link

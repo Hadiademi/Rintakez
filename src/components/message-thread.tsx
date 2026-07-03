@@ -8,9 +8,13 @@ import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Spinner } from "@/components/ui/spinner";
+import { ImageLightbox } from "@/components/ui/image-lightbox";
 import { ReportButton } from "@/components/report-button";
 import {
   sendMessage,
+  sendImageMessage,
+  getMessageImageUrl,
   markConversationRead,
   getThread,
   loadEarlierMessages,
@@ -28,12 +32,50 @@ import { errorKey } from "@/lib/error-messages";
 type LocalMessage = ThreadMessage & {
   status?: "sending" | "failed";
   error?: string;
+  /** Object URL of a just-picked/compressed image, shown instantly on the
+   *  optimistic bubble before (and after) the signed URL resolves. */
+  localPreviewUrl?: string;
 };
 
 /** Group boundary: same sender within this window renders as one visual block. */
 const GROUP_WINDOW_MS = 5 * 60 * 1000;
 /** How close to the bottom (px) still counts as "following along". */
 const NEAR_BOTTOM_PX = 120;
+/** Upload ceiling after client-side downscale (mirrors the server check). */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** Longest edge (px) and JPEG quality for the pre-upload canvas downscale —
+ *  keeps uploads fast on mobile data without visibly degrading a chat photo. */
+const MAX_IMAGE_DIM = 2000;
+const IMAGE_QUALITY = 0.85;
+
+/** Downscale an image File to a JPEG Blob no larger than MAX_IMAGE_DIM on its
+ *  longest edge, via an offscreen canvas. Falls back to the original file if
+ *  the browser can't decode/encode it (the server still guards size + MIME). */
+async function downscaleImage(file: File): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const longest = Math.max(bitmap.width, bitmap.height);
+    const scale = Math.min(1, MAX_IMAGE_DIM / longest);
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close();
+      return file;
+    }
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", IMAGE_QUALITY)
+    );
+    return blob ?? file;
+  } catch {
+    return file;
+  }
+}
 
 function hhmm(iso: string): string {
   const d = new Date(iso);
@@ -73,6 +115,10 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   // whether that page is currently being fetched.
   const [hasMore, setHasMore] = useState(thread.hasMore);
   const [loadingEarlier, setLoadingEarlier] = useState(false);
+  // Photo attachments: a validation error for the picker, and the currently
+  // open lightbox image source (null = closed).
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // "Today"/"yesterday" local-day keys, seeded once at mount (a chat session
   // won't outlive a midnight rollover in practice). Lazy initializers are the
@@ -90,6 +136,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const mountedRef = useRef(false);
   // Latest near-bottom flag, mirrored into a ref so the new-message effect and
   // the realtime callback read a fresh value without re-subscribing.
@@ -126,6 +173,16 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       const fresh = older.filter((m) => !ids.has(m.id));
       return fresh.length ? [...fresh, ...prev] : prev;
     });
+  }, []);
+
+  // Fetch (participant-gated) and slot in a signed URL for a message's image.
+  // Stable: only touches setMessages + the server action.
+  const resolveImageUrl = useCallback(async (id: string) => {
+    const res = await getMessageImageUrl(id);
+    if (res?.url)
+      setMessages((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, imageUrl: res.url } : m))
+      );
   }, []);
 
   // The other side blocked me, or I blocked them → no new messages either way.
@@ -215,16 +272,19 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           sender_id: string;
           body: string;
           created_at: string;
+          image_path: string | null;
         };
         setMessages((prev) => {
           // Already have the server row (e.g. reconciled from onSend) → skip.
           if (prev.some((x) => x.id === m.id)) return prev;
-          // My own echo may beat sendMessage's response back: reconcile the
-          // oldest still-sending temp bubble with the same body instead of
-          // appending a duplicate.
+          // My own echo may beat the send action's response back: reconcile the
+          // oldest still-sending temp bubble instead of appending a duplicate.
+          // Match an image echo to a sending bubble carrying a local preview
+          // (bodies are empty for image-only), a text echo by matching body.
           if (m.sender_id === thread.meId) {
-            const tempIdx = prev.findIndex(
-              (x) => x.status === "sending" && x.body === m.body
+            const tempIdx = prev.findIndex((x) =>
+              x.status === "sending" &&
+              (m.image_path ? !!x.localPreviewUrl : x.body === m.body)
             );
             if (tempIdx !== -1) {
               const next = prev.slice();
@@ -233,6 +293,11 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                 senderId: m.sender_id,
                 body: m.body,
                 createdAt: m.created_at,
+                imagePath: m.image_path,
+                // Keep the already-loaded local preview so the bubble doesn't
+                // flash while a signed URL would re-fetch the same bytes.
+                imageUrl: null,
+                localPreviewUrl: prev[tempIdx].localPreviewUrl,
               };
               return next;
             }
@@ -244,6 +309,8 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
               senderId: m.sender_id,
               body: m.body,
               createdAt: m.created_at,
+              imagePath: m.image_path,
+              imageUrl: null,
             },
           ];
         });
@@ -252,6 +319,9 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           // Their message landed while we were scrolled up → surface the pill.
           // (Our own messages always auto-scroll, so never raise it for those.)
           if (!atBottomRef.current) setHasNew(true);
+          // Incoming image: the payload has the path but not a signed URL —
+          // fetch one (participant-gated) and slot it in once resolved.
+          if (m.image_path) void resolveImageUrl(m.id);
         }
       }
     );
@@ -282,7 +352,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       rt.removeChannel(channel);
       rt.realtime.disconnect();
     };
-  }, [thread.id, thread.meId, mergeMessages]);
+  }, [thread.id, thread.meId, mergeMessages, resolveImageUrl]);
 
   const lastMessage = messages[messages.length - 1];
   const lastId = lastMessage?.id;
@@ -337,6 +407,8 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       senderId: thread.meId,
       body: text,
       createdAt: new Date().toISOString(),
+      imagePath: null,
+      imageUrl: null,
       status: "sending",
     };
     setMessages((prev) => [...prev, optimistic]);
@@ -389,6 +461,74 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     );
   }
 
+  // Pick → downscale → optimistic bubble → upload. Reuses the sending-status
+  // machinery: the bubble shows a spinner over the local preview until the
+  // server confirms, then reconciles to the real row (keeping the preview so
+  // the image never flashes).
+  async function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (e.target) e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    setImageError(null);
+    if (!file.type.startsWith("image/")) {
+      setImageError(t("imageInvalid"));
+      return;
+    }
+
+    setSending(true);
+    const blob = await downscaleImage(file);
+    if (blob.size > MAX_IMAGE_BYTES) {
+      setImageError(t("imageTooLarge"));
+      setSending(false);
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(blob);
+    const tempId = newTempId();
+    const optimistic: LocalMessage = {
+      id: tempId,
+      senderId: thread.meId,
+      body: "",
+      createdAt: new Date().toISOString(),
+      imagePath: null,
+      imageUrl: null,
+      status: "sending",
+      localPreviewUrl: previewUrl,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setHasNew(false); // my own send auto-scrolls to the bottom
+
+    try {
+      const fd = new FormData();
+      fd.append("file", blob, "photo.jpg");
+      const res = await sendImageMessage(thread.id, fd);
+      if (res.ok) {
+        // Keep the already-loaded preview to avoid a flash; the signed URL is a
+        // fallback once the object URL is revoked on unmount/discard.
+        setMessages((prev) =>
+          prev.some((m) => m.id === res.message.id)
+            ? prev.filter((m) => m.id !== tempId) // realtime echo already added it
+            : prev.map((m) =>
+                m.id === tempId
+                  ? { ...res.message, localPreviewUrl: previewUrl }
+                  : m
+              )
+        );
+      } else {
+        markFailed(
+          tempId,
+          res.error === "limit_reached"
+            ? t("limitReached")
+            : tErr(errorKey(res.error))
+        );
+      }
+    } catch {
+      markFailed(tempId, tErr("generic"));
+    } finally {
+      setSending(false);
+    }
+  }
+
   // Retry a failed message: flip it back to sending and re-run the round-trip.
   // Re-entrancy guarded — a rapid double-tap on ↻ must not fire two concurrent
   // sends for the same bubble (the retry button is also disabled while
@@ -397,14 +537,42 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   async function onRetry(msg: LocalMessage) {
     if (msg.status === "sending") return;
     const tempId = msg.id;
+    const previewUrl = msg.localPreviewUrl;
     setMessages((prev) =>
       prev.map((m) =>
         m.id === tempId ? { ...m, status: "sending", error: undefined } : m
       )
     );
     try {
-      const res = await sendMessage(thread.id, { body: msg.body });
-      reconcile(tempId, res);
+      // Image bubble: re-read the compressed bytes from the object URL and
+      // re-upload. Text bubble: re-send the body.
+      if (previewUrl) {
+        const blob = await (await fetch(previewUrl)).blob();
+        const fd = new FormData();
+        fd.append("file", blob, "photo.jpg");
+        const res = await sendImageMessage(thread.id, fd);
+        if (res.ok) {
+          setMessages((prev) =>
+            prev.some((m) => m.id === res.message.id)
+              ? prev.filter((m) => m.id !== tempId)
+              : prev.map((m) =>
+                  m.id === tempId
+                    ? { ...res.message, localPreviewUrl: previewUrl }
+                    : m
+                )
+          );
+        } else {
+          markFailed(
+            tempId,
+            res.error === "limit_reached"
+              ? t("limitReached")
+              : tErr(errorKey(res.error))
+          );
+        }
+      } else {
+        const res = await sendMessage(thread.id, { body: msg.body });
+        reconcile(tempId, res);
+      }
     } catch {
       markFailed(tempId, tErr("generic"));
     } finally {
@@ -415,7 +583,11 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   // Discard a failed message: drop the bubble entirely (the user chose to
   // discard, so the text goes with it).
   function onDiscard(tempId: string) {
-    setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    setMessages((prev) => {
+      const gone = prev.find((m) => m.id === tempId);
+      if (gone?.localPreviewUrl) URL.revokeObjectURL(gone.localPreviewUrl);
+      return prev.filter((m) => m.id !== tempId);
+    });
   }
 
   // Localized day-separator label: "Heute"/"Gestern" for the two most recent
@@ -556,20 +728,69 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                       mine ? "items-end" : "items-start"
                     } ${prevSameGroup ? "mt-0.5" : "mt-3"}`}
                   >
-                    <span
-                      className={`max-w-[78%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-4 py-2.5 text-[14px] leading-relaxed ${
-                        mine
-                          ? failed
-                            ? "border border-accent/40 bg-ink/70 text-paper"
-                            : "bg-ink text-paper"
-                          : "border border-line bg-surface text-ink"
-                      } ${m.status === "sending" ? "opacity-70" : ""}`}
-                    >
-                      <span className="sr-only">
-                        {mine ? t("you") : thread.otherName}:{" "}
-                      </span>
-                      {m.body}
-                    </span>
+                    {(() => {
+                      const hasImage = !!(m.imagePath || m.localPreviewUrl);
+                      const imgSrc = m.localPreviewUrl ?? m.imageUrl;
+                      return (
+                        <>
+                          {hasImage && (
+                            <div
+                              className={`flex flex-col ${
+                                mine ? "items-end" : "items-start"
+                              } ${m.status === "sending" ? "opacity-70" : ""}`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => imgSrc && setLightboxSrc(imgSrc)}
+                                disabled={!imgSrc}
+                                aria-label={t("photoAlt")}
+                                className="press relative block max-w-[78%] overflow-hidden rounded border border-line bg-chip"
+                              >
+                                <span className="sr-only">
+                                  {mine ? t("you") : thread.otherName}:{" "}
+                                </span>
+                                {imgSrc ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={imgSrc}
+                                    alt={t("photoAlt")}
+                                    loading="lazy"
+                                    className="block max-h-80 w-full object-cover"
+                                  />
+                                ) : (
+                                  <span className="flex h-40 w-40 items-center justify-center text-mute">
+                                    <Spinner />
+                                  </span>
+                                )}
+                                {m.status === "sending" && (
+                                  <span className="absolute inset-0 flex items-center justify-center bg-ink/20 text-paper">
+                                    <Spinner />
+                                  </span>
+                                )}
+                              </button>
+                            </div>
+                          )}
+                          {m.body && (
+                            <span
+                              className={`${hasImage ? "mt-1 " : ""}max-w-[78%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-4 py-2.5 text-[14px] leading-relaxed ${
+                                mine
+                                  ? failed
+                                    ? "border border-accent/40 bg-ink/70 text-paper"
+                                    : "bg-ink text-paper"
+                                  : "border border-line bg-surface text-ink"
+                              } ${m.status === "sending" ? "opacity-70" : ""}`}
+                            >
+                              {!hasImage && (
+                                <span className="sr-only">
+                                  {mine ? t("you") : thread.otherName}:{" "}
+                                </span>
+                              )}
+                              {m.body}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
 
                     {failed ? (
                       <span
@@ -650,7 +871,45 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
         </div>
       ) : (
         <div className="shrink-0 border-t border-line pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4">
+          {imageError && (
+            <p role="alert" className="mb-2 px-1 text-[12px] text-accent">
+              {imageError}
+            </p>
+          )}
           <div className="flex items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            data-testid="message-image-input"
+            onChange={onPickImage}
+            disabled={sending}
+          />
+          <button
+            type="button"
+            data-testid="message-attach"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+            aria-label={t("attachPhoto")}
+            className="press flex h-11 w-11 shrink-0 items-center justify-center border border-line bg-surface text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" />
+            </svg>
+          </button>
           <textarea
             ref={taRef}
             data-testid="message-input"
@@ -696,6 +955,13 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
         </div>
       )}
       </div>
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt={t("photoAlt")}
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
     </div>
   );
 }

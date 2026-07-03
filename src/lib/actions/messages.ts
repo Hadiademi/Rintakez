@@ -12,6 +12,19 @@ type ErrResult = { ok: false; error: string };
 
 const messageSchema = z.object({ body: z.string().min(1).max(4000) });
 
+/** Private bucket for chat photo attachments (see the message_images migration).
+ *  Not exported: a "use server" file may only export async functions. */
+const MESSAGE_IMAGE_BUCKET = "message-images";
+/** Signed-URL lifetime for chat images (seconds). Long enough to view a thread
+ *  and open the lightbox; the thread re-signs on every load. */
+const MESSAGE_IMAGE_TTL = 3600;
+/** Post-compression upload ceiling — mirrors the client-side canvas downscale.
+ *  Enforced server-side too so a crafted request can't smuggle a large file. */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+/** A Supabase client as returned by our server helper. Compile-time only. */
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
 export type ConversationSummary = {
   id: string;
   shootId: string;
@@ -23,6 +36,9 @@ export type ConversationSummary = {
   lastBody: string | null;
   lastMine: boolean;
   unread: boolean;
+  /** The last message was an image-only attachment (empty body, but a message
+   *  exists). Drives a "📷 Photo" preview instead of a blank line. */
+  lastIsPhoto: boolean;
 };
 
 export type ThreadMessage = {
@@ -30,7 +46,52 @@ export type ThreadMessage = {
   senderId: string;
   body: string;
   createdAt: string;
+  /** Storage path of an attached image (private bucket), or null for text. */
+  imagePath: string | null;
+  /** Short-lived signed URL for `imagePath`, minted server-side. Null when the
+   *  message has no image (or the URL couldn't be signed). */
+  imageUrl: string | null;
 };
+
+/** Shape of a message row selected from the DB (snake_case). */
+type MessageRow = {
+  id: string;
+  sender_id: string;
+  body: string;
+  created_at: string;
+  image_path: string | null;
+};
+
+/** Map DB message rows to ThreadMessages, batch-signing any image paths into
+ *  short-lived URLs (the bucket is private). Rows without an image pass through
+ *  with null URLs and no storage round-trip. */
+async function toThreadMessages(
+  supabase: ServerClient,
+  rows: MessageRow[]
+): Promise<ThreadMessage[]> {
+  const paths = rows
+    .map((r) => r.image_path)
+    .filter((p): p is string => !!p);
+
+  const urlByPath = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from(MESSAGE_IMAGE_BUCKET)
+      .createSignedUrls(paths, MESSAGE_IMAGE_TTL);
+    for (const s of signed ?? []) {
+      if (s.path && s.signedUrl) urlByPath.set(s.path, s.signedUrl);
+    }
+  }
+
+  return rows.map((r) => ({
+    id: r.id,
+    senderId: r.sender_id,
+    body: r.body,
+    createdAt: r.created_at,
+    imagePath: r.image_path,
+    imageUrl: r.image_path ? urlByPath.get(r.image_path) ?? null : null,
+  }));
+}
 
 /** Newest-page size for a thread's initial load and each "load earlier" page.
  *  Not exported: a "use server" file may only export async functions (plus
@@ -123,6 +184,10 @@ export async function getConversations(): Promise<ConversationSummary[]> {
       lastBody: c.last_message_body ?? null,
       lastMine: c.last_sender_id ? c.last_sender_id === user.id : false,
       unread,
+      // Text messages always have a non-empty body (trimmed server-side), so an
+      // empty body alongside an actual sender means the last message was an
+      // image-only attachment.
+      lastIsPhoto: !!c.last_sender_id && !c.last_message_body,
     };
   });
 }
@@ -169,7 +234,7 @@ export async function getThread(
     // below to ascending order for rendering.
     supabase
       .from("messages")
-      .select("id, sender_id, body, created_at")
+      .select("id, sender_id, body, created_at, image_path")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: false })
       .limit(THREAD_PAGE),
@@ -211,15 +276,11 @@ export async function getThread(
     // Reverse the newest-first page back to ascending (oldest → newest) for
     // rendering; a full page means there may be older messages still unread.
     hasMore: (messages?.length ?? 0) === THREAD_PAGE,
-    messages: (messages ?? [])
-      .slice()
-      .reverse()
-      .map((m) => ({
-        id: m.id,
-        senderId: m.sender_id,
-        body: m.body,
-        createdAt: m.created_at,
-      })),
+    // Reverse the newest-first page back to ascending, then sign image paths.
+    messages: await toThreadMessages(
+      supabase,
+      (messages ?? []).slice().reverse()
+    ),
   };
 }
 
@@ -276,7 +337,7 @@ export async function loadEarlierMessages(
   // this interpolation cannot smuggle extra filter clauses.
   const { data: messages } = await supabase
     .from("messages")
-    .select("id, sender_id, body, created_at")
+    .select("id, sender_id, body, created_at, image_path")
     .eq("conversation_id", conversationId)
     .or(
       `created_at.lt.${beforeCreatedAt},and(created_at.eq.${beforeCreatedAt},id.lt.${beforeId})`
@@ -287,15 +348,10 @@ export async function loadEarlierMessages(
 
   return {
     hasMore: (messages?.length ?? 0) === THREAD_PAGE,
-    messages: (messages ?? [])
-      .slice()
-      .reverse()
-      .map((m) => ({
-        id: m.id,
-        senderId: m.sender_id,
-        body: m.body,
-        createdAt: m.created_at,
-      })),
+    messages: await toThreadMessages(
+      supabase,
+      (messages ?? []).slice().reverse()
+    ),
   };
 }
 
@@ -336,7 +392,7 @@ export async function sendMessage(
       sender_id: user.id,
       body,
     })
-    .select("id, sender_id, body, created_at")
+    .select("id, sender_id, body, created_at, image_path")
     .single();
   if (error || !inserted)
     return { ok: false, error: error ? dbError(error, "messages") : "generic" };
@@ -372,8 +428,147 @@ export async function sendMessage(
       senderId: inserted.sender_id,
       body: inserted.body,
       createdAt: inserted.created_at,
+      imagePath: inserted.image_path,
+      imageUrl: null,
     },
   };
+}
+
+/**
+ * Send a photo message. The client downscales the image (canvas) and posts the
+ * compressed blob here as `file` in a FormData, plus an optional `body` caption.
+ * We re-validate MIME + size server-side, upload to the private message-images
+ * bucket under `<conversationId>/<uuid>.<ext>`, insert the message row, and
+ * return it with a fresh signed URL for immediate render. Shares the text
+ * message rate limit and the participant/block enforcement (via RLS + an
+ * explicit up-front check).
+ */
+export async function sendImageMessage(
+  conversationId: string,
+  formData: FormData
+): Promise<{ ok: true; message: ThreadMessage } | ErrResult> {
+  if (!z.string().uuid().safeParse(conversationId).success)
+    return { ok: false, error: "invalid_input" };
+
+  const file = formData.get("file");
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    !file.type.startsWith("image/") ||
+    file.size > MAX_IMAGE_BYTES
+  ) {
+    return { ok: false, error: "invalid_file" };
+  }
+
+  // Optional caption. Empty is fine (image-only); the DB CHECK allows an empty
+  // body when image_path is present.
+  const rawBody = formData.get("body");
+  const body =
+    typeof rawBody === "string" ? rawBody.trim().slice(0, 4000) : "";
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+  if (!(await rateLimit(`msg:${user.id}`, 30, 60_000)))
+    return { ok: false, error: "limit_reached" };
+
+  const supabase = await createClient();
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("client_id, photographer_id, shoot_id")
+    .eq("id", conversationId)
+    .maybeSingle();
+  if (!conv || (conv.client_id !== user.id && conv.photographer_id !== user.id))
+    return { ok: false, error: "forbidden" };
+
+  const ext = file.type === "image/png" ? "png" : "jpg";
+  const path = `${conversationId}/${crypto.randomUUID()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(MESSAGE_IMAGE_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError)
+    return { ok: false, error: dbError(uploadError, "messages") };
+
+  const { data: inserted, error } = await supabase
+    .from("messages")
+    .insert({
+      conversation_id: conversationId,
+      sender_id: user.id,
+      body,
+      image_path: path,
+    })
+    .select("id, sender_id, body, created_at, image_path")
+    .single();
+  if (error || !inserted) {
+    // Roll back the orphaned object so a failed insert doesn't leak storage.
+    await supabase.storage.from(MESSAGE_IMAGE_BUCKET).remove([path]);
+    return { ok: false, error: error ? dbError(error, "messages") : "generic" };
+  }
+
+  const [signedMessage] = await toThreadMessages(supabase, [inserted]);
+
+  // Mirror to email (same collapse window as text; the notification copy works
+  // without embedding the image).
+  const recipientId =
+    conv.client_id === user.id ? conv.photographer_id : conv.client_id;
+  if (recipientId && recipientId !== user.id) {
+    const { data: shoot } = await supabase
+      .from("shoots")
+      .select("title")
+      .eq("id", conv.shoot_id)
+      .maybeSingle();
+    await notifyEmail({
+      kind: "message_received",
+      recipientId,
+      shootId: conv.shoot_id,
+      shootTitle: shoot?.title ?? null,
+      dedupeWindowMs: 900_000,
+    });
+  }
+
+  revalidatePath("/[locale]/(app)/messages/[id]", "page");
+  revalidatePath("/[locale]/(app)/messages", "page");
+  return { ok: true, message: signedMessage };
+}
+
+/**
+ * Mint a signed URL for a single message's image, gated on the caller being a
+ * participant of that message's conversation. Used by the realtime path: an
+ * incoming INSERT carries the image_path but not a signed URL, so the client
+ * fetches one here. Returns null when the message has no image or the caller
+ * isn't a participant.
+ */
+export async function getMessageImageUrl(
+  messageId: string
+): Promise<{ url: string } | null> {
+  if (!z.string().uuid().safeParse(messageId).success) return null;
+
+  const user = await getSessionUser();
+  if (!user) return null;
+  const supabase = await createClient();
+
+  // RLS already restricts messages to participants, but confirm explicitly so a
+  // non-participant gets a clean null rather than relying solely on the empty
+  // result set.
+  const { data: msg } = await supabase
+    .from("messages")
+    .select("image_path, conversation_id")
+    .eq("id", messageId)
+    .maybeSingle();
+  if (!msg?.image_path) return null;
+
+  const { data: conv } = await supabase
+    .from("conversations")
+    .select("client_id, photographer_id")
+    .eq("id", msg.conversation_id)
+    .maybeSingle();
+  if (!conv || (conv.client_id !== user.id && conv.photographer_id !== user.id))
+    return null;
+
+  const { data: signed } = await supabase.storage
+    .from(MESSAGE_IMAGE_BUCKET)
+    .createSignedUrl(msg.image_path, MESSAGE_IMAGE_TTL);
+  return signed?.signedUrl ? { url: signed.signedUrl } : null;
 }
 
 /** Block another user — they can no longer message the current user. */

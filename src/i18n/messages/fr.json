@@ -538,7 +538,12 @@
     "sendFailed": "Non envoyé",
     "limitReached": "Tu écris un peu trop vite. Attends un instant, puis réessaie.",
     "conversationLabel": "Conversation avec {name}",
-    "inputLabel": "Écrire un message"
+    "inputLabel": "Écrire un message",
+    "attachPhoto": "Joindre une photo",
+    "photoAlt": "Photo",
+    "photoPreview": "📷 Photo",
+    "imageTooLarge": "Cette image est trop lourde. Choisis-en une de moins de 5 Mo.",
+    "imageInvalid": "Choisis un fichier image."
   },
   "report": {
     "report": "Signaler",
