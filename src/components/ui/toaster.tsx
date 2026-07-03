@@ -92,7 +92,7 @@ function ToastItem({
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label={dismissLabel}
-        className="press -mr-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-paper/70 hover:text-paper"
+        className="press -my-3 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded text-paper/70 hover:text-paper"
       >
         <svg
           width="14"
