@@ -703,6 +703,8 @@ export type Database = {
           id: string
           photographer_id: string
           rating: number
+          reply: string | null
+          reply_at: string | null
           shoot_id: string
         }
         Insert: {
@@ -712,6 +714,8 @@ export type Database = {
           id?: string
           photographer_id: string
           rating: number
+          reply?: string | null
+          reply_at?: string | null
           shoot_id: string
         }
         Update: {
@@ -721,6 +725,8 @@ export type Database = {
           id?: string
           photographer_id?: string
           rating?: number
+          reply?: string | null
+          reply_at?: string | null
           shoot_id?: string
         }
         Relationships: [

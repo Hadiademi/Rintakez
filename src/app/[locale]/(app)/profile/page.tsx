@@ -2,7 +2,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatCHF } from "@/lib/format";
+import { formatCHF, formatSwissDate } from "@/lib/format";
+import { Stars } from "@/components/stars";
+import { ReviewReplyForm } from "@/components/review-reply-form";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { CoverUploader } from "@/components/cover-uploader";
 import { PortfolioEditor } from "@/components/portfolio-editor";
@@ -90,6 +92,16 @@ export default async function ProfilePage() {
     : { data: [] };
   const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
 
+  // The photographer's own reviews — so they can post a single public reply.
+  const { data: reviewRows } = isPhotographer
+    ? await supabase
+        .from("reviews")
+        .select("id, rating, comment, created_at, reply, reply_at")
+        .eq("photographer_id", profile.id)
+        .order("created_at", { ascending: false })
+    : { data: [] };
+  const reviews = reviewRows ?? [];
+
   const portfolioImages = (rawImages ?? []).map((img) => ({
     id: img.id,
     url: supabase.storage.from("portfolio").getPublicUrl(img.storage_path).data
@@ -113,6 +125,7 @@ export default async function ProfilePage() {
   const t = await getTranslations("profile");
   const tAuth = await getTranslations("auth");
   const tShoot = await getTranslations("shoot");
+  const tReview = await getTranslations("review");
 
   const initials = profile.display_name
     .split(/\s+/)
@@ -325,6 +338,46 @@ export default async function ProfilePage() {
 
                 <PortfolioEditor initial={portfolioImages} />
                 <AvailabilityManager initial={unavailableDates} />
+
+                {/* Reviews — the photographer may post one public reply each. */}
+                <div className="space-y-5 border-t border-line pt-8">
+                  <p className="label text-mute">{tReview("reviews")}</p>
+                  {reviews.length > 0 ? (
+                    <ul className="space-y-6">
+                      {reviews.map((r) => (
+                        <li key={r.id} className="space-y-1.5">
+                          <Stars value={r.rating} />
+                          {r.comment ? (
+                            <p className="whitespace-pre-line text-[15px] leading-relaxed text-ink">
+                              {r.comment}
+                            </p>
+                          ) : null}
+                          <p className="tabular text-[13px] text-mute">
+                            {formatSwissDate(r.created_at.slice(0, 10))}
+                          </p>
+                          {r.reply ? (
+                            <div className="mt-2 space-y-1 border-l-2 border-line pl-4">
+                              <p className="label text-mute-2">
+                                {tReview("replyFrom", {
+                                  name: profile.display_name,
+                                })}
+                              </p>
+                              <p className="whitespace-pre-line text-[15px] leading-relaxed text-mute">
+                                {r.reply}
+                              </p>
+                            </div>
+                          ) : (
+                            <ReviewReplyForm reviewId={r.id} />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[14px] text-mute">
+                      {tReview("noReviews")}
+                    </p>
+                  )}
+                </div>
               </div>
             </section>
           </ProfileTabPanel>

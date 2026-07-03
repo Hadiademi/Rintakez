@@ -133,7 +133,7 @@ export default async function PhotographerProfilePage({
 
       const { data: reviewRows } = await supabase
         .from("reviews")
-        .select("id, rating, comment, created_at, client_id, shoot_id")
+        .select("id, rating, comment, created_at, client_id, shoot_id, reply, reply_at")
         .eq("photographer_id", id)
         .order("created_at", { ascending: false })
         .limit(10);
@@ -178,6 +178,8 @@ export default async function PhotographerProfilePage({
         rating: r.rating,
         comment: r.comment,
         created_at: r.created_at,
+        reply: r.reply,
+        reply_at: r.reply_at,
         reviewerName: shortName(reviewerById.get(r.client_id) ?? ""),
         shootType: shootTypeById.get(r.shoot_id) ?? null,
       }));
@@ -598,6 +600,18 @@ export default async function PhotographerProfilePage({
                       <span aria-hidden="true">·</span>
                       <ReportButton targetType="review" targetId={r.id} compact />
                     </div>
+                    {r.reply ? (
+                      <div className="mt-2 space-y-1 border-l-2 border-line pl-4">
+                        <p className="label text-mute-2">
+                          {tReview("replyFrom", {
+                            name: profile.display_name,
+                          })}
+                        </p>
+                        <p className="whitespace-pre-line text-[15px] leading-relaxed text-mute">
+                          {r.reply}
+                        </p>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>

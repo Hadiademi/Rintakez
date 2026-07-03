@@ -514,7 +514,11 @@
     "reviews": "Évaluations",
     "count": "{count, plural, =0 {Aucune évaluation} one {# évaluation} other {# évaluations}}",
     "noReviews": "Pas encore d’avis.",
-    "verifiedBooking": "Réservation vérifiée"
+    "verifiedBooking": "Réservation vérifiée",
+    "replyFrom": "Réponse de {name}",
+    "replyLabel": "Répondre à cet avis",
+    "replyPlaceholder": "Ta réponse publique …",
+    "replySubmit": "Envoyer la réponse"
   },
   "directory": {
     "navPhotographers": "Photographes",
@@ -727,6 +731,7 @@
     "bidSubmitted": "Offre envoyée",
     "bidWithdrawn": "Offre retirée",
     "reviewSubmitted": "Avis envoyé",
+    "replySubmitted": "Réponse envoyée",
     "shootCreated": "Mission publiée",
     "shootUpdated": "Mission mise à jour",
     "availabilitySaved": "Disponibilité enregistrée"

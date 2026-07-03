@@ -514,7 +514,11 @@
     "reviews": "Reviews",
     "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
     "noReviews": "No reviews yet.",
-    "verifiedBooking": "Verified booking"
+    "verifiedBooking": "Verified booking",
+    "replyFrom": "Reply from {name}",
+    "replyLabel": "Reply to this review",
+    "replyPlaceholder": "Your public reply …",
+    "replySubmit": "Send reply"
   },
   "directory": {
     "navPhotographers": "Photographers",
@@ -727,6 +731,7 @@
     "bidSubmitted": "Bid submitted",
     "bidWithdrawn": "Bid withdrawn",
     "reviewSubmitted": "Review submitted",
+    "replySubmitted": "Reply sent",
     "shootCreated": "Shoot published",
     "shootUpdated": "Shoot updated",
     "availabilitySaved": "Availability saved"

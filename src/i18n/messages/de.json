@@ -514,7 +514,11 @@
     "reviews": "Bewertungen",
     "count": "{count, plural, =0 {Keine Bewertungen} one {# Bewertung} other {# Bewertungen}}",
     "noReviews": "Noch keine Bewertungen.",
-    "verifiedBooking": "Verifizierte Buchung"
+    "verifiedBooking": "Verifizierte Buchung",
+    "replyFrom": "Antwort von {name}",
+    "replyLabel": "Auf diese Bewertung antworten",
+    "replyPlaceholder": "Deine öffentliche Antwort …",
+    "replySubmit": "Antwort senden"
   },
   "directory": {
     "navPhotographers": "Fotograf:innen",
@@ -727,6 +731,7 @@
     "bidSubmitted": "Angebot gesendet",
     "bidWithdrawn": "Angebot zurückgezogen",
     "reviewSubmitted": "Bewertung gesendet",
+    "replySubmitted": "Antwort gesendet",
     "shootCreated": "Auftrag veröffentlicht",
     "shootUpdated": "Auftrag aktualisiert",
     "availabilitySaved": "Verfügbarkeit gespeichert"
