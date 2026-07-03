@@ -200,7 +200,8 @@
       "open": "Ouvert",
       "assigned": "Attribué",
       "completed": "Terminé",
-      "cancelled": "Annulé"
+      "cancelled": "Annulé",
+      "reviewed": "Évalué"
     },
     "bidsCount": "{count, plural, =0 {Aucune offre} one {# offre} other {# offres}}",
     "discipline": "Médium",
@@ -211,6 +212,15 @@
     "edit": "Modifier",
     "addToCalendar": "Ajouter au calendrier",
     "findPhotographersCta": "Trouver & inviter des photographes"
+  },
+  "shootStepper": {
+    "aria": "Statut du mandat",
+    "cancelledNote": "Ce mandat a été annulé.",
+    "hint": {
+      "invite": "Invite des photographes pour recevoir ta première offre.",
+      "contact": "Prends contact et marque le mandat comme terminé une fois réalisé.",
+      "review": "Évalue ton ou ta photographe pour finaliser le mandat."
+    }
   },
   "myShoots": {
     "title": "Mes missions",

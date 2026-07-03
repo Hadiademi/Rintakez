@@ -200,7 +200,8 @@
       "open": "Open",
       "assigned": "Assigned",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "reviewed": "Reviewed"
     },
     "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}",
     "discipline": "Medium",
@@ -211,6 +212,15 @@
     "edit": "Edit",
     "addToCalendar": "Add to calendar",
     "findPhotographersCta": "Find & invite photographers"
+  },
+  "shootStepper": {
+    "aria": "Shoot status",
+    "cancelledNote": "This shoot was cancelled.",
+    "hint": {
+      "invite": "Invite photographers to receive your first offer.",
+      "contact": "Get in touch and mark the shoot complete once it's done.",
+      "review": "Review your photographer to wrap up the shoot."
+    }
   },
   "myShoots": {
     "title": "My shoots",

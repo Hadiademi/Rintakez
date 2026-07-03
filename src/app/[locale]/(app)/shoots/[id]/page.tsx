@@ -8,7 +8,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
 import { buildAlternates } from "@/lib/seo";
-import { ShootStatusBadge } from "@/components/shoot-status-badge";
+import { ShootStepper, type StepperHint } from "@/components/shoot-stepper";
 import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
 import { ShootRefGallery } from "@/components/shoot-ref-gallery";
@@ -90,6 +90,18 @@ export default async function ShootDetailPage({
 
   if (!shoot) notFound();
 
+  // Whether a review exists — drives the stepper's terminal "Bewertet" step for
+  // EVERY viewer (reviews are world-readable). Cheap head count; the owner's
+  // full review load below is unchanged.
+  const { count: reviewCount } =
+    shoot.status === "completed"
+      ? await supabase
+          .from("reviews")
+          .select("id", { count: "exact", head: true })
+          .eq("shoot_id", id)
+      : { count: 0 };
+  const hasReview = (reviewCount ?? 0) > 0;
+
   // Reference images live in a PRIVATE bucket; mint short-lived signed URLs.
   // RLS on storage.objects mirrors shoot visibility, so a viewer who cannot see
   // the shoot also cannot get a signed URL.
@@ -136,6 +148,32 @@ export default async function ShootDetailPage({
   ) : null;
 
   const isOwner = !!profile && shoot.client_id === profile.id;
+
+  // Bid presence drives the owner's "invite photographers" pointer on an open
+  // shoot. Cheap head count, owner-only.
+  const { count: bidCount } =
+    isOwner && shoot.status === "open"
+      ? await supabase
+          .from("bids")
+          .select("id", { count: "exact", head: true })
+          .eq("shoot_id", id)
+      : { count: null };
+
+  // The stepper's single contextual line: it only names the next action for the
+  // owner. The real CTAs (invite link, CompleteShootButton, ReviewForm) live
+  // below and own their own logic — this is just a pointer.
+  const stepperHint: StepperHint | null = !isOwner
+    ? null
+    : shoot.status === "open"
+      ? (bidCount ?? 0) === 0
+        ? "invite"
+        : null
+      : shoot.status === "assigned"
+        ? "contact"
+        : shoot.status === "completed" && !hasReview
+          ? "review"
+          : null;
+
   const location = `${shoot.location_city}${
     shoot.location_postcode ? ` ${shoot.location_postcode}` : ""
   }, ${shoot.canton}`;
@@ -205,9 +243,11 @@ export default async function ShootDetailPage({
 
   const header = (
     <div className="space-y-4">
-      <div>
-        <ShootStatusBadge status={shoot.status} />
-      </div>
+      <ShootStepper
+        status={shoot.status}
+        hasReview={hasReview}
+        hint={stepperHint}
+      />
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
         {shoot.title}
       </h1>
