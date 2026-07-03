@@ -214,12 +214,12 @@
     "findPhotographersCta": "Trouver & inviter des photographes"
   },
   "shootStepper": {
-    "aria": "Statut du mandat",
-    "cancelledNote": "Ce mandat a été annulé.",
+    "aria": "Statut de la mission",
+    "cancelledNote": "Cette mission a été annulée.",
     "hint": {
       "invite": "Invite des photographes pour recevoir ta première offre.",
-      "contact": "Prends contact et marque le mandat comme terminé une fois réalisé.",
-      "review": "Évalue ton ou ta photographe pour finaliser le mandat."
+      "contact": "Prends contact et marque la mission comme terminée une fois réalisée.",
+      "review": "Évalue ton ou ta photographe pour finaliser la mission."
     }
   },
   "myShoots": {
