@@ -34,6 +34,8 @@
     "myBids": "Meine Angebote",
     "create": "Erstellen",
     "searchPlaceholder": "Offene Aufträge",
+    "searchNoResults": "Keine Treffer",
+    "searchSeeAll": "Alle Aufträge durchsuchen",
     "notifications": "Benachrichtigungen",
     "photographers": "Fotograf:innen",
     "messages": "Nachrichten",

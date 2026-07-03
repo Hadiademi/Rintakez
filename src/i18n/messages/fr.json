@@ -34,6 +34,8 @@
     "myBids": "Mes offres",
     "create": "Créer",
     "searchPlaceholder": "Missions ouvertes",
+    "searchNoResults": "Aucun résultat",
+    "searchSeeAll": "Chercher dans toutes les missions",
     "notifications": "Notifications",
     "photographers": "Photographes",
     "messages": "Messages",

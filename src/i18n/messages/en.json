@@ -34,6 +34,8 @@
     "myBids": "My bids",
     "create": "Create",
     "searchPlaceholder": "Open shoots",
+    "searchNoResults": "No results",
+    "searchSeeAll": "Search all shoots",
     "notifications": "Notifications",
     "photographers": "Photographers",
     "messages": "Messages",
