@@ -8,6 +8,8 @@ import { ShootCard } from "@/components/shoot-card";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { RecommendedPhotographers } from "@/components/recommended-photographers";
+import { ProfileChecklist } from "@/components/profile-checklist";
+import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
 
@@ -281,17 +283,39 @@ export default async function HomePage() {
   const OPEN_SHOOTS_LIMIT = 7;
   const MIN_PERSONALIZED_RESULTS = 3;
 
-  const [{ data: details }, { data: myBids }] = await Promise.all([
+  const [
+    { data: details },
+    { data: myBids },
+    { data: ownProfile },
+    { count: portfolioCount },
+  ] = await Promise.all([
     supabase
       .from("photographer_details")
-      .select("coverage_cantons, disciplines")
+      .select(
+        "coverage_cantons, disciplines, specialties, hourly_rate_chf, verification_status"
+      )
       .eq("profile_id", profile.id)
       .maybeSingle(),
     supabase.from("bids").select("id,status").eq("photographer_id", profile.id),
+    supabase.from("profiles").select("bio").eq("id", profile.id).single(),
+    supabase
+      .from("portfolio_images")
+      .select("id", { count: "exact", head: true })
+      .eq("photographer_id", profile.id),
   ]);
 
   const coverageCantons = details?.coverage_cantons ?? [];
   const disciplines = details?.disciplines ?? [];
+
+  const completeness = scoreProfileCompleteness({
+    hasAvatar: Boolean(profile.avatar_url),
+    bioLength: ownProfile?.bio?.length ?? 0,
+    portfolioCount: portfolioCount ?? 0,
+    hasRate: (details?.hourly_rate_chf ?? 0) > 0,
+    cantonsCount: coverageCantons.length,
+    specialtiesCount: (details?.specialties ?? []).length,
+    verificationStatus: details?.verification_status ?? "unverified",
+  });
 
   let personalizedQuery = supabase
     .from("shoots")
@@ -357,6 +381,8 @@ export default async function HomePage() {
             : undefined
         }
       />
+
+      <ProfileChecklist result={completeness} />
 
       {bids.length > 0 && (
         <StatStrip>

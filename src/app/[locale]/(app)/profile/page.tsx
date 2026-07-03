@@ -15,6 +15,8 @@ import { NotificationPrefs } from "@/components/notification-prefs";
 import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
+import { ProfileChecklist } from "@/components/profile-checklist";
+import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +125,18 @@ export default async function ProfilePage() {
   const specialties = details?.specialties ?? [];
   const coverageCantons = details?.coverage_cantons ?? [];
   const proDisciplines = details?.disciplines ?? [];
+
+  const completeness = isPhotographer
+    ? scoreProfileCompleteness({
+        hasAvatar: Boolean(profile.avatar_url),
+        bioLength: profile.bio?.length ?? 0,
+        portfolioCount: portfolioImages.length,
+        hasRate: (details?.hourly_rate_chf ?? 0) > 0,
+        cantonsCount: coverageCantons.length,
+        specialtiesCount: specialties.length,
+        verificationStatus: details?.verification_status ?? "unverified",
+      })
+    : null;
   const hasVideo = proDisciplines.includes("video");
   const hasPhoto = proDisciplines.includes("photo");
   const roleLabel = !isPhotographer
@@ -177,6 +191,11 @@ export default async function ProfilePage() {
         {/* Public profile (photographer) */}
         {isPhotographer && (
           <ProfileTabPanel id="profile" label={t("publicProfileTitle")}>
+            {completeness && (
+              <div className="mb-8">
+                <ProfileChecklist result={completeness} />
+              </div>
+            )}
             <section id="profile" className="scroll-mt-24">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="label text-mute">{t("publicProfileTitle")}</h2>

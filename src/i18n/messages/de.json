@@ -724,5 +724,19 @@
     "shootCreated": "Auftrag veröffentlicht",
     "shootUpdated": "Auftrag aktualisiert",
     "availabilitySaved": "Verfügbarkeit gespeichert"
+  },
+  "checklist": {
+    "title": "Profil vervollständigen",
+    "hint": "Vollständige Profile gewinnen mehr Aufträge. Nur noch ein paar Schritte.",
+    "progressLabel": "Profil zu {percent}% vollständig",
+    "item": {
+      "avatar": "Profilbild hinzufügen",
+      "bio": "Kurze Bio schreiben",
+      "portfolio": "Portfolio-Bilder hinzufügen",
+      "rate": "Stundensatz festlegen",
+      "cantons": "Einsatzgebiete wählen",
+      "specialties": "Spezialgebiete wählen",
+      "verification": "Verifizierung anfragen"
+    }
   }
 }

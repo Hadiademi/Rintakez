@@ -724,5 +724,19 @@
     "shootCreated": "Shoot published",
     "shootUpdated": "Shoot updated",
     "availabilitySaved": "Availability saved"
+  },
+  "checklist": {
+    "title": "Complete your profile",
+    "hint": "Complete profiles win more work. A few steps left.",
+    "progressLabel": "Profile {percent}% complete",
+    "item": {
+      "avatar": "Add a profile photo",
+      "bio": "Write a short bio",
+      "portfolio": "Add portfolio images",
+      "rate": "Set your hourly rate",
+      "cantons": "Choose your coverage areas",
+      "specialties": "Pick your specialties",
+      "verification": "Request verification"
+    }
   }
 }

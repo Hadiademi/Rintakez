@@ -724,5 +724,19 @@
     "shootCreated": "Mission publiée",
     "shootUpdated": "Mission mise à jour",
     "availabilitySaved": "Disponibilité enregistrée"
+  },
+  "checklist": {
+    "title": "Complète ton profil",
+    "hint": "Les profils complets décrochent plus de missions. Encore quelques étapes.",
+    "progressLabel": "Profil complété à {percent}%",
+    "item": {
+      "avatar": "Ajoute une photo de profil",
+      "bio": "Rédige une courte bio",
+      "portfolio": "Ajoute des photos au portfolio",
+      "rate": "Définis ton tarif horaire",
+      "cantons": "Choisis tes régions",
+      "specialties": "Choisis tes spécialités",
+      "verification": "Demande la vérification"
+    }
   }
 }
