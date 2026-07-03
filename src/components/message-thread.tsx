@@ -53,7 +53,7 @@ const IMAGE_QUALITY = 0.85;
  *  the browser can't decode/encode it (the server still guards size + MIME). */
 async function downscaleImage(file: File): Promise<Blob> {
   try {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
     const longest = Math.max(bitmap.width, bitmap.height);
     const scale = Math.min(1, MAX_IMAGE_DIM / longest);
     const w = Math.round(bitmap.width * scale);
