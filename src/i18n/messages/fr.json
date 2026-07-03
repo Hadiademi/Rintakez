@@ -257,7 +257,17 @@
     "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}",
     "acceptConfirm": "Accepter cette offre ? Les autres offres seront refusées.",
     "declineConfirm": "Refuser cette offre ? Cette action est irréversible.",
-    "pastOffers": "{count, plural, one {# offre antérieure n'est plus active} other {# offres antérieures ne sont plus actives}}"
+    "pastOffers": "{count, plural, one {# offre antérieure n'est plus active} other {# offres antérieures ne sont plus actives}}",
+    "compare": {
+      "sortLabel": "Trier les offres par",
+      "sortPrice": "Prix",
+      "sortRating": "Note",
+      "sortNewest": "Plus récentes",
+      "viewProfile": "Voir le profil",
+      "messageNote": "La messagerie s'ouvre après ton acceptation.",
+      "readMore": "Lire plus",
+      "readLess": "Réduire"
+    }
   },
   "myBids": {
     "title": "Mes offres",

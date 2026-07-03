@@ -257,7 +257,17 @@
     "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}",
     "acceptConfirm": "Dieses Angebot annehmen? Die anderen Angebote werden abgelehnt.",
     "declineConfirm": "Dieses Angebot ablehnen? Das kann nicht rückgängig gemacht werden.",
-    "pastOffers": "{count, plural, one {# früheres Angebot nicht mehr aktiv} other {# frühere Angebote nicht mehr aktiv}}"
+    "pastOffers": "{count, plural, one {# früheres Angebot nicht mehr aktiv} other {# frühere Angebote nicht mehr aktiv}}",
+    "compare": {
+      "sortLabel": "Angebote sortieren nach",
+      "sortPrice": "Preis",
+      "sortRating": "Bewertung",
+      "sortNewest": "Neueste",
+      "viewProfile": "Profil ansehen",
+      "messageNote": "Nachrichten sind nach der Annahme möglich.",
+      "readMore": "Mehr lesen",
+      "readLess": "Weniger anzeigen"
+    }
   },
   "myBids": {
     "title": "Meine Angebote",

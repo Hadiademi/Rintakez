@@ -11,6 +11,7 @@ import { buildAlternates } from "@/lib/seo";
 import { ShootStepper, type StepperHint } from "@/components/shoot-stepper";
 import { SectionLabel } from "@/components/section-label";
 import { BidCard, type BidCardData } from "@/components/bid-card";
+import { BidCompare, type BidCompareItem } from "@/components/bid-compare";
 import { ShootRefGallery } from "@/components/shoot-ref-gallery";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
@@ -367,15 +368,29 @@ export default async function ShootDetailPage({
   // ── Owner management view ──────────────────────────────────────────
   // Embedded FK select uses the auto-generated constraint name
   // `bids_photographer_id_fkey` (bids.photographer_id -> profiles.id).
+  // Extended with created_at + the photographer's avatar/created_at so the
+  // owner's comparison grid can show trust signals; BidCard ignores the extra
+  // fields (RawBid is a structural superset of BidCardData). verification_status
+  // lives on photographer_details, so it's batch-fetched separately below.
   const { data: bids } = await supabase
     .from("bids")
     .select(
-      "id,amount_chf,message,status,photographer:profiles!bids_photographer_id_fkey(id,display_name,city,canton)"
+      "id,amount_chf,message,status,created_at,photographer:profiles!bids_photographer_id_fkey(id,display_name,city,canton,avatar_url,created_at)"
     )
     .eq("shoot_id", id)
     .order("created_at");
 
-  const bidList = (bids ?? []) as unknown as BidCardData[];
+  type RawBid = BidCardData & {
+    created_at: string;
+    photographer:
+      | (NonNullable<BidCardData["photographer"]> & {
+          avatar_url: string | null;
+          created_at: string;
+        })
+      | null;
+  };
+
+  const bidList = (bids ?? []) as unknown as RawBid[];
   const canManageBids = shoot.status === "open";
   // Declutter the decision view: while open, show only the offers the client can
   // still act on (pending); once decided, only the accepted one. Declined and
@@ -384,6 +399,84 @@ export default async function ShootDetailPage({
     ? bidList.filter((b) => b.status === "pending")
     : bidList.filter((b) => b.status === "accepted");
   const hiddenBidCount = bidList.length - visibleBids.length;
+
+  // Comparison grid — only when the owner has ≥2 pending offers to weigh.
+  // Mirrors the directory's batched trust join: ratings by id in one query,
+  // completed-shoots count once per bidder (small N). Built only when it renders.
+  const showCompare = canManageBids && visibleBids.length >= 2;
+  let compareItems: BidCompareItem[] = [];
+  if (showCompare) {
+    const bidderIds = [
+      ...new Set(
+        visibleBids
+          .map((b) => b.photographer?.id)
+          .filter((x): x is string => !!x)
+      ),
+    ];
+    const [{ data: ratings }, { data: details }] = await Promise.all([
+      bidderIds.length
+        ? supabase
+            .from("photographer_ratings")
+            .select("photographer_id, avg_rating, review_count")
+            .in("photographer_id", bidderIds)
+        : Promise.resolve({ data: [] }),
+      bidderIds.length
+        ? supabase
+            .from("photographer_details")
+            .select("profile_id, verification_status")
+            .in("profile_id", bidderIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+    const ratingBy = new Map(
+      (ratings ?? []).map((r) => [
+        r.photographer_id,
+        { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
+      ])
+    );
+    const verifiedBy = new Map(
+      (details ?? []).map((d) => [
+        d.profile_id,
+        d.verification_status === "verified",
+      ])
+    );
+    const counts = await Promise.all(
+      bidderIds.map((pid) =>
+        supabase.rpc("photographer_completed_shoots_count", {
+          p_photographer_id: pid,
+        })
+      )
+    );
+    const countBy = new Map(
+      bidderIds.map((pid, i) => [pid, counts[i].data ?? 0])
+    );
+
+    const avatarUrl = (path: string | null): string | null => {
+      if (!path) return null;
+      if (path.startsWith("http://") || path.startsWith("https://")) return path;
+      return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+    };
+
+    compareItems = visibleBids.map((b) => {
+      const ph = b.photographer;
+      return {
+        id: b.id,
+        amount_chf: b.amount_chf,
+        message: b.message,
+        createdAt: b.created_at,
+        photographer: ph
+          ? {
+              id: ph.id,
+              display_name: ph.display_name,
+              avatarUrl: avatarUrl(ph.avatar_url),
+              verified: verifiedBy.get(ph.id) ?? false,
+              memberSinceYear: new Date(ph.created_at).getFullYear(),
+            }
+          : null,
+        rating: (ph && ratingBy.get(ph.id)) || { avg: 0, count: 0 },
+        completedShoots: (ph && countBy.get(ph.id)) ?? 0,
+      };
+    });
+  }
 
   // Existing review (owner, completed shoot).
   const { data: myReview } =
@@ -484,6 +577,15 @@ export default async function ShootDetailPage({
               ? t("pastOffers", { count: hiddenBidCount })
               : t("noOffers")}
           </p>
+        ) : showCompare ? (
+          <div className="space-y-4">
+            <BidCompare bids={compareItems} />
+            {hiddenBidCount > 0 ? (
+              <p className="text-[13px] text-mute-2">
+                {t("pastOffers", { count: hiddenBidCount })}
+              </p>
+            ) : null}
+          </div>
         ) : (
           <div data-testid="bids-list" className="space-y-4">
             {visibleBids.map((bid) => (

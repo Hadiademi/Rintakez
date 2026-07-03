@@ -257,7 +257,17 @@
     "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}",
     "acceptConfirm": "Accept this offer? The other offers will be declined.",
     "declineConfirm": "Decline this offer? This can't be undone.",
-    "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}"
+    "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}",
+    "compare": {
+      "sortLabel": "Sort offers by",
+      "sortPrice": "Price",
+      "sortRating": "Rating",
+      "sortNewest": "Newest",
+      "viewProfile": "View profile",
+      "messageNote": "Messaging opens once you accept.",
+      "readMore": "Read more",
+      "readLess": "Show less"
+    }
   },
   "myBids": {
     "title": "My bids",
