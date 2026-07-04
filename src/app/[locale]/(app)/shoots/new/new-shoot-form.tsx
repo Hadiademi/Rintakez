@@ -103,9 +103,6 @@ export default function NewShootForm({ userId }: { userId: string }) {
   const watchedValues = useWatch({ control });
 
   const key = draftKey(userId);
-  // Gates the autosave until the mount-time restore has run, so restoring a
-  // draft never fights the user by immediately re-saving (skip-first pattern).
-  const hydratedRef = useRef(false);
 
   // Restore a saved draft once on mount.
   useEffect(() => {
@@ -122,15 +119,20 @@ export default function NewShootForm({ userId }: { userId: string }) {
     } catch {
       // Malformed/old payload — ignore and start fresh.
     }
-    hydratedRef.current = true;
     // Restore is intentionally per-user and mount-only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
   // Debounced autosave of the current values + step. Never persists an
-  // all-default draft (so a fresh page load leaves no draft behind).
+  // all-default draft (so a fresh page load leaves no draft behind). The
+  // autosave effect skips its OWN first invocation (the mount render) so a
+  // freshly-loaded page — or the mount-time restore — never writes back
+  // before the user has actually touched anything; this guard is local to the
+  // effect and does not depend on effect-declaration ordering.
+  const saveEffectRuns = useRef(0);
   useEffect(() => {
-    if (!hydratedRef.current) return;
+    saveEffectRuns.current += 1;
+    if (saveEffectRuns.current === 1) return;
     const timer = setTimeout(() => {
       try {
         const values = getValues();
