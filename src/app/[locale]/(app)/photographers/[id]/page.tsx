@@ -12,6 +12,7 @@ import { Stars } from "@/components/stars";
 import { SaveButton } from "@/components/save-button";
 import { ReportButton } from "@/components/report-button";
 import { InvitePhotographerButton } from "@/components/invite-photographer-button";
+import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { RecordProfileView } from "@/components/record-profile-view";
 import { buildAlternates } from "@/lib/seo";
 
@@ -554,21 +555,7 @@ export default async function PhotographerProfilePage({
           </div>
         )}
 
-        {unavailableDates.length > 0 && (
-          <div className="space-y-2">
-            <p className="label text-mute">{t("availUnavailable")}</p>
-            <div className="flex flex-wrap gap-2">
-              {unavailableDates.map((d) => (
-                <span
-                  key={d}
-                  className="tabular rounded-full bg-chip px-3 py-1 text-[13px] text-mute line-through"
-                >
-                  {formatSwissDate(d)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        <AvailabilityCalendar unavailableDates={unavailableDates} />
 
           {/* Reviews */}
           <div className="space-y-5 border-t border-line pt-8">
