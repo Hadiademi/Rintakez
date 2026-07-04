@@ -843,6 +843,7 @@ export type Database = {
           cancellation_reason: string | null
           canton: Database["public"]["Enums"]["canton"]
           client_id: string
+          completed_at: string | null
           created_at: string
           discipline: Database["public"]["Enums"]["discipline"]
           duration_hours: number
@@ -864,6 +865,7 @@ export type Database = {
           cancellation_reason?: string | null
           canton: Database["public"]["Enums"]["canton"]
           client_id: string
+          completed_at?: string | null
           created_at?: string
           discipline?: Database["public"]["Enums"]["discipline"]
           duration_hours: number
@@ -885,6 +887,7 @@ export type Database = {
           cancellation_reason?: string | null
           canton?: Database["public"]["Enums"]["canton"]
           client_id?: string
+          completed_at?: string | null
           created_at?: string
           discipline?: Database["public"]["Enums"]["discipline"]
           duration_hours?: number

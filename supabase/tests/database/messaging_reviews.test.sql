@@ -148,12 +148,16 @@ select results_eq(
 reset role;
 
 -- ── 10: a participant may update their own read marker ───────────────
+-- The sanctioned path is mark_conversation_read() (SECURITY DEFINER, granted to
+-- authenticated); it stamps the caller's side (client_last_read_at here) after
+-- confirming they participate. The raw column UPDATE is exercised by t11 below.
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}';
 select lives_ok(
-  $$update public.conversations set client_last_read_at = now()
-    where shoot_id = '10000000-0000-0000-0000-0000000000a1'$$,
-  'client can update their own last-read marker'
+  $$select public.mark_conversation_read(
+      (select id from public.conversations
+       where shoot_id = '10000000-0000-0000-0000-0000000000a1'))$$,
+  'client can mark their own conversation read'
 );
 
 -- ── 11: a participant cannot mutate structural columns ───────────────

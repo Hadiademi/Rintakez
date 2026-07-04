@@ -229,16 +229,15 @@ async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
 
 /**
  * Shoots 'completed' with no review >= REVIEW_REQUEST_DAYS later. subject_id
- * is the shoot id; recipient is the shoot's client. shoots has no
- * completed_at/updated_at column, so created_at is used as a documented
- * approximation of "when it was completed" — slightly conservative (a shoot
- * usually completes some time after it's created, so the real wait before a
- * reminder is >= REVIEW_REQUEST_DAYS, never less).
+ * is the shoot id; recipient is the shoot's client. The N-day window is
+ * measured off shoots.completed_at — the timestamp complete_shoot() stamps at
+ * actual completion — so a reminder never fires before the shoot has genuinely
+ * been done for REVIEW_REQUEST_DAYS.
  *
- * FOLLOW-UP: created_at is a proxy for "completed at" pending a real
- * shoots.completed_at column; once that column exists this scan should key
- * off it instead so the N-day window is measured from actual completion, not
- * creation.
+ * Shoots completed before completed_at existed carry a NULL value; they are
+ * simply excluded by the `.lt("completed_at", cutoff)` filter (NULLs never
+ * satisfy a comparison) — a one-time gap for pre-column history, not an
+ * ongoing correctness issue.
  */
 async function scanReviewRequest(admin: AdminClient): Promise<number> {
   const cutoff = new Date(
@@ -249,7 +248,7 @@ async function scanReviewRequest(admin: AdminClient): Promise<number> {
     .from("shoots")
     .select("id, client_id, title")
     .eq("status", "completed")
-    .lt("created_at", cutoff)
+    .lt("completed_at", cutoff)
     .limit(BATCH_LIMIT);
   if (!candidates || candidates.length === 0) return 0;
 
