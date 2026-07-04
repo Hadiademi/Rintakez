@@ -2,19 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { createClient as createRealtimeClient } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { getRealtimeClient } from "@/lib/supabase/realtime";
 import {
   markNotificationsRead,
   type NotificationItem,
 } from "@/lib/actions/notifications";
 import { hrefFor } from "@/lib/notifications-href";
 import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
-
-// Unique storage key per realtime client so multiple instances never share an
-// auth-storage lock (which would log "Multiple GoTrueClient instances").
-let rtSeq = 0;
 
 function BellIcon() {
   return (
@@ -55,23 +51,10 @@ export function NotificationBell({
 
   // ── Realtime: live notifications for this user ─────────────────────
   useEffect(() => {
-    // A dedicated realtime client seeded with the user's access token. The SSR
-    // browser client does not reliably push its session token onto the realtime
-    // socket, so we authorize this one explicitly (RLS on `notifications`
-    // filters by auth.uid(), which requires the user token, not the anon key).
-    const rt = createRealtimeClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      // Realtime-only client — we set the token via setAuth, so it must not
-      // touch the shared auth storage (avoids "multiple GoTrueClient" warnings).
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storageKey: `sb-rt-notif-${++rtSeq}`,
-        },
-      }
-    );
+    // Shared realtime client (one websocket per tab), authorized with the user
+    // token in the module. RLS on `notifications` filters by auth.uid(), which
+    // requires the user token, not the anon key.
+    const rt = getRealtimeClient();
 
     function onInsert(payload: { new: Record<string, unknown> }) {
       const row = payload.new as {
@@ -119,8 +102,9 @@ export function NotificationBell({
 
     return () => {
       cancelled = true;
+      // Remove only THIS channel — never disconnect the shared socket, which
+      // other components' channels multiplex over.
       rt.removeChannel(channel);
-      rt.realtime.disconnect();
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, [userId]);

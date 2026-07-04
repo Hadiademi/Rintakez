@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useFormatter } from "next-intl";
-import { createClient as createRealtimeClient } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { getRealtimeClient } from "@/lib/supabase/realtime";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -249,17 +249,9 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
 
   // Realtime: new messages in this conversation.
   useEffect(() => {
-    const rt = createRealtimeClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storageKey: `sb-rt-thread-${thread.id}`,
-        },
-      }
-    );
+    // Shared realtime client (one websocket per tab); this thread opens its own
+    // channel on it. Token is set/refreshed in the module.
+    const rt = getRealtimeClient();
     const channel = rt.channel(`thread:${thread.id}`).on(
       "postgres_changes",
       {
@@ -380,8 +372,9 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
 
     return () => {
       cancelled = true;
+      // Remove only THIS channel — never disconnect the shared socket, which
+      // other components' channels multiplex over.
       rt.removeChannel(channel);
-      rt.realtime.disconnect();
     };
   }, [thread.id, thread.meId, thread.otherId, mergeMessages, resolveImageUrl]);
 

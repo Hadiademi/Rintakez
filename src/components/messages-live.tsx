@@ -2,12 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient as createRealtimeClient } from "@supabase/supabase-js";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
-
-// Unique storage key per realtime client so multiple instances never share an
-// auth-storage lock (which would log "Multiple GoTrueClient instances").
-let rtSeq = 0;
+import { getRealtimeClient } from "@/lib/supabase/realtime";
 
 /**
  * Invisible, app-wide realtime listener that keeps the inbox list and the
@@ -34,21 +30,11 @@ export function MessagesLive({ userId }: { userId: string }) {
   }, [openConversationId]);
 
   useEffect(() => {
-    // Dedicated realtime client seeded with the user's access token — mirrors
-    // notification-bell.tsx. RLS on `messages` only delivers rows from
-    // conversations this user participates in, so no per-conversation filter
-    // is needed (and the anon key alone would not pass RLS).
-    const rt = createRealtimeClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storageKey: `sb-rt-messages-live-${++rtSeq}`,
-        },
-      }
-    );
+    // Shared realtime client (one websocket per tab). RLS on `messages` only
+    // delivers rows from conversations this user participates in, so no
+    // per-conversation filter is needed (and the anon key alone would not pass
+    // RLS — the shared client is authorized with the user token in the module).
+    const rt = getRealtimeClient();
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     function onInsert(payload: { new: Record<string, unknown> }) {
@@ -90,8 +76,9 @@ export function MessagesLive({ userId }: { userId: string }) {
     return () => {
       cancelled = true;
       if (debounceTimer) clearTimeout(debounceTimer);
+      // Remove only THIS channel — never disconnect the shared socket, which
+      // other components' channels multiplex over.
       rt.removeChannel(channel);
-      rt.realtime.disconnect();
     };
   }, [userId, router]);
 
