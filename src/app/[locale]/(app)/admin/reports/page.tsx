@@ -42,37 +42,67 @@ export default async function AdminReportsPage({
   const shootTargetIds = list
     .filter((r) => r.target_type === "shoot")
     .map((r) => r.target_id);
+  const reviewTargetIds = list
+    .filter((r) => r.target_type === "review")
+    .map((r) => r.target_id);
+  const messageTargetIds = list
+    .filter((r) => r.target_type === "message")
+    .map((r) => r.target_id);
 
-  const [{ data: reporters }, { data: targetProfiles }, { data: targetShoots }] =
-    await Promise.all([
-      reporterIds.length
-        ? admin.from("profiles").select("id, display_name").in("id", reporterIds)
-        : Promise.resolve({ data: [] as { id: string; display_name: string }[] }),
-      profileTargetIds.length
-        ? admin
-            .from("profiles")
-            .select("id, display_name, is_suspended")
-            .in("id", profileTargetIds)
-        : Promise.resolve({
-            data: [] as {
-              id: string;
-              display_name: string;
-              is_suspended: boolean;
-            }[],
-          }),
-      shootTargetIds.length
-        ? admin
-            .from("shoots")
-            .select("id, title, is_suspended")
-            .in("id", shootTargetIds)
-        : Promise.resolve({
-            data: [] as { id: string; title: string; is_suspended: boolean }[],
-          }),
-    ]);
+  const [
+    { data: reporters },
+    { data: targetProfiles },
+    { data: targetShoots },
+    { data: targetReviews },
+    { data: targetMessages },
+  ] = await Promise.all([
+    reporterIds.length
+      ? admin.from("profiles").select("id, display_name").in("id", reporterIds)
+      : Promise.resolve({ data: [] as { id: string; display_name: string }[] }),
+    profileTargetIds.length
+      ? admin
+          .from("profiles")
+          .select("id, display_name, is_suspended")
+          .in("id", profileTargetIds)
+      : Promise.resolve({
+          data: [] as {
+            id: string;
+            display_name: string;
+            is_suspended: boolean;
+          }[],
+        }),
+    shootTargetIds.length
+      ? admin
+          .from("shoots")
+          .select("id, title, is_suspended")
+          .in("id", shootTargetIds)
+      : Promise.resolve({
+          data: [] as { id: string; title: string; is_suspended: boolean }[],
+        }),
+    // Reported reviews/messages have no suspension flag; we only surface a short
+    // content snippet (via the same service-role client) so a moderator sees
+    // what was reported instead of an opaque UUID.
+    reviewTargetIds.length
+      ? admin.from("reviews").select("id, comment").in("id", reviewTargetIds)
+      : Promise.resolve({
+          data: [] as { id: string; comment: string | null }[],
+        }),
+    messageTargetIds.length
+      ? admin.from("messages").select("id, body").in("id", messageTargetIds)
+      : Promise.resolve({ data: [] as { id: string; body: string }[] }),
+  ]);
 
   const reporterBy = new Map((reporters ?? []).map((p) => [p.id, p.display_name]));
   const targetProfileBy = new Map((targetProfiles ?? []).map((p) => [p.id, p]));
   const targetShootBy = new Map((targetShoots ?? []).map((s) => [s.id, s]));
+  const targetReviewBy = new Map((targetReviews ?? []).map((r) => [r.id, r]));
+  const targetMessageBy = new Map((targetMessages ?? []).map((m) => [m.id, m]));
+
+  const snippet = (text: string | null | undefined): string | null => {
+    const trimmed = text?.trim();
+    if (!trimmed) return null;
+    return trimmed.length > 80 ? `${trimmed.slice(0, 80)}…` : trimmed;
+  };
 
   return (
     <section className="space-y-4">
@@ -105,13 +135,20 @@ export default async function AdminReportsPage({
             const isShoot = r.target_type === "shoot";
             const targetProfile = targetProfileBy.get(r.target_id);
             const targetShoot = targetShootBy.get(r.target_id);
-            // Reviews/messages have no suspension flag and no dedicated
-            // lookup here; fall back to showing the raw target id.
+            // Reviews/messages carry no suspension flag; show a truncated
+            // content snippet (falling back to the raw id if it was deleted or
+            // is empty) so moderators see what was actually reported.
             const targetLabel = isProfile
               ? (targetProfile?.display_name ?? r.target_id)
               : isShoot
                 ? (targetShoot?.title ?? r.target_id)
-                : r.target_id;
+                : r.target_type === "review"
+                  ? (snippet(targetReviewBy.get(r.target_id)?.comment) ??
+                    r.target_id)
+                  : r.target_type === "message"
+                    ? (snippet(targetMessageBy.get(r.target_id)?.body) ??
+                      r.target_id)
+                    : r.target_id;
             const targetSuspended = isProfile
               ? (targetProfile?.is_suspended ?? false)
               : isShoot
