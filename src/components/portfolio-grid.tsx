@@ -6,6 +6,7 @@ import { ImageLightbox } from "@/components/ui/image-lightbox";
 interface PortfolioImage {
   id: string;
   url: string;
+  caption?: string | null;
 }
 
 interface PortfolioGridProps {
@@ -13,7 +14,7 @@ interface PortfolioGridProps {
 }
 
 export function PortfolioGrid({ images }: PortfolioGridProps) {
-  const [active, setActive] = useState<string | null>(null);
+  const [active, setActive] = useState<PortfolioImage | null>(null);
 
   if (images.length === 0) return null;
 
@@ -24,21 +25,26 @@ export function PortfolioGrid({ images }: PortfolioGridProps) {
           <button
             key={image.id}
             type="button"
-            onClick={() => setActive(image.url)}
+            onClick={() => setActive(image)}
             className="press group relative block aspect-[4/3] w-full overflow-hidden rounded-lg bg-chip"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image.url}
               loading="lazy"
-              alt=""
+              alt={image.caption ?? ""}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />
           </button>
         ))}
       </div>
       {active && (
-        <ImageLightbox src={active} onClose={() => setActive(null)} />
+        <ImageLightbox
+          src={active.url}
+          alt={active.caption ?? undefined}
+          caption={active.caption}
+          onClose={() => setActive(null)}
+        />
       )}
     </>
   );

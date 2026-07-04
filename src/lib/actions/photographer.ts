@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
 import {
   photographerDetailsSchema,
+  reorderPortfolioSchema,
+  portfolioCaptionSchema,
   type PhotographerDetailsInput,
 } from "@/lib/validation/photographer";
 
@@ -269,6 +271,89 @@ export async function removeCover(): Promise<{ ok: true } | ErrResult> {
   if (current?.cover_path) {
     await supabase.storage.from("portfolio").remove([current.cover_path]);
   }
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// 2c. reorderPortfolioImages / setPortfolioCaption — portfolio editor pro
+// ---------------------------------------------------------------------------
+
+/**
+ * Persist a new portfolio order. `orderedIds` is the caller's full set of image
+ * ids in the desired order; each row's sort_order becomes its index. RLS gates
+ * the writes, and we additionally verify every id belongs to the caller.
+ */
+export async function reorderPortfolioImages(
+  orderedIds: string[]
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = reorderPortfolioSchema.safeParse(orderedIds);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+
+  // The provided ids must be exactly the caller's own portfolio set — otherwise
+  // a partial reorder could collide sort_order values or touch foreign rows.
+  const { data: owned, error: fetchError } = await supabase
+    .from("portfolio_images")
+    .select("id")
+    .eq("photographer_id", user.id);
+  if (fetchError) return { ok: false, error: dbError(fetchError, "photographer") };
+
+  const ownedIds = new Set((owned ?? []).map((r) => r.id));
+  const ids = parsed.data;
+  if (ids.length !== ownedIds.size || !ids.every((id) => ownedIds.has(id))) {
+    return { ok: false, error: "invalid_input" };
+  }
+
+  const results = await Promise.all(
+    ids.map((id, index) =>
+      supabase
+        .from("portfolio_images")
+        .update({ sort_order: index })
+        .eq("id", id)
+        .eq("photographer_id", user.id)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error)
+    return { ok: false, error: dbError(failed.error, "photographer") };
+
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
+/**
+ * Set or clear an image caption. An empty/whitespace caption clears it (→ null).
+ * Own-row only; RLS + the explicit photographer_id filter keep it scoped.
+ */
+export async function setPortfolioCaption(
+  imageId: string,
+  caption: string | null
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = portfolioCaptionSchema.safeParse({ imageId, caption });
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { data: updated, error } = await supabase
+    .from("portfolio_images")
+    .update({ caption: parsed.data.caption })
+    .eq("id", parsed.data.imageId)
+    .eq("photographer_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: dbError(error, "photographer") };
+  if (!updated) return { ok: false, error: "not_found" };
+
   revalidateTag(`photographer:${user.id}`, "max");
   revalidatePath("/[locale]/(app)/profile", "page");
   return { ok: true };

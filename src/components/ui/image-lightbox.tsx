@@ -11,10 +11,12 @@ import { useTranslations } from "next-intl";
 export function ImageLightbox({
   src,
   alt,
+  caption,
   onClose,
 }: {
   src: string;
   alt?: string;
+  caption?: string | null;
   onClose: () => void;
 }) {
   const tCommon = useTranslations("common");
@@ -39,13 +41,22 @@ export function ImageLightbox({
       onClick={onClose}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm sm:p-8"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt ?? ""}
+      <figure
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[88vh] max-w-full rounded object-contain shadow-2xl sm:max-w-[88vw]"
-      />
+        className="flex max-h-[88vh] max-w-full flex-col items-center gap-3 sm:max-w-[88vw]"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt ?? ""}
+          className="min-h-0 max-w-full flex-1 rounded object-contain shadow-2xl"
+        />
+        {caption && (
+          <figcaption className="max-w-2xl text-center text-[14px] leading-relaxed text-paper/90">
+            {caption}
+          </figcaption>
+        )}
+      </figure>
       <button
         type="button"
         onClick={onClose}

@@ -503,6 +503,7 @@ export type Database = {
       }
       portfolio_images: {
         Row: {
+          caption: string | null
           created_at: string
           id: string
           photographer_id: string
@@ -510,6 +511,7 @@ export type Database = {
           storage_path: string
         }
         Insert: {
+          caption?: string | null
           created_at?: string
           id?: string
           photographer_id: string
@@ -517,6 +519,7 @@ export type Database = {
           storage_path: string
         }
         Update: {
+          caption?: string | null
           created_at?: string
           id?: string
           photographer_id?: string

@@ -94,7 +94,7 @@ export default async function PhotographerProfilePage({
 
       const { data: rawImages } = await supabase
         .from("portfolio_images")
-        .select("id, storage_path")
+        .select("id, storage_path, caption")
         .eq("photographer_id", id)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
@@ -104,6 +104,7 @@ export default async function PhotographerProfilePage({
         url: supabase.storage
           .from("portfolio")
           .getPublicUrl(img.storage_path).data.publicUrl,
+        caption: img.caption ?? null,
       }));
 
       let avatarUrl: string | null = null;
