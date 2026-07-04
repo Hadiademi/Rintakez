@@ -169,7 +169,9 @@
     "fieldReferences": "References (optional)",
     "referencesHint": "Images that show the style you want. Max 6.",
     "editTitle": "Edit shoot",
-    "saveChanges": "Save changes"
+    "saveChanges": "Save changes",
+    "draftRestored": "Draft restored",
+    "discardDraft": "Discard"
   },
   "shoot": {
     "date": "Date",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -11,9 +11,23 @@ import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
 import { useToast } from "@/components/ui/toaster";
+import {
+  draftKey,
+  deserializeDraft,
+  isMeaningfulDraft,
+  serializeDraft,
+} from "@/lib/shoot-draft";
 
 const STEP_COUNT = 3;
 const MAX_REF_IMAGES = 6;
+const DRAFT_SAVE_DELAY = 500;
+
+// Mirrors the useForm defaultValues so restore/discard can reset cleanly.
+const DEFAULT_VALUES: Partial<CreateShootInput> = {
+  type: undefined,
+  discipline: "photo",
+  durationHours: 4,
+};
 
 // Fields per step — used for per-step validation gating
 const STEP_FIELDS: Array<Array<keyof CreateShootInput>> = [
@@ -22,10 +36,13 @@ const STEP_FIELDS: Array<Array<keyof CreateShootInput>> = [
   ["title", "brief", "budgetMinChf", "budgetMaxChf"],
 ];
 
+// `text-base` (16px) is explicit here so touch keyboards never trigger iOS's
+// auto-zoom on focus. The inherited base is already 16px (no html/body
+// override), but pinning it guards against a future base change.
 const inputClass =
-  "w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
+  "w-full border border-line bg-surface px-4 py-3 text-base text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
 
-export default function NewShootForm() {
+export default function NewShootForm({ userId }: { userId: string }) {
   const t = useTranslations("createShoot");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
@@ -35,6 +52,7 @@ export default function NewShootForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
   // Reference images are held in memory and uploaded after the shoot is created
   // (the upload needs the new shoot id, which only exists post-insert).
   const [refImages, setRefImages] = useState<{ file: File; url: string }[]>([]);
@@ -69,16 +87,73 @@ export default function NewShootForm() {
     setValue,
     control,
     trigger,
+    reset,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createShootSchema) as any,
-    defaultValues: { type: undefined, discipline: "photo", durationHours: 4 },
+    defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
 
   const selectedType = useWatch({ control, name: "type" });
   const selectedDiscipline = useWatch({ control, name: "discipline" });
+  // All form values, reactive — drives the debounced autosave below.
+  const watchedValues = useWatch({ control });
+
+  const key = draftKey(userId);
+  // Gates the autosave until the mount-time restore has run, so restoring a
+  // draft never fights the user by immediately re-saving (skip-first pattern).
+  const hydratedRef = useRef(false);
+
+  // Restore a saved draft once on mount.
+  useEffect(() => {
+    try {
+      const draft = deserializeDraft(localStorage.getItem(key));
+      if (draft && isMeaningfulDraft(draft.values)) {
+        reset({ ...DEFAULT_VALUES, ...draft.values });
+        // One-time sync of local state from localStorage (an external store),
+        // matching the repo's theme-toggle pattern.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setStep(draft.step);
+        setDraftRestored(true);
+      }
+    } catch {
+      // Malformed/old payload — ignore and start fresh.
+    }
+    hydratedRef.current = true;
+    // Restore is intentionally per-user and mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  // Debounced autosave of the current values + step. Never persists an
+  // all-default draft (so a fresh page load leaves no draft behind).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    const timer = setTimeout(() => {
+      try {
+        const values = getValues();
+        if (isMeaningfulDraft(values)) {
+          localStorage.setItem(key, serializeDraft(values, step));
+        }
+      } catch {
+        // Storage unavailable (private mode / quota) — autosave is best-effort.
+      }
+    }, DRAFT_SAVE_DELAY);
+    return () => clearTimeout(timer);
+  }, [watchedValues, step, key, getValues]);
+
+  function discardDraft() {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+    reset(DEFAULT_VALUES);
+    setStep(0);
+    setDraftRestored(false);
+  }
 
   async function handleNext() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -93,6 +168,12 @@ export default function NewShootForm() {
       return;
     }
     track("post_shoot");
+    // The shoot exists now — drop the saved draft so the next visit is clean.
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
     // The ToasterProvider lives in the (app) layout, which persists across the
     // client-side navigation below, so this confirmation survives the push.
     toast(tToast("shootCreated"));
@@ -150,6 +231,23 @@ export default function NewShootForm() {
       <h1 className="mt-12 text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
         {stepHeadings[step]}
       </h1>
+
+      {draftRestored && (
+        <div
+          role="status"
+          className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-line bg-surface px-4 py-3 text-sm text-mute"
+        >
+          <span>{t("draftRestored")}</span>
+          <button
+            type="button"
+            data-testid="shoot-draft-discard"
+            onClick={discardDraft}
+            className="press -mx-2 inline-flex min-h-[44px] items-center px-2 font-medium text-accent hover:underline"
+          >
+            {t("discardDraft")}
+          </button>
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}

@@ -169,7 +169,9 @@
     "fieldReferences": "Références (optionnel)",
     "referencesHint": "Images illustrant le style souhaité. Max. 6.",
     "editTitle": "Modifier l’annonce",
-    "saveChanges": "Enregistrer les modifications"
+    "saveChanges": "Enregistrer les modifications",
+    "draftRestored": "Brouillon restauré",
+    "discardDraft": "Supprimer le brouillon"
   },
   "shoot": {
     "date": "Date",

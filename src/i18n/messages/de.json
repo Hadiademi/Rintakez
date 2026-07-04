@@ -169,7 +169,9 @@
     "fieldReferences": "Referenzen (optional)",
     "referencesHint": "Bilder, die den gewünschten Stil zeigen. Max. 6.",
     "editTitle": "Auftrag bearbeiten",
-    "saveChanges": "Änderungen speichern"
+    "saveChanges": "Änderungen speichern",
+    "draftRestored": "Entwurf wiederhergestellt",
+    "discardDraft": "Entwurf verwerfen"
   },
   "shoot": {
     "date": "Datum",

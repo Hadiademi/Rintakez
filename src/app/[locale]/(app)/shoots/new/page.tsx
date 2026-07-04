@@ -18,5 +18,5 @@ export default async function NewShootPage() {
     return null;
   }
 
-  return <NewShootForm />;
+  return <NewShootForm userId={profile.id} />;
 }
