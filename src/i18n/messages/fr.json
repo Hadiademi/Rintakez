@@ -755,5 +755,18 @@
       "specialties": "Choisis tes spécialités",
       "verification": "Demande la vérification"
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "Installe Rintakez",
+      "body": "Ajoute l’app à ton écran d’accueil pour un accès rapide en plein écran.",
+      "action": "Installer",
+      "dismiss": "Fermer"
+    },
+    "ios": {
+      "title": "Ajoute Rintakez à ton écran d’accueil",
+      "body": "Appuie sur l’icône Partager, puis choisis « Sur l’écran d’accueil ».",
+      "dismiss": "Fermer"
+    }
   }
 }

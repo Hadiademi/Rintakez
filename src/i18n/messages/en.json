@@ -755,5 +755,18 @@
       "specialties": "Pick your specialties",
       "verification": "Request verification"
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install Rintakez",
+      "body": "Add it to your home screen for faster access and a full-screen experience.",
+      "action": "Install",
+      "dismiss": "Dismiss"
+    },
+    "ios": {
+      "title": "Add Rintakez to your Home Screen",
+      "body": "Tap the Share icon, then choose “Add to Home Screen”.",
+      "dismiss": "Dismiss"
+    }
   }
 }

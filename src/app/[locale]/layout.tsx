@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-script";
 import { SwRegister } from "@/components/sw-register";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { Analytics } from "@/components/analytics";
 import { ClientErrorReporter } from "@/components/client-error-reporter";
 import "../globals.css";
@@ -40,6 +41,10 @@ export async function generateMetadata({
     metadataBase: new URL(SITE_URL),
     title: { default: t("title"), template: "%s — Rintakez" },
     description: t("description"),
+    // iOS ignores the web manifest for home-screen install: it needs an
+    // apple-touch-icon and the apple-mobile-web-app meta tags to run standalone.
+    icons: { apple: [{ url: "/icon-192.png" }] },
+    appleWebApp: { capable: true, title: "Rintakez", statusBarStyle: "default" },
     // No path-aware `alternates` here: this layout applies to every route,
     // and next-intl's `getPathname` needs to know the *current* path per
     // locale (not just the locale) to build correct hreflang. A static
@@ -75,7 +80,10 @@ export default async function LocaleLayout({
         <SwRegister />
         <Analytics />
         <ClientErrorReporter />
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          <PwaInstallPrompt />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

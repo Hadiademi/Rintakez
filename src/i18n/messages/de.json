@@ -755,5 +755,18 @@
       "specialties": "Spezialgebiete wählen",
       "verification": "Verifizierung anfragen"
     }
+  },
+  "pwa": {
+    "install": {
+      "title": "Rintakez installieren",
+      "body": "Füge die App zum Startbildschirm hinzu — schneller Zugriff und Vollbild.",
+      "action": "Installieren",
+      "dismiss": "Schließen"
+    },
+    "ios": {
+      "title": "Rintakez zum Home-Bildschirm hinzufügen",
+      "body": "Tippe auf das Teilen-Symbol und wähle „Zum Home-Bildschirm“.",
+      "dismiss": "Schließen"
+    }
   }
 }
