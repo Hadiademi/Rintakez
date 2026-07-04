@@ -128,10 +128,12 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     yesterdayKey: localDayKey(new Date(Date.now() - 86_400_000).toISOString()),
   }));
 
-  // Derived from the initial load. Realtime updates to the other side's read
-  // marker aren't subscribed (only message INSERTs are), so a ✓ flips to ✓✓ on
-  // the next open of the thread — acceptable per the CH2 spec.
-  const otherLastReadAt = thread.otherLastReadAt;
+  // The other party's last-read timestamp. Seeded from the initial load and
+  // then kept live by a conversations-row UPDATE listener (see the realtime
+  // effect below), so a ✓ flips to ✓✓ the instant they read — no reopen needed.
+  const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(
+    thread.otherLastReadAt
+  );
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -324,6 +326,35 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           if (m.image_path) void resolveImageUrl(m.id);
         }
       }
+    ).on(
+      // Live read receipts: when the counterparty marks this conversation read
+      // (mark_conversation_read stamps their *_last_read_at), reflect it so my
+      // sent ✓ flips to ✓✓ without reopening. REPLICA IDENTITY FULL delivers
+      // client_id, so we can pick the counterparty's column: if the OTHER party
+      // is the client, their marker is client_last_read_at, else photographer's.
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "conversations",
+        filter: `id=eq.${thread.id}`,
+      },
+      (payload) => {
+        const row = payload.new as {
+          client_id: string;
+          photographer_id: string;
+          client_last_read_at: string | null;
+          photographer_last_read_at: string | null;
+        };
+        const otherReadAt =
+          row.client_id === thread.otherId
+            ? row.client_last_read_at
+            : row.photographer_last_read_at;
+        // Monotonic: never move the receipt backwards on an out-of-order event.
+        setOtherLastReadAt((prev) =>
+          otherReadAt && (!prev || otherReadAt > prev) ? otherReadAt : prev
+        );
+      }
     );
 
     let cancelled = false;
@@ -352,7 +383,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       rt.removeChannel(channel);
       rt.realtime.disconnect();
     };
-  }, [thread.id, thread.meId, mergeMessages, resolveImageUrl]);
+  }, [thread.id, thread.meId, thread.otherId, mergeMessages, resolveImageUrl]);
 
   const lastMessage = messages[messages.length - 1];
   const lastId = lastMessage?.id;
