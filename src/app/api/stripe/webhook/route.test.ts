@@ -72,6 +72,7 @@ function makeQueryBuilder(result: QueryResult) {
 
 function fakeAdmin(opts: {
   stripeEventsInsertResult?: { error: unknown };
+  stripeEventsDeleteResult?: { error: unknown };
   byCustomerResult?: QueryResult;
   byUserResult?: QueryResult;
   upsertResult?: { error: unknown };
@@ -80,6 +81,10 @@ function fakeAdmin(opts: {
   const stripeEventsInsert = vi
     .fn()
     .mockResolvedValue(opts.stripeEventsInsertResult ?? { error: null });
+  const stripeEventsDeleteEq = vi
+    .fn()
+    .mockResolvedValue(opts.stripeEventsDeleteResult ?? { error: null });
+  const stripeEventsDelete = vi.fn(() => ({ eq: stripeEventsDeleteEq }));
   const upsert = vi.fn().mockResolvedValue(opts.upsertResult ?? { error: null });
   const detailsUpdateEq = vi
     .fn()
@@ -98,13 +103,22 @@ function fakeAdmin(opts: {
   }));
 
   const from = vi.fn((table: string) => {
-    if (table === "stripe_events") return { insert: stripeEventsInsert };
+    if (table === "stripe_events")
+      return { insert: stripeEventsInsert, delete: stripeEventsDelete };
     if (table === "subscriptions") return { select: subsSelect, upsert };
     if (table === "photographer_details") return { update: detailsUpdate };
     throw new Error(`unexpected table: ${table}`);
   });
 
-  return { from, stripeEventsInsert, upsert, detailsUpdate, detailsUpdateEq };
+  return {
+    from,
+    stripeEventsInsert,
+    stripeEventsDelete,
+    stripeEventsDeleteEq,
+    upsert,
+    detailsUpdate,
+    detailsUpdateEq,
+  };
 }
 
 function stripeWithRetrieve(sub: unknown) {
@@ -406,5 +420,99 @@ describe("POST /api/stripe/webhook — event handling", () => {
 
     expect(res.status).toBe(500);
     expect(captureError).toHaveBeenCalled();
+  });
+
+  // FIX 1 — lost-write compensation: on a 500, the insert-first dedupe row
+  // must be deleted so Stripe's retry reprocesses instead of dup'ing to a noop.
+  it("compensates (deletes) the dedupe row and 500s when processing throws, so a retry reprocesses", async () => {
+    const stripe = stripeWithRetrieve(fakeSubscription());
+    getStripe.mockReturnValue(stripe);
+    const admin = fakeAdmin({
+      byUserResult: { data: null, error: null },
+      upsertResult: { error: { code: "500", message: "db unavailable" } },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const body = JSON.stringify({
+      id: "evt_comp",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_123" } },
+    });
+
+    const res = await POST(signedRequest(body));
+
+    expect(res.status).toBe(500);
+    expect(admin.stripeEventsDelete).toHaveBeenCalledTimes(1);
+    expect(admin.stripeEventsDeleteEq).toHaveBeenCalledWith("id", "evt_comp");
+  });
+
+  // FIX 2a — a transient customer-lookup READ error must be retryable (500),
+  // never a silent "unresolvable user" 200.
+  it("500s (retryable) when the customer-lookup read errors, not a 200 noop", async () => {
+    const stripe = stripeWithRetrieve(fakeSubscription({ metadata: {} }));
+    getStripe.mockReturnValue(stripe);
+    const admin = fakeAdmin({
+      byCustomerResult: { data: null, error: { code: "XX000", message: "read failed" } },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const body = JSON.stringify({
+      id: "evt_custread",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_123" } },
+    });
+
+    const res = await POST(signedRequest(body));
+
+    expect(res.status).toBe(500);
+    expect(admin.upsert).not.toHaveBeenCalled();
+    expect(admin.stripeEventsDelete).toHaveBeenCalledTimes(1);
+  });
+
+  // FIX 2b — a transient existing-row READ error must be retryable (500) and
+  // must NOT upsert (else the comp-guard is bypassed and an admin_comp gets
+  // clobbered by source='stripe').
+  it("500s and does NOT upsert when the existing-row read errors (comp-guard not bypassed)", async () => {
+    const stripe = stripeWithRetrieve(fakeSubscription());
+    getStripe.mockReturnValue(stripe);
+    const admin = fakeAdmin({
+      byUserResult: { data: null, error: { code: "XX000", message: "read failed" } },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const body = JSON.stringify({
+      id: "evt_exread",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_123" } },
+    });
+
+    const res = await POST(signedRequest(body));
+
+    expect(res.status).toBe(500);
+    expect(admin.upsert).not.toHaveBeenCalled();
+  });
+
+  // FIX 4 — an entitled status with a missing current_period_end must 500 +
+  // captureError, never silently free-downgrade the subscriber.
+  it("500s + captures (no free-downgrade write) when an entitled sub is missing current_period_end", async () => {
+    const stripe = stripeWithRetrieve(
+      fakeSubscription({
+        // active (entitled) status, but the item carries no current_period_end.
+        items: {
+          data: [{ price: { id: "price_standard_monthly" }, current_period_end: null }],
+        },
+      })
+    );
+    getStripe.mockReturnValue(stripe);
+    const admin = fakeAdmin({ byUserResult: { data: null, error: null } });
+    createAdminClient.mockReturnValue(admin);
+    const body = JSON.stringify({
+      id: "evt_noperiod",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_123" } },
+    });
+
+    const res = await POST(signedRequest(body));
+
+    expect(res.status).toBe(500);
+    expect(captureError).toHaveBeenCalled();
+    expect(admin.upsert).not.toHaveBeenCalled();
   });
 });

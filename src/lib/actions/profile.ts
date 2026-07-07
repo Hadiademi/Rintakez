@@ -203,11 +203,19 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   // charged with no way to stop it themselves. No subscription row, or no
   // stripe_subscription_id, or Stripe not configured (local dev/test) all
   // proceed straight to deletion — there's nothing to cancel.
-  const { data: sub } = await admin
+  const { data: sub, error: subError } = await admin
     .from("subscriptions")
     .select("stripe_subscription_id")
     .eq("user_id", user.id)
     .maybeSingle();
+  // Fail-safe on a transient READ error: do NOT proceed to delete. A swallowed
+  // read error would leave `sub` null → cancellation skipped → the account is
+  // erased while a live paid Stripe subscription keeps billing with no way to
+  // reach it. Same posture as a cancel failure: abort with billing_cancel_failed.
+  if (subError) {
+    captureError(subError, { scope: "profile.deleteAccount.subRead", userId: user.id });
+    return { ok: false, error: "billing_cancel_failed" };
+  }
   if (sub?.stripe_subscription_id) {
     const stripe = getStripe();
     if (stripe) {

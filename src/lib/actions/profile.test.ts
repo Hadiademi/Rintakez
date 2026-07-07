@@ -146,4 +146,19 @@ describe("deleteAccount — Stripe cancel guard", () => {
     expect(admin.deleteUser).not.toHaveBeenCalled();
     expect(captureError).toHaveBeenCalledTimes(1);
   });
+
+  // FIX 3 — a transient subscriptions READ error must abort deletion (fail
+  // safe), never proceed and orphan a possibly-live paid Stripe subscription.
+  it("aborts with billing_cancel_failed when the subscriptions read errors (never orphans a live sub)", async () => {
+    const admin = fakeAdmin({
+      subscriptionRow: { data: null, error: { code: "XX000", message: "read failed" } },
+    });
+    createAdminClient.mockReturnValue(admin);
+
+    const result = await deleteAccount();
+
+    expect(result).toEqual({ ok: false, error: "billing_cancel_failed" });
+    expect(admin.deleteUser).not.toHaveBeenCalled();
+    expect(getStripe).not.toHaveBeenCalled();
+  });
 });

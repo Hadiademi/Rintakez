@@ -11,6 +11,7 @@ import {
   type NormalizedSub,
   type ExistingSub,
 } from "@/lib/billing/stripe-sync";
+import { ENTITLED_STRIPE_STATUSES } from "@/lib/billing/plans";
 
 // Convergent Stripe webhook — the single writer of `subscriptions` /
 // `photographer_details.plan_tier` for the `source='stripe'` path (spec:
@@ -103,8 +104,10 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature ?? "", secret);
-  } catch (err) {
-    captureError(err, { scope: "stripe.webhook.signature" });
+  } catch {
+    // No captureError: a bad/absent signature is expected-hostile traffic
+    // (probing, replayed bodies, random scanners). Logging every one would let
+    // an attacker drive unbounded log volume. Just reject with 400.
     return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
   }
 
@@ -143,11 +146,17 @@ export async function POST(request: Request) {
     // → an existing row keyed by customer id.
     let userId = normalized.userIdMeta ?? sessionUserHint ?? null;
     if (!userId) {
-      const { data: byCustomer } = await admin
+      const { data: byCustomer, error: byCustomerError } = await admin
         .from("subscriptions")
         .select("user_id")
         .eq("stripe_customer_id", normalized.customerId)
         .maybeSingle();
+      // A transient READ error must be retryable — throwing lands it in the
+      // 500 catch below (which also compensates the dedupe row). Swallowing it
+      // would look like "no match" and wrongly ack with a non-retryable 200,
+      // permanently losing the write. Only a genuine (error-free) no-match
+      // falls through to the deliberate unresolvable-user 200 below.
+      if (byCustomerError) throw byCustomerError;
       userId = (byCustomer as { user_id: string } | null)?.user_id ?? null;
     }
     if (!userId) {
@@ -167,11 +176,40 @@ export async function POST(request: Request) {
     const mapped = mapStripeSubscription(normalized);
     if (!mapped) return NextResponse.json({ received: true });
 
-    const { data: existingRow } = await admin
+    // Guard a silent entitlement downgrade: an entitled status
+    // (active/trialing/past_due) with a missing/null current_period_end would
+    // make detailsSyncValues() write plan_tier:'free', un-entitling a paying
+    // subscriber. That's a data anomaly (Stripe normally always carries a
+    // period on an entitled sub), so surface it and 500 (retryable) rather
+    // than writing free. A canceled/unpaid status with a null period is a
+    // legitimate free-sync and is intentionally NOT caught here.
+    if (
+      (ENTITLED_STRIPE_STATUSES as readonly string[]).includes(mapped.status) &&
+      mapped.currentPeriodEnd === null
+    ) {
+      captureError(
+        new Error("stripe webhook: entitled subscription missing current_period_end"),
+        {
+          scope: "stripe.webhook.missingPeriodEnd",
+          eventId: event.id,
+          eventType: event.type,
+          subscriptionId: mapped.stripeSubscriptionId,
+          status: mapped.status,
+        }
+      );
+      throw new Error("entitled subscription missing current_period_end");
+    }
+
+    const { data: existingRow, error: existingError } = await admin
       .from("subscriptions")
       .select("source,comp_until,stripe_subscription_id")
       .eq("user_id", userId)
       .maybeSingle();
+    // A transient READ error here must be retryable, not silently treated as
+    // "no existing row" — that would make shouldSkipWrite() return false and
+    // let the upsert CLOBBER an active admin_comp with source='stripe'. Throw
+    // into the 500 catch (which compensates the dedupe row) instead.
+    if (existingError) throw existingError;
     const existing: ExistingSub = existingRow
       ? {
           source: existingRow.source as "stripe" | "admin_comp",
@@ -221,6 +259,29 @@ export async function POST(request: Request) {
       eventId: event.id,
       eventType: event.type,
     });
+    // COMPENSATE the insert-first dedupe: the stripe_events row was committed
+    // (autocommit) before processing, so on a transient failure it would make
+    // Stripe's retry dedupe to a 200 noop — permanently LOSING this write.
+    // Best-effort delete it so the retry reprocesses; a delete failure is
+    // captured but still returns 500 (the retry will re-collide on the row and
+    // dup out, which is the pre-fix behaviour, not worse).
+    try {
+      const { error: compError } = await admin
+        .from("stripe_events")
+        .delete()
+        .eq("id", event.id);
+      if (compError) {
+        captureError(compError, {
+          scope: "stripe.webhook.dedupe.compensate",
+          eventId: event.id,
+        });
+      }
+    } catch (compErr) {
+      captureError(compErr, {
+        scope: "stripe.webhook.dedupe.compensate",
+        eventId: event.id,
+      });
+    }
     return NextResponse.json({ error: "processing_failed" }, { status: 500 });
   }
 }
