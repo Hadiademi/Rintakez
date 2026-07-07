@@ -6,6 +6,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { getBidQuotaUsage } from "@/lib/billing/entitlements";
 import { shootImage } from "@/lib/shoot-image";
 import { buildAlternates } from "@/lib/seo";
 import { ShootStepper, type StepperHint } from "@/components/shoot-stepper";
@@ -309,6 +310,7 @@ export default async function ShootDetailPage({
       .maybeSingle();
 
     const tBid = await getTranslations("bidSheet");
+    const { used, limit } = await getBidQuotaUsage(supabase, profile.id, new Date());
 
     return (
       <div className="mx-auto max-w-3xl space-y-10">
@@ -322,6 +324,7 @@ export default async function ShootDetailPage({
               shoot.budget_min_chf,
               shoot.budget_max_chf
             )}
+            quota={{ used, limit: Number.isFinite(limit) ? limit : null }}
           />
         ) : myBid ? (
           <MyBidPanel

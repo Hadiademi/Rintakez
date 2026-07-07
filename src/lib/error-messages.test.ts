@@ -11,6 +11,10 @@ describe("errorKey", () => {
     expect(errorKey("unauthorized")).toBe("unauthorized");
   });
 
+  it("returns quota_reached as-is", () => {
+    expect(errorKey("quota_reached")).toBe("quota_reached");
+  });
+
   it("collapses raw DB error to generic", () => {
     expect(
       errorKey('duplicate key value violates unique constraint "x"')

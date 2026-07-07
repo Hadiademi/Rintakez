@@ -7,6 +7,7 @@ import { getSessionUser, getProfile } from "@/lib/auth";
 import { createBidSchema } from "@/lib/validation/bid";
 import { notifyEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
+import { getBidQuotaUsage } from "@/lib/billing/entitlements";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -27,6 +28,13 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   if (!(await rateLimit(`bid:${profile.id}`, 20, 3_600_000)))
     return { ok: false, error: "limit_reached" };
   const supabase = await createClient();
+  // Monthly bid quota (subscription entitlement). Counts all statuses this
+  // Zurich month; premium's limit is Infinity so it's never blocked here — its
+  // fair-use bound is the rateLimit above. Gating at entry also covers the
+  // revive-withdrawn path below: a withdrawn bid still counts toward the month,
+  // so a capped photographer cannot withdraw-and-rebid to dodge the limit.
+  const { used, limit } = await getBidQuotaUsage(supabase, profile.id, new Date());
+  if (used >= limit) return { ok: false, error: "quota_reached" };
   const { error } = await supabase.from("bids").insert({
     shoot_id: shootId,
     photographer_id: profile.id,

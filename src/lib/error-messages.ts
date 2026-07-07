@@ -6,6 +6,7 @@ const KNOWN = new Set([
   "already_reviewed",
   "not_found",
   "limit_reached",
+  "quota_reached",
   "invalid_file",
   "invalid_credentials",
   "email_not_confirmed",

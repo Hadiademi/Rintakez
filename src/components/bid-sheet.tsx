@@ -14,11 +14,14 @@ import { useToast } from "@/components/ui/toaster";
 export function BidSheet({
   shootId,
   budgetRange,
+  quota,
 }: {
   shootId: string;
   budgetRange: string;
+  quota: { used: number; limit: number | null }; // limit null = unlimited (premium)
 }) {
   const t = useTranslations("bidSheet");
+  const reached = quota.limit !== null && quota.used >= quota.limit;
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
   const { toast } = useToast();
@@ -96,14 +99,26 @@ export function BidSheet({
           ) : null}
         </div>
 
+        {quota.limit !== null ? (
+          <p className="label text-mute">
+            <span className="tabular">
+              {t("quotaThisMonth", { used: quota.used, limit: quota.limit })}
+            </span>
+          </p>
+        ) : null}
+
         <button
           type="submit"
           data-testid="bid-submit"
-          disabled={isPending}
+          disabled={isPending || reached}
           className="press w-full bg-ink px-4 py-3 label text-paper disabled:opacity-50"
         >
           {t("send")}
         </button>
+
+        {reached ? (
+          <p className="text-sm text-accent">{t("quotaReached")}</p>
+        ) : null}
 
         {error ? <p className="text-sm text-accent">{error}</p> : null}
       </form>

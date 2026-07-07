@@ -396,6 +396,7 @@
     "already_reviewed": "You've already submitted a review.",
     "not_found": "Not found.",
     "limit_reached": "Limit reached.",
+    "quota_reached": "You've reached your monthly bid limit.",
     "invalid_file": "Invalid file. Images up to 5 MB.",
     "invalid_credentials": "Wrong email or password.",
     "email_not_confirmed": "Please confirm your email address first.",
@@ -485,7 +486,9 @@
     "bidStatusDeclined": "Declined",
     "bidStatusWithdrawn": "Withdrawn",
     "errorSubmit": "Could not send.",
-    "notOpen": "This shoot is no longer accepting offers."
+    "notOpen": "This shoot is no longer accepting offers.",
+    "quotaThisMonth": "{used}/{limit} this month",
+    "quotaReached": "You've reached your monthly limit."
   },
   "notifications": {
     "title": "Notifications",

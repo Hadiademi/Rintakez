@@ -396,6 +396,7 @@
     "already_reviewed": "Tu as déjà soumis une évaluation.",
     "not_found": "Introuvable.",
     "limit_reached": "Limite atteinte.",
+    "quota_reached": "Tu as atteint ta limite d'offres mensuelle.",
     "invalid_file": "Fichier invalide. Images jusqu'à 5 Mo.",
     "invalid_credentials": "E-mail ou mot de passe incorrect.",
     "email_not_confirmed": "Confirme d'abord ton adresse e-mail.",
@@ -485,7 +486,9 @@
     "bidStatusDeclined": "Refusée",
     "bidStatusWithdrawn": "Retirée",
     "errorSubmit": "Échec de l'envoi.",
-    "notOpen": "Cette mission n'accepte plus d'offres."
+    "notOpen": "Cette mission n'accepte plus d'offres.",
+    "quotaThisMonth": "{used}/{limit} ce mois-ci",
+    "quotaReached": "Tu as atteint ta limite mensuelle."
   },
   "notifications": {
     "title": "Notifications",
