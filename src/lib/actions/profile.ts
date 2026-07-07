@@ -5,6 +5,8 @@ import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getStripe } from "@/lib/stripe";
+import { captureError } from "@/lib/observability";
 import { getSessionUser } from "@/lib/auth";
 import { CANTONS } from "@/lib/validation/photographer";
 
@@ -192,6 +194,30 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
     }
   } catch {
     return { ok: false, error: "storage_cleanup_failed" };
+  }
+
+  // Cancel any live Stripe subscription before the account (and its
+  // subscriptions row) disappears. If cancellation fails, ABORT the deletion
+  // — never orphan a live paid Stripe subscription behind a deleted account,
+  // where no one can reach it to cancel and the customer keeps getting
+  // charged with no way to stop it themselves. No subscription row, or no
+  // stripe_subscription_id, or Stripe not configured (local dev/test) all
+  // proceed straight to deletion — there's nothing to cancel.
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("stripe_subscription_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (sub?.stripe_subscription_id) {
+    const stripe = getStripe();
+    if (stripe) {
+      try {
+        await stripe.subscriptions.cancel(sub.stripe_subscription_id);
+      } catch (err) {
+        captureError(err, { scope: "profile.deleteAccount.stripeCancel", userId: user.id });
+        return { ok: false, error: "billing_cancel_failed" };
+      }
+    }
   }
 
   // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET
