@@ -436,6 +436,8 @@ export type Database = {
           disciplines: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf: number | null
           instagram_url: string | null
+          plan_expires_at: string | null
+          plan_tier: string
           profile_id: string
           specialties: Database["public"]["Enums"]["shoot_type"][]
           verification_note: string | null
@@ -449,6 +451,8 @@ export type Database = {
           disciplines?: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf?: number | null
           instagram_url?: string | null
+          plan_expires_at?: string | null
+          plan_tier?: string
           profile_id: string
           specialties?: Database["public"]["Enums"]["shoot_type"][]
           verification_note?: string | null
@@ -462,6 +466,8 @@ export type Database = {
           disciplines?: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf?: number | null
           instagram_url?: string | null
+          plan_expires_at?: string | null
+          plan_tier?: string
           profile_id?: string
           specialties?: Database["public"]["Enums"]["shoot_type"][]
           verification_note?: string | null
@@ -918,6 +924,69 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          comp_until: string | null
+          created_at: string
+          current_period_end: string | null
+          granted_by: string | null
+          note: string | null
+          plan: string
+          source: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          comp_until?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          granted_by?: string | null
+          note?: string | null
+          plan: string
+          source: string
+          status: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          comp_until?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          granted_by?: string | null
+          note?: string | null
+          plan?: string
+          source?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -953,6 +1022,32 @@ export type Database = {
       }
     }
     Views: {
+      photographer_effective_tier: {
+        Row: {
+          effective_tier: string | null
+          plan_expires_at: string | null
+          profile_id: string | null
+        }
+        Insert: {
+          effective_tier?: never
+          plan_expires_at?: string | null
+          profile_id?: string | null
+        }
+        Update: {
+          effective_tier?: never
+          plan_expires_at?: string | null
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photographer_details_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photographer_ratings: {
         Row: {
           avg_rating: number | null

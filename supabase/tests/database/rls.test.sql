@@ -269,13 +269,17 @@ reset role;
 
 -- ── 24: photographer cannot move bid to a different shoot ─────────────
 -- Marko (00...0002) tries to move bid 3 (on shoot 3) to shoot 1.
--- The trigger must block the shoot_id change.
+-- bids_immutable_guard (P0001) still blocks this for any writer with a wider
+-- grant (e.g. service_role), but since 20260707000000_subscriptions.sql (F2)
+-- column-scoped the authenticated UPDATE grant to amount_chf/message/status,
+-- a shoot_id write from `authenticated` is now rejected even earlier, at the
+-- grant check (42501), before the trigger runs.
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
 select throws_ok(
   $$update public.bids set shoot_id = '10000000-0000-0000-0000-000000000001'
     where id = '20000000-0000-0000-0000-000000000003'$$,
-  'P0001',
+  '42501',
   null,
   'photographer cannot change shoot_id on own bid'
 );
