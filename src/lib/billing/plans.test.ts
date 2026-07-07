@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ENTITLED_STRIPE_STATUSES,
   MONTHLY_BID_QUOTA,
+  PLAN_FEATURE_MATRIX,
   PRICE_CHF_MONTHLY,
   PRICE_CHF_YEARLY,
   TIER_RANK,
@@ -93,6 +94,45 @@ describe("priceIdToPlan", () => {
   it("returns null for an unrecognized price id", () => {
     vi.stubEnv("STRIPE_PRICE_BASIC_MONTHLY", "price_basic_m");
     expect(priceIdToPlan("price_totally_unknown")).toBeNull();
+  });
+});
+
+describe("PLAN_FEATURE_MATRIX", () => {
+  it("has the exact curated feature key lists per plan (P4 pricing page)", () => {
+    const byPlan = Object.fromEntries(
+      PLAN_FEATURE_MATRIX.map((row) => [row.plan, row.featureI18nKeys])
+    );
+    expect(byPlan.free).toEqual(["billing.plan.free.feature.quota"]);
+    expect(byPlan.basic).toEqual([
+      "billing.plan.basic.feature.quota",
+      "billing.plan.basic.feature.digest",
+    ]);
+    expect(byPlan.standard).toEqual([
+      "billing.plan.standard.feature.quota",
+      "billing.plan.standard.feature.placement",
+      "billing.plan.standard.feature.alerts",
+      "billing.plan.standard.feature.dashboard",
+    ]);
+    expect(byPlan.premium).toEqual([
+      "billing.plan.premium.feature.quota",
+      "billing.plan.premium.feature.placement",
+      "billing.plan.premium.feature.badge",
+      "billing.plan.premium.feature.benchmark",
+      "billing.plan.premium.feature.spotlight",
+    ]);
+  });
+
+  it("orders rows free, basic, standard, premium and keeps name/price wiring intact", () => {
+    expect(PLAN_FEATURE_MATRIX.map((r) => r.plan)).toEqual([
+      "free",
+      "basic",
+      "standard",
+      "premium",
+    ]);
+    for (const row of PLAN_FEATURE_MATRIX) {
+      expect(row.nameI18nKey).toBe(`billing.plan.${row.plan}.name`);
+      expect(row.monthlyBidQuota).toBe(MONTHLY_BID_QUOTA[row.plan]);
+    }
   });
 });
 

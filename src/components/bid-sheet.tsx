@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, Link } from "@/i18n/navigation";
 import { createBidSchema, type CreateBidInput } from "@/lib/validation/bid";
 import { submitBidAction } from "@/lib/actions/bids";
 import { errorKey } from "@/lib/error-messages";
@@ -117,7 +117,12 @@ export function BidSheet({
         </button>
 
         {reached ? (
-          <p className="text-sm text-accent">{t("quotaReached")}</p>
+          <p className="text-sm text-accent">
+            {t("quotaReached")}{" "}
+            <Link href="/pricing" className="underline">
+              {t("viewPlans")}
+            </Link>
+          </p>
         ) : null}
 
         {error ? <p className="text-sm text-accent">{error}</p> : null}

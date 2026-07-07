@@ -9,7 +9,9 @@
     "shootsDescription": "Entdecke offene Foto- und Video-Shoots von Kund:innen in der ganzen Schweiz und gib dein Angebot ab.",
     "shootFallbackTitle": "Shoot",
     "landingTitle": "{type} in {canton}",
-    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere verifizierte Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote."
+    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere verifizierte Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote.",
+    "pricingTitle": "Preise — Rintakez",
+    "pricingDescription": "Abo-Pläne für Fotograf:innen auf Rintakez."
   },
   "common": {
     "appName": "Rintakez",
@@ -39,7 +41,9 @@
     "notifications": "Benachrichtigungen",
     "photographers": "Fotograf:innen",
     "messages": "Nachrichten",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pricing": "Preise",
+    "subscription": "Abo"
   },
   "landing": {
     "title": "Foto & Video. Direkt. Schweizweit.",
@@ -375,7 +379,18 @@
     "inviteError": "Einladung fehlgeschlagen",
     "inviteUnavailableDate": "An diesem Datum nicht verfügbar",
     "memberSince": "Mitglied seit {year}",
-    "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}"
+    "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}",
+    "billingTitle": "Abrechnung",
+    "billingCurrentPlan": "Aktueller Plan",
+    "billingFreePlan": "Gratis-Plan",
+    "billingSourceComp": "Geschenk bis {date}",
+    "billingSourceStripeRenews": "Verlängert sich am {date}",
+    "billingSourceStripeEnds": "Endet am {date}",
+    "billingCancelNotice": "Dein Abo verlängert sich nicht automatisch.",
+    "billingUsage": "{used}/{limit} diesen Monat",
+    "billingUsageUnlimited": "Unbegrenzt",
+    "billingManage": "Abo verwalten",
+    "billingViewPlans": "Pläne ansehen"
   },
   "profileBasics": {
     "edit": "Name & Ort bearbeiten",
@@ -387,6 +402,61 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "saved": "Gespeichert"
+  },
+  "billing": {
+    "plan": {
+      "free": {
+        "name": "Free",
+        "feature": {
+          "quota": "1 Angebot pro Monat"
+        }
+      },
+      "basic": {
+        "name": "Basic",
+        "feature": {
+          "quota": "5 Angebote pro Monat",
+          "digest": "Tägliche Job-Übersicht"
+        }
+      },
+      "standard": {
+        "name": "Standard",
+        "feature": {
+          "quota": "32 Angebote pro Monat",
+          "placement": "Bevorzugte Platzierung im Verzeichnis",
+          "alerts": "Sofortige Auftrags-Benachrichtigungen",
+          "dashboard": "Leistungs-Dashboard"
+        }
+      },
+      "premium": {
+        "name": "Premium",
+        "feature": {
+          "quota": "Unbegrenzte Angebote",
+          "placement": "Top-Platzierung + SEO-Priorität",
+          "badge": "Top-Partner-Abzeichen",
+          "benchmark": "Benchmark-Vergleich",
+          "spotlight": "Startseiten-Feature"
+        }
+      }
+    },
+    "pricing": {
+      "heading": "Pläne für Fotograf:innen",
+      "subheading": "Gewinne mehr Aufträge. Jederzeit kündbar.",
+      "freePrice": "Gratis",
+      "perMonth": "/Monat",
+      "perYear": "/Jahr",
+      "mostPopular": "Beliebteste Wahl",
+      "intervalMonthly": "Monatlich",
+      "intervalYearly": "Jährlich",
+      "ctaChoose": "{plan} wählen",
+      "ctaCurrent": "Dein Plan",
+      "ctaManage": "Verwalten",
+      "ctaRegister": "Jetzt registrieren",
+      "clientNote": "Abos sind für Fotograf:innen.",
+      "compNote": "Geschenk aktiv bis {date}",
+      "trialNote": "Erster Monat gratis",
+      "foundingNote": "Gründungsmitglied? Gib deinen Code beim Checkout ein.",
+      "yearlyTeaser": "Jahrespläne folgen in Kürze"
+    }
   },
   "errors": {
     "invalid_input": "Bitte überprüfe deine Eingaben.",
@@ -404,6 +474,12 @@
     "comp_conflicts_stripe": "Dieser Nutzer hat ein aktives kostenpflichtiges Abo — zuerst in Stripe kündigen.",
     "not_photographer": "Dieser Nutzer ist kein Fotograf.",
     "not_comp": "Kein Gratis-Abo zum Entziehen.",
+    "already_subscribed": "Du hast bereits ein aktives Abo.",
+    "comp_active": "Du hast einen aktiven Gratis-Plan.",
+    "price_unavailable": "Dieser Plan ist momentan nicht verfügbar.",
+    "no_customer": "Kein Abrechnungskonto gefunden.",
+    "stripe_not_configured": "Abrechnung ist momentan nicht verfügbar.",
+    "billing_cancel_failed": "Dein Abo konnte nicht gekündigt werden. Bitte versuche es erneut.",
     "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
   },
   "theme": {
@@ -491,7 +567,8 @@
     "errorSubmit": "Konnte nicht gesendet werden.",
     "notOpen": "Dieser Auftrag nimmt keine Angebote mehr an.",
     "quotaThisMonth": "{used}/{limit} diesen Monat",
-    "quotaReached": "Dein Monatslimit ist erreicht."
+    "quotaReached": "Dein Monatslimit ist erreicht.",
+    "viewPlans": "Pläne ansehen"
   },
   "notifications": {
     "title": "Benachrichtigungen",

@@ -9,7 +9,9 @@
     "shootsDescription": "Browse open photo and video shoots from clients across Switzerland and place your offer.",
     "shootFallbackTitle": "Shoot",
     "landingTitle": "{type} photographers in {canton}",
-    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse verified profiles, portfolios and reviews, then post your shoot for offers."
+    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse verified profiles, portfolios and reviews, then post your shoot for offers.",
+    "pricingTitle": "Pricing — Rintakez",
+    "pricingDescription": "Subscription plans for photographers on Rintakez."
   },
   "common": {
     "appName": "Rintakez",
@@ -39,7 +41,9 @@
     "notifications": "Notifications",
     "photographers": "Photographers",
     "messages": "Messages",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pricing": "Pricing",
+    "subscription": "Subscription"
   },
   "landing": {
     "title": "Photo & video. Direct. Across Switzerland.",
@@ -375,7 +379,18 @@
     "inviteError": "Could not send invitation",
     "inviteUnavailableDate": "Unavailable on this date",
     "memberSince": "Member since {year}",
-    "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}"
+    "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}",
+    "billingTitle": "Billing",
+    "billingCurrentPlan": "Current plan",
+    "billingFreePlan": "Free plan",
+    "billingSourceComp": "Gift until {date}",
+    "billingSourceStripeRenews": "Renews {date}",
+    "billingSourceStripeEnds": "Ends {date}",
+    "billingCancelNotice": "Your subscription will not renew.",
+    "billingUsage": "{used}/{limit} this month",
+    "billingUsageUnlimited": "Unlimited",
+    "billingManage": "Manage subscription",
+    "billingViewPlans": "View plans"
   },
   "profileBasics": {
     "edit": "Edit name & location",
@@ -387,6 +402,61 @@
     "save": "Save",
     "cancel": "Cancel",
     "saved": "Saved"
+  },
+  "billing": {
+    "plan": {
+      "free": {
+        "name": "Free",
+        "feature": {
+          "quota": "1 offer per month"
+        }
+      },
+      "basic": {
+        "name": "Basic",
+        "feature": {
+          "quota": "5 offers per month",
+          "digest": "Daily job digest"
+        }
+      },
+      "standard": {
+        "name": "Standard",
+        "feature": {
+          "quota": "32 offers per month",
+          "placement": "Preferred directory placement",
+          "alerts": "Instant job alerts",
+          "dashboard": "Performance dashboard"
+        }
+      },
+      "premium": {
+        "name": "Premium",
+        "feature": {
+          "quota": "Unlimited offers",
+          "placement": "Top placement + SEO priority",
+          "badge": "Top Partner badge",
+          "benchmark": "Benchmark comparison",
+          "spotlight": "Homepage spotlight"
+        }
+      }
+    },
+    "pricing": {
+      "heading": "Plans for photographers",
+      "subheading": "Win more shoots. Cancel anytime.",
+      "freePrice": "Free",
+      "perMonth": "/month",
+      "perYear": "/year",
+      "mostPopular": "Most popular",
+      "intervalMonthly": "Monthly",
+      "intervalYearly": "Yearly",
+      "ctaChoose": "Choose {plan}",
+      "ctaCurrent": "Your plan",
+      "ctaManage": "Manage",
+      "ctaRegister": "Sign up to start",
+      "clientNote": "Subscriptions are for photographers.",
+      "compNote": "Gift active until {date}",
+      "trialNote": "First month free",
+      "foundingNote": "Founding member? Enter your code at checkout.",
+      "yearlyTeaser": "Yearly plans coming soon"
+    }
   },
   "errors": {
     "invalid_input": "Please check your input.",
@@ -404,6 +474,12 @@
     "comp_conflicts_stripe": "This user has an active paid subscription — revoke it in Stripe first.",
     "not_photographer": "This user is not a photographer.",
     "not_comp": "No comp subscription to revoke.",
+    "already_subscribed": "You already have an active subscription.",
+    "comp_active": "You have an active complimentary plan.",
+    "price_unavailable": "This plan isn't available right now.",
+    "no_customer": "No billing account found.",
+    "stripe_not_configured": "Billing isn't available right now.",
+    "billing_cancel_failed": "Couldn't cancel your subscription. Please try again.",
     "generic": "Something went wrong. Please try again."
   },
   "theme": {
@@ -491,7 +567,8 @@
     "errorSubmit": "Could not send.",
     "notOpen": "This shoot is no longer accepting offers.",
     "quotaThisMonth": "{used}/{limit} this month",
-    "quotaReached": "You've reached your monthly limit."
+    "quotaReached": "You've reached your monthly limit.",
+    "viewPlans": "See plans"
   },
   "notifications": {
     "title": "Notifications",

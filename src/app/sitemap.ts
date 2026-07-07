@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/impressum",
     "/datenschutz",
     "/agb",
+    "/pricing",
   ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of routing.locales) {

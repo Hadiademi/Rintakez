@@ -49,6 +49,7 @@ export async function AppNav({
     { href: "/shoots", label: t("browseShoots") },
     { href: "/my-bids", label: t("myBids") },
     { href: "/messages", label: t("messages") },
+    { href: "/pricing", label: t("subscription") },
     { href: "/profile", label: t("profile") },
   ] as const;
 

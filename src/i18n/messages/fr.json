@@ -9,7 +9,9 @@
     "shootsDescription": "Découvre les projets photo et vidéo ouverts publiés par des clients partout en Suisse et propose ton offre.",
     "shootFallbackTitle": "Projet",
     "landingTitle": "{type} à {canton}",
-    "landingDescription": "Trouve et compare des {type} à {canton}. Parcours des profils vérifiés, des portfolios et des avis, puis publie ta demande pour recevoir des offres."
+    "landingDescription": "Trouve et compare des {type} à {canton}. Parcours des profils vérifiés, des portfolios et des avis, puis publie ta demande pour recevoir des offres.",
+    "pricingTitle": "Tarifs — Rintakez",
+    "pricingDescription": "Formules d'abonnement pour les photographes sur Rintakez."
   },
   "common": {
     "appName": "Rintakez",
@@ -39,7 +41,9 @@
     "notifications": "Notifications",
     "photographers": "Photographes",
     "messages": "Messages",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pricing": "Tarifs",
+    "subscription": "Abonnement"
   },
   "landing": {
     "title": "Photo & vidéo. En direct. Partout en Suisse.",
@@ -375,7 +379,18 @@
     "inviteError": "Échec de l'invitation",
     "inviteUnavailableDate": "Indisponible à cette date",
     "memberSince": "Membre depuis {year}",
-    "completedShoots": "{count, plural, one {# séance réalisée} other {# séances réalisées}}"
+    "completedShoots": "{count, plural, one {# séance réalisée} other {# séances réalisées}}",
+    "billingTitle": "Facturation",
+    "billingCurrentPlan": "Formule actuelle",
+    "billingFreePlan": "Formule gratuite",
+    "billingSourceComp": "Cadeau jusqu'au {date}",
+    "billingSourceStripeRenews": "Se renouvelle le {date}",
+    "billingSourceStripeEnds": "Se termine le {date}",
+    "billingCancelNotice": "Ton abonnement ne se renouvellera pas.",
+    "billingUsage": "{used}/{limit} ce mois-ci",
+    "billingUsageUnlimited": "Illimité",
+    "billingManage": "Gérer l'abonnement",
+    "billingViewPlans": "Voir les formules"
   },
   "profileBasics": {
     "edit": "Modifier nom & lieu",
@@ -387,6 +402,61 @@
     "save": "Enregistrer",
     "cancel": "Annuler",
     "saved": "Enregistré"
+  },
+  "billing": {
+    "plan": {
+      "free": {
+        "name": "Free",
+        "feature": {
+          "quota": "1 offre par mois"
+        }
+      },
+      "basic": {
+        "name": "Basic",
+        "feature": {
+          "quota": "5 offres par mois",
+          "digest": "Récapitulatif quotidien des missions"
+        }
+      },
+      "standard": {
+        "name": "Standard",
+        "feature": {
+          "quota": "32 offres par mois",
+          "placement": "Placement prioritaire dans l'annuaire",
+          "alerts": "Alertes de missions instantanées",
+          "dashboard": "Tableau de bord de performance"
+        }
+      },
+      "premium": {
+        "name": "Premium",
+        "feature": {
+          "quota": "Offres illimitées",
+          "placement": "Placement en tête + priorité SEO",
+          "badge": "Badge Top Partenaire",
+          "benchmark": "Comparaison de performance",
+          "spotlight": "Mise en avant sur la page d'accueil"
+        }
+      }
+    },
+    "pricing": {
+      "heading": "Formules pour photographes",
+      "subheading": "Décroche plus de missions. Résilie à tout moment.",
+      "freePrice": "Gratuit",
+      "perMonth": "/mois",
+      "perYear": "/an",
+      "mostPopular": "Le plus populaire",
+      "intervalMonthly": "Mensuel",
+      "intervalYearly": "Annuel",
+      "ctaChoose": "Choisir {plan}",
+      "ctaCurrent": "Ta formule",
+      "ctaManage": "Gérer",
+      "ctaRegister": "S'inscrire pour commencer",
+      "clientNote": "Les abonnements sont réservés aux photographes.",
+      "compNote": "Cadeau actif jusqu'au {date}",
+      "trialNote": "Premier mois gratuit",
+      "foundingNote": "Membre fondateur ? Entre ton code au moment du paiement.",
+      "yearlyTeaser": "Formules annuelles bientôt disponibles"
+    }
   },
   "errors": {
     "invalid_input": "Vérifie tes saisies.",
@@ -404,6 +474,12 @@
     "comp_conflicts_stripe": "Cet utilisateur a un abonnement payant actif — annule-le d'abord dans Stripe.",
     "not_photographer": "Cet utilisateur n'est pas photographe.",
     "not_comp": "Aucun abonnement gratuit à retirer.",
+    "already_subscribed": "Tu as déjà un abonnement actif.",
+    "comp_active": "Tu as une formule gratuite active.",
+    "price_unavailable": "Cette formule n'est pas disponible pour le moment.",
+    "no_customer": "Aucun compte de facturation trouvé.",
+    "stripe_not_configured": "La facturation n'est pas disponible pour le moment.",
+    "billing_cancel_failed": "Impossible d'annuler ton abonnement. Réessaie.",
     "generic": "Une erreur est survenue. Réessaie."
   },
   "theme": {
@@ -491,7 +567,8 @@
     "errorSubmit": "Échec de l'envoi.",
     "notOpen": "Cette mission n'accepte plus d'offres.",
     "quotaThisMonth": "{used}/{limit} ce mois-ci",
-    "quotaReached": "Tu as atteint ta limite mensuelle."
+    "quotaReached": "Tu as atteint ta limite mensuelle.",
+    "viewPlans": "Voir les formules"
   },
   "notifications": {
     "title": "Notifications",

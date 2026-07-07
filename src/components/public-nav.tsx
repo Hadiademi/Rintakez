@@ -24,6 +24,12 @@ export async function PublicNav() {
       >
         {t("photographers")}
       </Link>
+      <Link
+        href="/pricing"
+        className="whitespace-nowrap text-mute transition-colors hover:text-ink"
+      >
+        {t("pricing")}
+      </Link>
     </>
   );
 

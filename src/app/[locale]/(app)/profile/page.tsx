@@ -16,9 +16,12 @@ import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
 import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
+import { BillingPortalButton } from "@/components/billing-portal-button";
 import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
 import { ProfileChecklist } from "@/components/profile-checklist";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
+import { effectivePlan, getBidQuotaUsage } from "@/lib/billing/entitlements";
+import type { Plan } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +105,35 @@ export default async function ProfilePage() {
     : { data: [] };
   const reviews = reviewRows ?? [];
 
+  // Billing tab (photographer only) — one extra query for the subscriptions
+  // row (source of cancel_at_period_end / stripe_customer_id, which
+  // getEntitlement() doesn't expose), reusing the same pure effectivePlan()
+  // resolution getEntitlement() wraps so we don't pay for a second query.
+  type BillingSubRow = {
+    plan: Plan;
+    status: string;
+    source: "stripe" | "admin_comp";
+    current_period_end: string | null;
+    comp_until: string | null;
+    cancel_at_period_end: boolean;
+    stripe_customer_id: string | null;
+  } | null;
+
+  const { data: subRow } = isPhotographer
+    ? ((await supabase
+        .from("subscriptions")
+        .select(
+          "plan, status, source, current_period_end, comp_until, cancel_at_period_end, stripe_customer_id"
+        )
+        .eq("user_id", profile.id)
+        .maybeSingle()) as { data: BillingSubRow })
+    : { data: null as BillingSubRow };
+
+  const entitlement = isPhotographer ? effectivePlan(subRow, new Date()) : null;
+  const quota = isPhotographer
+    ? await getBidQuotaUsage(supabase, profile.id, new Date())
+    : null;
+
   const portfolioImages = (rawImages ?? []).map((img) => ({
     id: img.id,
     url: supabase.storage.from("portfolio").getPublicUrl(img.storage_path).data
@@ -127,6 +159,7 @@ export default async function ProfilePage() {
   const tAuth = await getTranslations("auth");
   const tShoot = await getTranslations("shoot");
   const tReview = await getTranslations("review");
+  const tBilling = await getTranslations("billing");
 
   const initials = profile.display_name
     .split(/\s+/)
@@ -164,7 +197,10 @@ export default async function ProfilePage() {
   // Settings tabs — only the selected one is shown (see ProfileTabs).
   const tabs: { id: string; label: string }[] = [
     ...(isPhotographer
-      ? [{ id: "profile", label: t("publicProfileTitle") }]
+      ? [
+          { id: "profile", label: t("publicProfileTitle") },
+          { id: "billing", label: t("billingTitle") },
+        ]
       : []),
     { id: "account", label: t("account") },
     { id: "security", label: t("securityTitle") },
@@ -381,6 +417,82 @@ export default async function ProfilePage() {
                 </div>
               </div>
             </section>
+          </ProfileTabPanel>
+        )}
+
+        {/* Billing (photographer) */}
+        {isPhotographer && entitlement && (
+          <ProfileTabPanel id="billing" label={t("billingTitle")}>
+            <Section id="billing" title={t("billingTitle")}>
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <p className="label text-mute">{t("billingCurrentPlan")}</p>
+                  <p className="text-[15px] text-ink">
+                    {entitlement.isActive
+                      ? tBilling(`plan.${entitlement.plan}.name`)
+                      : t("billingFreePlan")}
+                  </p>
+                </div>
+
+                {entitlement.isActive &&
+                entitlement.source === "admin_comp" &&
+                entitlement.expiresAt ? (
+                  <p className="text-[15px] text-mute">
+                    {t("billingSourceComp", {
+                      date: formatSwissDate(
+                        entitlement.expiresAt.toISOString().slice(0, 10)
+                      ),
+                    })}
+                  </p>
+                ) : null}
+
+                {entitlement.isActive &&
+                entitlement.source === "stripe" &&
+                entitlement.expiresAt ? (
+                  <div className="space-y-1">
+                    <p className="text-[15px] text-mute">
+                      {subRow?.cancel_at_period_end
+                        ? t("billingSourceStripeEnds", {
+                            date: formatSwissDate(
+                              entitlement.expiresAt.toISOString().slice(0, 10)
+                            ),
+                          })
+                        : t("billingSourceStripeRenews", {
+                            date: formatSwissDate(
+                              entitlement.expiresAt.toISOString().slice(0, 10)
+                            ),
+                          })}
+                    </p>
+                    {subRow?.cancel_at_period_end ? (
+                      <p className="text-[15px] text-accent">
+                        {t("billingCancelNotice")}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {quota ? (
+                  <p className="tabular text-[15px] text-ink">
+                    {quota.limit === Infinity
+                      ? t("billingUsageUnlimited")
+                      : t("billingUsage", {
+                          used: quota.used,
+                          limit: quota.limit,
+                        })}
+                  </p>
+                ) : null}
+
+                <div className="flex flex-wrap gap-3">
+                  {subRow?.stripe_customer_id ? <BillingPortalButton /> : null}
+                  <Link
+                    href="/pricing"
+                    className="press border border-line px-4 py-3 label text-ink"
+                  >
+                    {t("billingViewPlans")}
+                  </Link>
+                </div>
+              </div>
+            </Section>
           </ProfileTabPanel>
         )}
 
