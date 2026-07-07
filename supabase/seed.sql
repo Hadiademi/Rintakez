@@ -75,6 +75,18 @@ values
    '{commercial,architecture,portrait}', '{VD,GE,FR}', 320, 'verified',
    '{photo,video}');
 
+-- Grant both seed photographers a 1-year standard comp so local dev has
+-- entitled photographers (fixes P1's local free-cap-tripping). The
+-- photographer_details rows already exist above, so update explicitly — the
+-- P0 seed trigger only fires on INSERT.
+insert into public.subscriptions (user_id, plan, status, source, comp_until, granted_by, note)
+values
+  ('a0000000-0000-0000-0000-000000000003','standard','comp','admin_comp', now() + interval '1 year', 'a0000000-0000-0000-0000-000000000005', 'Founding photographer comp'),
+  ('a0000000-0000-0000-0000-000000000004','standard','comp','admin_comp', now() + interval '1 year', 'a0000000-0000-0000-0000-000000000005', 'Founding photographer comp');
+update public.photographer_details
+  set plan_tier = 'standard', plan_expires_at = now() + interval '1 year'
+  where profile_id in ('a0000000-0000-0000-0000-000000000003','a0000000-0000-0000-0000-000000000004');
+
 -- ── Shoots: 3 open + 1 assigned + 1 cancelled ────────────────────────────────
 -- All inserted as 'open' (default); assigned/cancelled updated below via valid FSM path.
 insert into public.shoots

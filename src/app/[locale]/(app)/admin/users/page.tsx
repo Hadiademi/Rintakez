@@ -50,6 +50,24 @@ export default async function AdminUsersPage({
 
   const list = rows ?? [];
 
+  // Batch-fetch active admin comps for the rendered page of users in one
+  // query rather than N+1 per row.
+  const ids = list.map((u) => u.id);
+  const compBy = new Map<string, { plan: string; until: string }>();
+  if (ids.length > 0) {
+    const { data: comps } = await admin
+      .from("subscriptions")
+      .select("user_id, plan, source, comp_until")
+      .in("user_id", ids)
+      .eq("source", "admin_comp");
+    const now = new Date().getTime();
+    for (const c of comps ?? []) {
+      if (c.comp_until && new Date(c.comp_until).getTime() > now) {
+        compBy.set(c.user_id, { plan: c.plan, until: c.comp_until });
+      }
+    }
+  }
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -102,6 +120,7 @@ export default async function AdminUsersPage({
               isAdmin={u.is_admin}
               isSuspended={u.is_suspended}
               isSelf={me?.id === u.id}
+              comp={compBy.get(u.id) ?? null}
             />
           ))}
         </div>

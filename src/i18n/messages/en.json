@@ -401,6 +401,9 @@
     "invalid_credentials": "Wrong email or password.",
     "email_not_confirmed": "Please confirm your email address first.",
     "email_taken": "An account with this email already exists.",
+    "comp_conflicts_stripe": "This user has an active paid subscription — revoke it in Stripe first.",
+    "not_photographer": "This user is not a photographer.",
+    "not_comp": "No comp subscription to revoke.",
     "generic": "Something went wrong. Please try again."
   },
   "theme": {
@@ -684,7 +687,16 @@
     "disputes": "Disputes",
     "noDisputes": "No open disputes.",
     "disputeResolve": "Mark resolved",
-    "disputeDismiss": "Dismiss"
+    "disputeDismiss": "Dismiss",
+    "compGrant": "Grant free period",
+    "compMonths": "Months",
+    "compGrantButton": "Grant",
+    "compChip": "{plan} · until {date}",
+    "compRevoke": "Revoke",
+    "confirmRevokeComp": "Revoke {name}'s free period?",
+    "tierBasic": "Basic",
+    "tierStandard": "Standard",
+    "tierPremium": "Premium"
   },
   "pagination": {
     "label": "Pagination",

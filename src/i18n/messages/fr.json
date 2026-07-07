@@ -401,6 +401,9 @@
     "invalid_credentials": "E-mail ou mot de passe incorrect.",
     "email_not_confirmed": "Confirme d'abord ton adresse e-mail.",
     "email_taken": "Un compte existe déjà avec cet e-mail.",
+    "comp_conflicts_stripe": "Cet utilisateur a un abonnement payant actif — annule-le d'abord dans Stripe.",
+    "not_photographer": "Cet utilisateur n'est pas photographe.",
+    "not_comp": "Aucun abonnement gratuit à retirer.",
     "generic": "Une erreur est survenue. Réessaie."
   },
   "theme": {
@@ -684,7 +687,16 @@
     "disputes": "Litiges",
     "noDisputes": "Aucun litige ouvert.",
     "disputeResolve": "Marquer résolu",
-    "disputeDismiss": "Rejeter"
+    "disputeDismiss": "Rejeter",
+    "compGrant": "Offrir une période gratuite",
+    "compMonths": "Mois",
+    "compGrantButton": "Offrir",
+    "compChip": "{plan} · jusqu'au {date}",
+    "compRevoke": "Retirer",
+    "confirmRevokeComp": "Retirer la période gratuite de {name} ?",
+    "tierBasic": "Basic",
+    "tierStandard": "Standard",
+    "tierPremium": "Premium"
   },
   "pagination": {
     "label": "Pagination",

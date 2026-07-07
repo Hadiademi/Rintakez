@@ -11,6 +11,9 @@ const KNOWN = new Set([
   "invalid_credentials",
   "email_not_confirmed",
   "email_taken",
+  "comp_conflicts_stripe",
+  "not_photographer",
+  "not_comp",
 ]);
 
 /** Map an action error string to a stable i18n key under the `errors` namespace.

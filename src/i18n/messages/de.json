@@ -401,6 +401,9 @@
     "invalid_credentials": "Falsche E-Mail oder falsches Passwort.",
     "email_not_confirmed": "Bitte bestätige zuerst deine E-Mail-Adresse.",
     "email_taken": "Mit dieser E-Mail existiert bereits ein Konto.",
+    "comp_conflicts_stripe": "Dieser Nutzer hat ein aktives kostenpflichtiges Abo — zuerst in Stripe kündigen.",
+    "not_photographer": "Dieser Nutzer ist kein Fotograf.",
+    "not_comp": "Kein Gratis-Abo zum Entziehen.",
     "generic": "Etwas ist schiefgelaufen. Bitte versuche es erneut."
   },
   "theme": {
@@ -684,7 +687,16 @@
     "disputes": "Streitfälle",
     "noDisputes": "Keine offenen Streitfälle.",
     "disputeResolve": "Als gelöst markieren",
-    "disputeDismiss": "Abweisen"
+    "disputeDismiss": "Abweisen",
+    "compGrant": "Gratiszeitraum vergeben",
+    "compMonths": "Monate",
+    "compGrantButton": "Vergeben",
+    "compChip": "{plan} · bis {date}",
+    "compRevoke": "Entziehen",
+    "confirmRevokeComp": "Gratiszeitraum von {name} entziehen?",
+    "tierBasic": "Basic",
+    "tierStandard": "Standard",
+    "tierPremium": "Premium"
   },
   "pagination": {
     "label": "Seitennavigation",
