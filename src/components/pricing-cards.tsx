@@ -132,6 +132,11 @@ export function PricingCards({
     const isCurrentPlan = viewer.currentPlan === row.plan;
 
     if (viewer.kind === "photographerEntitled") {
+      // Every paid card manages through the Stripe Customer Portal — it
+      // natively handles plan switching/proration, and P3's checkout action
+      // unconditionally rejects `already_subscribed` regardless of the
+      // target plan, so a "Choose" button here would always dead-end.
+      if (isFree) return null;
       if (isCurrentPlan) {
         return (
           <div className="space-y-2">
@@ -147,20 +152,23 @@ export function PricingCards({
           </div>
         );
       }
-      if (isFree) return null;
       return (
         <button
           type="button"
-          onClick={() => handleChoose(row.plan as PaidPlan)}
+          onClick={handleManage}
           disabled={isPending}
-          className="press w-full bg-ink px-4 py-3 label text-paper disabled:opacity-50"
+          className="press w-full border border-line px-4 py-3 label text-ink disabled:opacity-50"
         >
-          {t("pricing.ctaChoose", { plan: planName })}
+          {t("pricing.ctaManage")}
         </button>
       );
     }
 
-    // photographerComp
+    // photographerComp: a comped account has no Stripe customer, so the
+    // portal isn't applicable, and P3's checkout action unconditionally
+    // rejects `comp_active` for every plan while the comp is active. Show
+    // info only — no actionable button — on every card except the comped
+    // plan itself, which shows the gift-until note.
     if (isCurrentPlan) {
       return (
         <p className="text-[15px] text-accent">
@@ -172,28 +180,14 @@ export function PricingCards({
         </p>
       );
     }
-    if (isFree) return null;
-    return (
-      <button
-        type="button"
-        onClick={() => handleChoose(row.plan as PaidPlan)}
-        disabled={isPending}
-        className="press w-full bg-ink px-4 py-3 label text-paper disabled:opacity-50"
-      >
-        {t("pricing.ctaChoose", { plan: planName })}
-      </button>
-    );
+    return null;
   }
 
   return (
     <div className="space-y-8">
       {yearlyAvailable && (
         <div className="flex justify-center">
-          <div
-            role="group"
-            aria-label={t("pricing.intervalMonthly")}
-            className="inline-flex border border-line"
-          >
+          <div role="group" className="inline-flex border border-line">
             <button
               type="button"
               onClick={() => setInterval("monthly")}

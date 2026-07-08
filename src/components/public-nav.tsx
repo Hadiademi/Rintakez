@@ -68,8 +68,10 @@ export async function PublicNav() {
             <LocaleSwitcher />
           </div>
         </div>
-        {/* Row 2 (mobile only): browse links */}
-        <nav className="mt-3 flex items-center gap-5 text-sm sm:hidden">
+        {/* Row 2 (mobile only): browse links. flex-wrap guards against
+            overflow when locale labels (e.g. German) are wide at narrow
+            widths, so the row never forces page-level horizontal scroll. */}
+        <nav className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm sm:hidden">
           {browseLinks}
         </nav>
       </div>
