@@ -6,7 +6,6 @@ import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getRealtimeClient } from "@/lib/supabase/realtime";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
@@ -683,22 +682,29 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
             {thread.otherName}
           </p>
           {thread.shootTitle && (
-            <Link
-              href={`/shoots/${thread.shootId}`}
-              className="truncate text-[13px] text-mute hover:text-ink"
-            >
+            <p className="truncate text-[13px] text-mute">
               {t("about", { title: thread.shootTitle })}
-            </Link>
+            </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onToggleBlock}
-          disabled={blocking}
-          className="press ml-auto flex min-h-11 shrink-0 items-center rounded-full border border-line px-3.5 text-[12px] text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
-        >
-          {iBlocked ? t("unblock") : t("block")}
-        </button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {thread.shootId && (
+            <Link
+              href={`/shoots/${thread.shootId}`}
+              className="press hidden min-h-11 items-center border border-line px-4 text-[13px] text-ink transition-colors hover:border-ink sm:inline-flex"
+            >
+              {t("viewShoot")}
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={onToggleBlock}
+            disabled={blocking}
+            className="press flex min-h-11 items-center border border-line px-3.5 text-[12px] text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"
+          >
+            {iBlocked ? t("unblock") : t("block")}
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -799,9 +805,9 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                               className={`${hasImage ? "mt-1 " : ""}max-w-[78%] whitespace-pre-wrap break-words [overflow-wrap:anywhere] px-4 py-2.5 text-[14px] leading-relaxed ${
                                 mine
                                   ? failed
-                                    ? "border border-accent/40 bg-ink/70 text-paper"
-                                    : "bg-ink text-paper"
-                                  : "border border-line bg-surface text-ink"
+                                    ? "bg-accent/60 text-paper"
+                                    : "bg-accent text-paper"
+                                  : "bg-chip text-ink"
                               } ${m.status === "sending" ? "opacity-70" : ""}`}
                             >
                               {!hasImage && (
@@ -844,7 +850,9 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                     ) : (
                       isGroupEnd && (
                         <span className="mt-1 flex items-center gap-2 px-1 text-[11px] text-mute-2">
-                          <span>{hhmm(m.createdAt)}</span>
+                          <span className="tabular tracking-[0.18em]">
+                            {hhmm(m.createdAt)}
+                          </span>
                           {mine && !m.status && (
                             <span aria-hidden>{isRead ? "✓✓" : "✓"}</span>
                           )}
@@ -964,17 +972,32 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
             placeholder={t("placeholder")}
             className="max-h-32 flex-1 resize-none border border-line bg-surface px-4 py-3 text-base text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none lg:text-[14px]"
           />
-          <Button
+          <button
             type="button"
             data-testid="message-send"
             onClick={onSend}
-            pending={sending}
-            disabled={!body.trim()}
-            size="lg"
-            className="shrink-0"
+            disabled={!body.trim() || sending}
+            aria-label={t("send")}
+            className="press flex h-11 w-11 shrink-0 items-center justify-center bg-ink text-paper transition-opacity disabled:opacity-40"
           >
-            {t("send")}
-          </Button>
+            {sending ? (
+              <Spinner />
+            ) : (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 20V5M6 11l6-6 6 6" />
+              </svg>
+            )}
+          </button>
           </div>
         </div>
       )}
