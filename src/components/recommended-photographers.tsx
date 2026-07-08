@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { PhotographerCard } from "@/components/photographer-card";
 import type { Database } from "@/lib/supabase/database.types";
+import type { Plan } from "@/lib/billing/plans";
 
 type Canton = Database["public"]["Enums"]["canton"];
 
@@ -56,13 +57,22 @@ export async function RecommendedPhotographers({
 
   // Locality/specialty data is only needed to break ties, so fetch it for the
   // whole candidate set up front (cheap: 60 rows, indexed on profile_id).
+  // effective_tier is fetched for the same candidate set (not just the
+  // eventual top 3) so the Premium spotlight boost below can actually move a
+  // Premium candidate INTO the top 3, not just re-order within it.
   const candidateIds = photogs.map((p) => p.id);
-  const { data: coverageRows } = viewerCanton
-    ? await supabase
-        .from("photographer_details")
-        .select("profile_id, coverage_cantons, specialties")
-        .in("profile_id", candidateIds)
-    : { data: null };
+  const [{ data: coverageRows }, { data: tierRows }] = await Promise.all([
+    viewerCanton
+      ? supabase
+          .from("photographer_details")
+          .select("profile_id, coverage_cantons, specialties")
+          .in("profile_id", candidateIds)
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("photographer_effective_tier")
+      .select("profile_id, effective_tier")
+      .in("profile_id", candidateIds),
+  ]);
 
   const coverageBy = new Map(
     (coverageRows ?? []).map((r) => [
@@ -72,6 +82,9 @@ export async function RecommendedPhotographers({
         specialties: r.specialties ?? [],
       },
     ])
+  );
+  const tierBy = new Map(
+    (tierRows ?? []).map((r) => [r.profile_id, r.effective_tier as Plan])
   );
 
   function localityBoost(p: PhotogRow) {
@@ -91,10 +104,18 @@ export async function RecommendedPhotographers({
   const ranked = photogs
     .map((p) => {
       const rating = ratingBy.get(p.id) ?? { avg: 0, count: 0 };
-      return { ...p, rating, score: rating.avg + localityBoost(p) };
+      const effective_tier: Plan = tierBy.get(p.id) ?? "free";
+      return { ...p, rating, effective_tier, score: rating.avg + localityBoost(p) };
     })
     .sort(
       (a, b) =>
+        // Premium spotlight: Premium candidates lead the top-3, ahead of the
+        // score/rating tiebreakers below — still the best-matched
+        // photographers, Premium just gets priority. Standard/basic/free are
+        // otherwise ranked purely by score here (placement is a
+        // directory/SEO perk, not a dashboard-recommendation one).
+        Number(b.effective_tier === "premium") -
+          Number(a.effective_tier === "premium") ||
         b.score - a.score ||
         b.rating.count - a.rating.count ||
         a.display_name.localeCompare(b.display_name)
@@ -149,6 +170,7 @@ export async function RecommendedPhotographers({
               key={p.id}
               verifiedLabel={tDir("verified")}
               newLabel={t("newBadge")}
+              topPartnerLabel={tDir("topPartner")}
               data={{
                 id: p.id,
                 name: p.display_name,
@@ -157,6 +179,7 @@ export async function RecommendedPhotographers({
                 avatarUrl: publicUrl("avatars", p.avatar_url),
                 coverUrl: publicUrl("portfolio", coverPath),
                 verified: d?.verification_status === "verified",
+                isTopPartner: p.effective_tier === "premium",
                 disciplineLabels: (d?.disciplines ?? []).map((x) =>
                   tShoot(`disciplines.${x}`)
                 ),

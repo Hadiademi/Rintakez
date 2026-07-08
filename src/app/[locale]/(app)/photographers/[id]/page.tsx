@@ -15,6 +15,7 @@ import { InvitePhotographerButton } from "@/components/invite-photographer-butto
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { RecordProfileView } from "@/components/record-profile-view";
 import { buildAlternates } from "@/lib/seo";
+import type { Plan } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,13 @@ export default async function PhotographerProfilePage({
         .eq("photographer_id", id)
         .maybeSingle();
 
+      const { data: tier } = await supabase
+        .from("photographer_effective_tier")
+        .select("effective_tier")
+        .eq("profile_id", id)
+        .maybeSingle();
+      const effectiveTier: Plan = (tier?.effective_tier as Plan) ?? "free";
+
       // Completed-shoots trust signal. shoots/bids aren't publicly readable
       // (RLS only allows the shoot's own client/accepted photographer), so this
       // goes through a SECURITY DEFINER function that returns just the count —
@@ -208,6 +216,7 @@ export default async function PhotographerProfilePage({
         reviewRows: reviews,
         unavailableDates: (unavailableRows ?? []).map((r) => r.date),
         completedShoots: completedShoots ?? 0,
+        effectiveTier,
       };
     },
     ["photographer-public", id],
@@ -226,6 +235,7 @@ export default async function PhotographerProfilePage({
     reviewRows,
     unavailableDates,
     completedShoots,
+    effectiveTier,
   } = data;
 
   // Per-viewer state (dynamic): can a logged-in client save this photographer?
@@ -355,6 +365,11 @@ export default async function PhotographerProfilePage({
                   {details?.verification_status === "verified" && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
                       ✓ {t("verified")}
+                    </span>
+                  )}
+                  {effectiveTier === "premium" && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
+                      ★ {tDir("topPartner")}
                     </span>
                   )}
                 </h1>

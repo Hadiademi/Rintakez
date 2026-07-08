@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
 import { PopularSearches } from "@/components/popular-searches";
 import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
+import { TIER_RANK, type Plan } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -110,22 +111,29 @@ export default async function PhotographersDirectoryPage({
 
       const ids = (details ?? []).map((d) => d.profile_id);
 
-      const [{ data: profiles }, { data: ratings }] = await Promise.all([
-        ids.length
-          ? publicClient
-              .from("profiles")
-              .select(
-                "id, display_name, city, canton, avatar_url, is_suspended, created_at"
-              )
-              .in("id", ids)
-          : Promise.resolve({ data: [] as never[] }),
-        ids.length
-          ? publicClient
-              .from("photographer_ratings")
-              .select("photographer_id, avg_rating, review_count")
-              .in("photographer_id", ids)
-          : Promise.resolve({ data: [] as never[] }),
-      ]);
+      const [{ data: profiles }, { data: ratings }, { data: tiers }] =
+        await Promise.all([
+          ids.length
+            ? publicClient
+                .from("profiles")
+                .select(
+                  "id, display_name, city, canton, avatar_url, is_suspended, created_at"
+                )
+                .in("id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+          ids.length
+            ? publicClient
+                .from("photographer_ratings")
+                .select("photographer_id, avg_rating, review_count")
+                .in("photographer_id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+          ids.length
+            ? publicClient
+                .from("photographer_effective_tier")
+                .select("profile_id, effective_tier")
+                .in("profile_id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+        ]);
 
       const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
       const ratingBy = new Map(
@@ -134,12 +142,16 @@ export default async function PhotographersDirectoryPage({
           { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
         ])
       );
+      const tierBy = new Map(
+        (tiers ?? []).map((t) => [t.profile_id, t.effective_tier as Plan])
+      );
 
       return (details ?? [])
         .map((d) => {
           const profile = profileBy.get(d.profile_id);
           const rating = ratingBy.get(d.profile_id) ?? { avg: 0, count: 0 };
-          return profile ? { ...d, profile, rating } : null;
+          const effective_tier = tierBy.get(d.profile_id) ?? "free";
+          return profile ? { ...d, profile, rating, effective_tier } : null;
         })
         .filter((x): x is NonNullable<typeof x> => x !== null)
         .filter((x) => !x.profile.is_suspended);
@@ -176,10 +188,14 @@ export default async function PhotographersDirectoryPage({
         new Date(a.profile.created_at).getTime()
       );
     }
-    // Default: top rated, with stable tiebreakers so unrated (avg 0)
-    // photographers don't shuffle arbitrarily — more reviews, then verified,
-    // then name.
+    // Default: paid tiers (standard/premium) placed above free/basic — the
+    // subscription placement perk — then top rated, with stable tiebreakers
+    // so unrated (avg 0) photographers don't shuffle arbitrarily — more
+    // reviews, then verified, then name. Only this default ranking is
+    // affected; price/newest sorts return earlier above and respect the
+    // viewer's explicit sort intent.
     return (
+      TIER_RANK[b.effective_tier] - TIER_RANK[a.effective_tier] ||
       b.rating.avg - a.rating.avg ||
       b.rating.count - a.rating.count ||
       Number(b.verification_status === "verified") -
@@ -244,6 +260,7 @@ export default async function PhotographersDirectoryPage({
                 key={x.profile_id}
                 verifiedLabel={t("verified")}
                 newLabel={tReview("newBadge")}
+                topPartnerLabel={t("topPartner")}
                 data={{
                   id: x.profile_id,
                   name: x.profile.display_name,
@@ -252,6 +269,7 @@ export default async function PhotographersDirectoryPage({
                   avatarUrl: publicUrl("avatars", x.profile.avatar_url),
                   coverUrl: publicUrl("portfolio", coverPath),
                   verified: x.verification_status === "verified",
+                  isTopPartner: x.effective_tier === "premium",
                   disciplineLabels: (x.disciplines ?? []).map((d) =>
                     tShoot(`disciplines.${d}`)
                   ),

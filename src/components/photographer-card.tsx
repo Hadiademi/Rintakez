@@ -19,6 +19,7 @@ export type PhotographerCardData = {
   rating?: { avg: number; count: number } | null;
   hourlyRate?: number | null;
   memberSinceYear?: number | null;
+  isTopPartner?: boolean;
 };
 
 /**
@@ -30,10 +31,12 @@ export async function PhotographerCard({
   data,
   verifiedLabel,
   newLabel,
+  topPartnerLabel,
 }: {
   data: PhotographerCardData;
   verifiedLabel: string;
   newLabel: string;
+  topPartnerLabel: string;
 }) {
   const tShoot = await getTranslations("shoot");
   const tProfile = await getTranslations("profile");
@@ -67,6 +70,11 @@ export async function PhotographerCard({
         {data.verified && (
           <span className="label absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-1 text-accent backdrop-blur">
             ✓ {verifiedLabel}
+          </span>
+        )}
+        {data.isTopPartner && (
+          <span className="label absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-1 text-ink backdrop-blur">
+            ★ {topPartnerLabel}
           </span>
         )}
       </div>

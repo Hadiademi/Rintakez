@@ -9,6 +9,7 @@ import { cantonName } from "@/lib/canton-names";
 import { PhotographerCard } from "@/components/photographer-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
+import { TIER_RANK, type Plan } from "@/lib/billing/plans";
 
 // NOTE ON THE FOLDER NAME: this route lives at `photographers/[id]/[type]`,
 // reusing the `id` segment name from the sibling `photographers/[id]/page.tsx`
@@ -57,20 +58,27 @@ async function getLandingData(canton: Canton, type: ShootType) {
       const rows = details ?? [];
       const ids = rows.map((d) => d.profile_id);
 
-      const [{ data: profiles }, { data: ratings }] = await Promise.all([
-        ids.length
-          ? supabase
-              .from("profiles")
-              .select("id, display_name, city, canton, avatar_url, is_suspended, created_at")
-              .in("id", ids)
-          : Promise.resolve({ data: [] as never[] }),
-        ids.length
-          ? supabase
-              .from("photographer_ratings")
-              .select("photographer_id, avg_rating, review_count")
-              .in("photographer_id", ids)
-          : Promise.resolve({ data: [] as never[] }),
-      ]);
+      const [{ data: profiles }, { data: ratings }, { data: tiers }] =
+        await Promise.all([
+          ids.length
+            ? supabase
+                .from("profiles")
+                .select("id, display_name, city, canton, avatar_url, is_suspended, created_at")
+                .in("id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+          ids.length
+            ? supabase
+                .from("photographer_ratings")
+                .select("photographer_id, avg_rating, review_count")
+                .in("photographer_id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+          ids.length
+            ? supabase
+                .from("photographer_effective_tier")
+                .select("profile_id, effective_tier")
+                .in("profile_id", ids)
+            : Promise.resolve({ data: [] as never[] }),
+        ]);
 
       const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
       const ratingBy = new Map(
@@ -79,21 +87,29 @@ async function getLandingData(canton: Canton, type: ShootType) {
           { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
         ])
       );
+      const tierBy = new Map(
+        (tiers ?? []).map((t) => [t.profile_id, t.effective_tier as Plan])
+      );
 
       let list = rows
         .map((d) => {
           const profile = profileBy.get(d.profile_id);
           const rating = ratingBy.get(d.profile_id) ?? { avg: 0, count: 0 };
-          return profile ? { ...d, profile, rating } : null;
+          const effective_tier = tierBy.get(d.profile_id) ?? "free";
+          return profile ? { ...d, profile, rating, effective_tier } : null;
         })
         .filter((x): x is NonNullable<typeof x> => x !== null)
         .filter((x) => !x.profile.is_suspended);
 
-      // Same ranking as the directory default: top rated, then most
-      // reviewed, then verified, then name — so the snapshot mirrors what a
-      // visitor would see landing on the full directory with these filters.
+      // Paid tiers (standard/premium) placed above free/basic — the
+      // subscription placement perk — then the same ranking as the directory
+      // default: top rated, then most reviewed, then verified, then name —
+      // so the snapshot mirrors what a visitor would see landing on the full
+      // directory with these filters. This is the only ranking on this page
+      // (no explicit sort param), so the tier term is unconditional.
       list = list.sort((a, b) => {
         return (
+          TIER_RANK[b.effective_tier] - TIER_RANK[a.effective_tier] ||
           b.rating.avg - a.rating.avg ||
           b.rating.count - a.rating.count ||
           Number(b.verification_status === "verified") -
@@ -136,6 +152,7 @@ async function getLandingData(canton: Canton, type: ShootType) {
           avatarUrl: publicUrl("avatars", x.profile.avatar_url),
           coverUrl: publicUrl("portfolio", coverPath),
           verified: x.verification_status === "verified",
+          isTopPartner: x.effective_tier === "premium",
           disciplines: x.disciplines ?? [],
           specialties: x.specialties ?? [],
           rating: x.rating,
@@ -276,6 +293,7 @@ export default async function CantonShootTypeLandingPage({
               key={x.id}
               verifiedLabel={tDir("verified")}
               newLabel={tReview("newBadge")}
+              topPartnerLabel={tDir("topPartner")}
               data={{
                 id: x.id,
                 name: x.name,
@@ -284,6 +302,7 @@ export default async function CantonShootTypeLandingPage({
                 avatarUrl: x.avatarUrl,
                 coverUrl: x.coverUrl,
                 verified: x.verified,
+                isTopPartner: x.isTopPartner,
                 disciplineLabels: x.disciplines.map((d) => tShoot(`disciplines.${d}`)),
                 specialtyLabels: x.specialties.map((s) => tShoot(`types.${s}`)),
                 rating: x.rating,
