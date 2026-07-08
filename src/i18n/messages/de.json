@@ -413,14 +413,18 @@
       "free": {
         "name": "Free",
         "feature": {
-          "quota": "1 Angebot pro Monat"
+          "quota": "1 Angebot pro Monat",
+          "profile": "Öffentliches Fotografen-Profil",
+          "bell": "Auftrags-Benachrichtigungen in der App",
+          "browse": "Alle offenen Aufträge durchsuchen"
         }
       },
       "basic": {
         "name": "Basic",
         "feature": {
           "quota": "5 Angebote pro Monat",
-          "digest": "Tägliche Job-Übersicht"
+          "digest": "Tägliche Job-Übersicht",
+          "everythingFree": "Alles aus Free"
         }
       },
       "standard": {
@@ -429,7 +433,8 @@
           "quota": "32 Angebote pro Monat",
           "placement": "Bevorzugte Platzierung im Verzeichnis",
           "alerts": "Sofortige Auftrags-Benachrichtigungen",
-          "dashboard": "Leistungs-Dashboard"
+          "dashboard": "Leistungs-Dashboard",
+          "everythingBasic": "Alles aus Basic"
         }
       },
       "premium": {
@@ -439,7 +444,8 @@
           "placement": "Top-Platzierung + SEO-Priorität",
           "badge": "Top-Partner-Abzeichen",
           "benchmark": "Benchmark-Vergleich",
-          "spotlight": "Startseiten-Feature"
+          "spotlight": "Startseiten-Feature",
+          "everythingStandard": "Alles aus Standard"
         }
       }
     },
@@ -460,7 +466,11 @@
       "compNote": "Geschenk aktiv bis {date}",
       "trialNote": "Erster Monat gratis",
       "foundingNote": "Gründungsmitglied? Gib deinen Code beim Checkout ein.",
-      "yearlyTeaser": "Jahrespläne folgen in Kürze"
+      "yearlyTeaser": "Jahrespläne folgen in Kürze",
+      "securedByStripe": "Zahlungen abgesichert durch Stripe",
+      "trustNoCommission": "0% Kommission",
+      "trustCancel": "Jederzeit kündbar",
+      "eyebrow": "Für Fotografen"
     }
   },
   "errors": {

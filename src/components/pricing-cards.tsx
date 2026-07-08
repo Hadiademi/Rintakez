@@ -30,6 +30,26 @@ export type PricingViewer = {
   expiresAt?: Date | null;
 };
 
+/** Crisp terracotta check used as the feature-list marker. */
+function Check() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      className="mt-[3px] shrink-0 text-accent"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 8.5l3.2 3.2L13 4.5" />
+    </svg>
+  );
+}
+
 export function PricingCards({
   viewer,
   yearlyAvailable,
@@ -77,7 +97,7 @@ export function PricingCards({
   function renderPrice(row: PlanFeatureRow) {
     if (row.plan === "free") {
       return (
-        <p className="tabular text-2xl font-semibold text-ink">
+        <p className="text-4xl font-semibold tracking-tight text-ink">
           {t("pricing.freePrice")}
         </p>
       );
@@ -87,9 +107,12 @@ export function PricingCards({
     const amount = useYearly ? row.priceChfYearly : row.priceChfMonthly;
     const suffix = useYearly ? t("pricing.perYear") : t("pricing.perMonth");
     return (
-      <p className="tabular text-2xl font-semibold text-ink">
-        CHF {amount}
-        <span className="text-base font-normal text-mute">{suffix}</span>
+      <p className="flex items-baseline gap-1.5">
+        <span className="text-sm font-medium text-mute">CHF</span>
+        <span className="tabular text-4xl font-semibold tracking-tight text-ink">
+          {amount}
+        </span>
+        <span className="text-sm text-mute">{suffix}</span>
       </p>
     );
   }
@@ -212,36 +235,51 @@ export function PricingCards({
         </div>
       )}
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {PLAN_FEATURE_MATRIX.map((row) => (
-          <section
-            key={row.plan}
-            data-testid={`pricing-card-${row.plan}`}
-            className="relative flex flex-col border border-line bg-surface p-6"
-          >
-            {row.plan === "standard" && (
-              <span className="label absolute -top-3 left-6 bg-accent px-2 py-1 text-paper">
-                {t("pricing.mostPopular")}
-              </span>
-            )}
-            <p className="label text-mute">{label(row.nameI18nKey)}</p>
-            <div className="mt-3">{renderPrice(row)}</div>
-            <ul className="mt-6 flex-1 space-y-2.5">
-              {row.featureI18nKeys.map((key) => (
-                <li
-                  key={key}
-                  className="flex items-start gap-2 text-[15px] text-ink"
-                >
-                  <span aria-hidden="true" className="mt-0.5 text-accent">
-                    ✓
-                  </span>
-                  {label(key)}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-6">{renderCta(row)}</div>
-          </section>
-        ))}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {PLAN_FEATURE_MATRIX.map((row) => {
+          const highlight = row.plan === "standard";
+          return (
+            <section
+              key={row.plan}
+              data-testid={`pricing-card-${row.plan}`}
+              className={`relative flex h-full flex-col bg-surface p-6 ${
+                highlight
+                  ? "border border-accent lg:-translate-y-2"
+                  : "border border-line"
+              }`}
+              // The recommended plan sits "in the light": a soft warm glow lifts
+              // it off the page (theme-aware via the accent token).
+              style={
+                highlight
+                  ? {
+                      boxShadow:
+                        "0 18px 50px -20px rgb(var(--accent-rgb) / 0.45)",
+                    }
+                  : undefined
+              }
+            >
+              {highlight && (
+                <span className="label absolute -top-3 left-6 bg-accent px-2.5 py-1 text-paper">
+                  {t("pricing.mostPopular")}
+                </span>
+              )}
+              <p className="label text-mute">{label(row.nameI18nKey)}</p>
+              <div className="mt-4">{renderPrice(row)}</div>
+              <ul className="mt-6 flex-1 space-y-3 border-t border-line pt-6">
+                {row.featureI18nKeys.map((key) => (
+                  <li
+                    key={key}
+                    className="flex items-start gap-2.5 text-[15px] leading-snug text-ink"
+                  >
+                    <Check />
+                    <span>{label(key)}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8">{renderCta(row)}</div>
+            </section>
+          );
+        })}
       </div>
 
       {error ? <p className="text-center text-sm text-accent">{error}</p> : null}

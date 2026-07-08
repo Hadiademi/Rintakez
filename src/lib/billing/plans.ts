@@ -86,7 +86,12 @@ export const PLAN_FEATURE_MATRIX: readonly PlanFeatureRow[] = [
   {
     plan: "free",
     nameI18nKey: "billing.plan.free.name",
-    featureI18nKeys: ["billing.plan.free.feature.quota"],
+    featureI18nKeys: [
+      "billing.plan.free.feature.quota",
+      "billing.plan.free.feature.profile",
+      "billing.plan.free.feature.bell",
+      "billing.plan.free.feature.browse",
+    ],
     monthlyBidQuota: MONTHLY_BID_QUOTA.free,
     priceChfMonthly: null,
     priceChfYearly: null,
@@ -95,6 +100,7 @@ export const PLAN_FEATURE_MATRIX: readonly PlanFeatureRow[] = [
     plan: "basic",
     nameI18nKey: "billing.plan.basic.name",
     featureI18nKeys: [
+      "billing.plan.basic.feature.everythingFree",
       "billing.plan.basic.feature.quota",
       "billing.plan.basic.feature.digest",
     ],
@@ -106,6 +112,7 @@ export const PLAN_FEATURE_MATRIX: readonly PlanFeatureRow[] = [
     plan: "standard",
     nameI18nKey: "billing.plan.standard.name",
     featureI18nKeys: [
+      "billing.plan.standard.feature.everythingBasic",
       "billing.plan.standard.feature.quota",
       "billing.plan.standard.feature.placement",
       "billing.plan.standard.feature.alerts",
@@ -119,6 +126,7 @@ export const PLAN_FEATURE_MATRIX: readonly PlanFeatureRow[] = [
     plan: "premium",
     nameI18nKey: "billing.plan.premium.name",
     featureI18nKeys: [
+      "billing.plan.premium.feature.everythingStandard",
       "billing.plan.premium.feature.quota",
       "billing.plan.premium.feature.placement",
       "billing.plan.premium.feature.badge",

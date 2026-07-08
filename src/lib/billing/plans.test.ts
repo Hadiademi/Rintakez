@@ -102,18 +102,26 @@ describe("PLAN_FEATURE_MATRIX", () => {
     const byPlan = Object.fromEntries(
       PLAN_FEATURE_MATRIX.map((row) => [row.plan, row.featureI18nKeys])
     );
-    expect(byPlan.free).toEqual(["billing.plan.free.feature.quota"]);
+    expect(byPlan.free).toEqual([
+      "billing.plan.free.feature.quota",
+      "billing.plan.free.feature.profile",
+      "billing.plan.free.feature.bell",
+      "billing.plan.free.feature.browse",
+    ]);
     expect(byPlan.basic).toEqual([
+      "billing.plan.basic.feature.everythingFree",
       "billing.plan.basic.feature.quota",
       "billing.plan.basic.feature.digest",
     ]);
     expect(byPlan.standard).toEqual([
+      "billing.plan.standard.feature.everythingBasic",
       "billing.plan.standard.feature.quota",
       "billing.plan.standard.feature.placement",
       "billing.plan.standard.feature.alerts",
       "billing.plan.standard.feature.dashboard",
     ]);
     expect(byPlan.premium).toEqual([
+      "billing.plan.premium.feature.everythingStandard",
       "billing.plan.premium.feature.quota",
       "billing.plan.premium.feature.placement",
       "billing.plan.premium.feature.badge",

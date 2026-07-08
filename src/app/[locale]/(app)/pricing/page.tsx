@@ -52,25 +52,78 @@ export default async function PricingPage() {
   ]);
   const yearlyAvailable = hasYearlyPrices();
 
+  const trustPoints = [
+    t("pricing.trustNoCommission"),
+    t("pricing.trustCancel"),
+    t("pricing.trialNote"),
+  ];
+
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+    <div className="relative mx-auto max-w-6xl">
+      {/* Ambient light — the photography motif: a soft warm wash behind the
+          hero, echoing light entering a lens. Purely decorative. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-[-4rem] -z-10 h-72 w-[42rem] max-w-full -translate-x-1/2 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(closest-side, rgb(var(--accent-rgb) / 0.14), transparent)",
+        }}
+      />
+
+      <div className="mx-auto max-w-2xl text-center">
+        <p className="label text-accent">{t("pricing.eyebrow")}</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
           {t("pricing.heading")}
         </h1>
         <p className="mt-3 text-base text-mute">{t("pricing.subheading")}</p>
+
+        <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          {trustPoints.map((point) => (
+            <li
+              key={point}
+              className="flex items-center gap-1.5 text-[13px] text-ink"
+            >
+              <span
+                aria-hidden="true"
+                className="inline-block h-1.5 w-1.5 rounded-full bg-accent"
+              />
+              {point}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      <div className="mt-10">
+      <div className="mt-12">
         <PricingCards viewer={viewer} yearlyAvailable={yearlyAvailable} />
       </div>
 
-      <div className="mt-10 space-y-2 text-center">
-        <p className="text-[15px] text-mute">{t("pricing.trialNote")}</p>
-        <p className="text-[15px] text-mute">{t("pricing.foundingNote")}</p>
-        {!yearlyAvailable ? (
-          <p className="text-[15px] text-mute">{t("pricing.yearlyTeaser")}</p>
-        ) : null}
+      <div className="mt-14 border-t border-line pt-6">
+        <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-[13px] text-mute">
+          <span>{t("pricing.foundingNote")}</span>
+          {!yearlyAvailable ? (
+            <>
+              <span aria-hidden="true" className="text-line-strong">·</span>
+              <span>{t("pricing.yearlyTeaser")}</span>
+            </>
+          ) : null}
+        </p>
+        <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[13px] text-mute-2">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 1.5l5 2v4c0 3.2-2.1 5.6-5 7-2.9-1.4-5-3.8-5-7v-4l5-2z" />
+          </svg>
+          {t("pricing.securedByStripe")}
+        </p>
       </div>
     </div>
   );

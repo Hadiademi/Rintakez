@@ -413,14 +413,18 @@
       "free": {
         "name": "Free",
         "feature": {
-          "quota": "1 offre par mois"
+          "quota": "1 offre par mois",
+          "profile": "Profil photographe public",
+          "bell": "Alertes de mission dans l’app",
+          "browse": "Parcourir toutes les missions ouvertes"
         }
       },
       "basic": {
         "name": "Basic",
         "feature": {
           "quota": "5 offres par mois",
-          "digest": "Récapitulatif quotidien des missions"
+          "digest": "Récapitulatif quotidien des missions",
+          "everythingFree": "Tout de Free"
         }
       },
       "standard": {
@@ -429,7 +433,8 @@
           "quota": "32 offres par mois",
           "placement": "Placement prioritaire dans l'annuaire",
           "alerts": "Alertes de missions instantanées",
-          "dashboard": "Tableau de bord de performance"
+          "dashboard": "Tableau de bord de performance",
+          "everythingBasic": "Tout de Basic"
         }
       },
       "premium": {
@@ -439,7 +444,8 @@
           "placement": "Placement en tête + priorité SEO",
           "badge": "Badge Top Partenaire",
           "benchmark": "Comparaison de performance",
-          "spotlight": "Mise en avant sur la page d'accueil"
+          "spotlight": "Mise en avant sur la page d'accueil",
+          "everythingStandard": "Tout de Standard"
         }
       }
     },
@@ -460,7 +466,11 @@
       "compNote": "Cadeau actif jusqu'au {date}",
       "trialNote": "Premier mois gratuit",
       "foundingNote": "Membre fondateur ? Entre ton code au moment du paiement.",
-      "yearlyTeaser": "Formules annuelles bientôt disponibles"
+      "yearlyTeaser": "Formules annuelles bientôt disponibles",
+      "securedByStripe": "Paiements sécurisés par Stripe",
+      "trustNoCommission": "0% de commission",
+      "trustCancel": "Résiliable à tout moment",
+      "eyebrow": "Pour les photographes"
     }
   },
   "errors": {

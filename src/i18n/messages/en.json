@@ -413,14 +413,18 @@
       "free": {
         "name": "Free",
         "feature": {
-          "quota": "1 offer per month"
+          "quota": "1 offer per month",
+          "profile": "Public photographer profile",
+          "bell": "In-app job alerts",
+          "browse": "Browse all open shoots"
         }
       },
       "basic": {
         "name": "Basic",
         "feature": {
           "quota": "5 offers per month",
-          "digest": "Daily job digest"
+          "digest": "Daily job digest",
+          "everythingFree": "Everything in Free"
         }
       },
       "standard": {
@@ -429,7 +433,8 @@
           "quota": "32 offers per month",
           "placement": "Preferred directory placement",
           "alerts": "Instant job alerts",
-          "dashboard": "Performance dashboard"
+          "dashboard": "Performance dashboard",
+          "everythingBasic": "Everything in Basic"
         }
       },
       "premium": {
@@ -439,7 +444,8 @@
           "placement": "Top placement + SEO priority",
           "badge": "Top Partner badge",
           "benchmark": "Benchmark comparison",
-          "spotlight": "Homepage spotlight"
+          "spotlight": "Homepage spotlight",
+          "everythingStandard": "Everything in Standard"
         }
       }
     },
@@ -460,7 +466,11 @@
       "compNote": "Gift active until {date}",
       "trialNote": "First month free",
       "foundingNote": "Founding member? Enter your code at checkout.",
-      "yearlyTeaser": "Yearly plans coming soon"
+      "yearlyTeaser": "Yearly plans coming soon",
+      "securedByStripe": "Payments secured by Stripe",
+      "trustNoCommission": "0% commission",
+      "trustCancel": "Cancel anytime",
+      "eyebrow": "For photographers"
     }
   },
   "errors": {
