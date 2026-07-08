@@ -24,6 +24,12 @@ export async function PublicNav() {
       >
         {t("photographers")}
       </Link>
+      <Link
+        href="/pricing"
+        className="whitespace-nowrap text-mute transition-colors hover:text-ink"
+      >
+        {t("pricing")}
+      </Link>
     </>
   );
 
@@ -34,14 +40,14 @@ export async function PublicNav() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="shrink-0 text-lg font-medium tracking-tight text-ink"
+            className="shrink-0 text-base font-medium tracking-tight text-ink sm:text-lg"
           >
             Rintakez
           </Link>
           <nav className="hidden items-center gap-5 text-sm sm:flex">
             {browseLinks}
           </nav>
-          <div className="ml-auto flex items-center gap-3 sm:gap-4">
+          <div className="ml-auto flex items-center gap-2 sm:gap-4">
             <Link
               href="/login"
               className="whitespace-nowrap text-sm text-ink hover:underline"
@@ -54,12 +60,18 @@ export async function PublicNav() {
             >
               {t("register")}
             </Link>
-            <ThemeToggle />
+            {/* Theme toggle is a nicety — drop it on the tight anon mobile bar
+                (system colour-scheme still applies); keep locale (CH trilingual). */}
+            <span className="hidden sm:inline-flex">
+              <ThemeToggle />
+            </span>
             <LocaleSwitcher />
           </div>
         </div>
-        {/* Row 2 (mobile only): browse links */}
-        <nav className="mt-3 flex items-center gap-5 text-sm sm:hidden">
+        {/* Row 2 (mobile only): browse links. flex-wrap guards against
+            overflow when locale labels (e.g. German) are wide at narrow
+            widths, so the row never forces page-level horizontal scroll. */}
+        <nav className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm sm:hidden">
           {browseLinks}
         </nav>
       </div>

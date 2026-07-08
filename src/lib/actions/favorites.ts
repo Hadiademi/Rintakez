@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
@@ -28,7 +29,7 @@ export async function toggleFavorite(
       .delete()
       .eq("user_id", user.id)
       .eq("photographer_id", photographerId);
-    if (error) return { ok: false, error: error.message };
+    if (error) return { ok: false, error: dbError(error, "favorites") };
     revalidatePath("/[locale]/(app)/photographers", "page");
     return { ok: true, favorited: false };
   }
@@ -36,7 +37,7 @@ export async function toggleFavorite(
   const { error } = await supabase
     .from("favorites")
     .insert({ user_id: user.id, photographer_id: photographerId });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "favorites") };
   revalidatePath("/[locale]/(app)/photographers", "page");
   return { ok: true, favorited: true };
 }

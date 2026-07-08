@@ -1,10 +1,13 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
 import {
   photographerDetailsSchema,
+  reorderPortfolioSchema,
+  portfolioCaptionSchema,
   type PhotographerDetailsInput,
 } from "@/lib/validation/photographer";
 
@@ -30,6 +33,7 @@ export async function savePhotographerDetails(
 
   const {
     specialties,
+    disciplines,
     coverageCantons,
     hourlyRateChf,
     websiteUrl,
@@ -42,6 +46,7 @@ export async function savePhotographerDetails(
     {
       profile_id: user.id,
       specialties,
+      disciplines,
       coverage_cantons: coverageCantons,
       hourly_rate_chf: hourlyRateChf ?? null,
       website_url: websiteUrl || null,
@@ -50,12 +55,45 @@ export async function savePhotographerDetails(
     { onConflict: "profile_id" }
   );
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "photographer") };
 
   revalidatePath("/[locale]/(app)/onboarding", "page");
   revalidatePath("/[locale]/(app)/home", "page");
   revalidateTag(`photographer:${user.id}`, "max");
 
+  return { ok: true };
+}
+
+/**
+ * Photographer asks an admin to verify their identity. Flips own status to
+ * 'pending' (DB function is a no-op unless currently unverified/rejected, and
+ * can only touch the caller's own row). Verified status is a trust badge, not a
+ * gate on bidding.
+ */
+export async function requestVerification(
+  note?: string
+): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
+
+  const supabase = await createClient();
+
+  // Store the evidence note (links to ID / business registration / proof) the
+  // admin will review. Own-row, column-scoped grant; status stays out of reach.
+  const trimmed = note?.trim().slice(0, 1000) ?? "";
+  await supabase
+    .from("photographer_details")
+    .update({ verification_note: trimmed || null })
+    .eq("profile_id", user.id);
+
+  const { error } = await supabase.rpc("request_verification");
+  if (error) return { ok: false, error: dbError(error, "photographer") };
+
+  revalidatePath("/[locale]/(app)/profile", "page");
   return { ok: true };
 }
 
@@ -117,7 +155,7 @@ export async function addPortfolioImage(
     .from("portfolio")
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "photographer") };
 
   const { data: inserted, error: insertError } = await supabase
     .from("portfolio_images")
@@ -128,7 +166,7 @@ export async function addPortfolioImage(
   if (insertError || !inserted) {
     // Attempt to clean up the orphaned storage object
     await supabase.storage.from("portfolio").remove([path]);
-    return { ok: false, error: insertError?.message ?? "insert_failed" };
+    return { ok: false, error: dbError(insertError, "photographer") };
   }
 
   const { data: urlData } = supabase.storage
@@ -138,6 +176,187 @@ export async function addPortfolioImage(
   revalidateTag(`photographer:${user.id}`, "max");
 
   return { ok: true, id: inserted.id, path, url: urlData.publicUrl };
+}
+
+// ---------------------------------------------------------------------------
+// 2b. setCoverImage / removeCover — the public profile's cover band
+// ---------------------------------------------------------------------------
+function safeImageExt(file: File): string {
+  const rawExt = file.name.includes(".")
+    ? file.name.split(".").pop()!.toLowerCase()
+    : "";
+  const fromMime =
+    file.type === "image/jpeg"
+      ? "jpg"
+      : file.type === "image/png"
+        ? "png"
+        : file.type === "image/webp"
+          ? "webp"
+          : file.type === "image/gif"
+            ? "gif"
+            : "bin";
+  return /^[a-z0-9]{1,5}$/.test(rawExt) ? rawExt : fromMime;
+}
+
+export async function setCoverImage(
+  formData: FormData
+): Promise<ActionResult<{ url: string }>> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
+
+  const file = formData.get("file");
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    !file.type.startsWith("image/") ||
+    file.size > 5 * 1024 * 1024
+  ) {
+    return { ok: false, error: "invalid_file" };
+  }
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("photographer_details")
+    .select("cover_path")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  const path = `${user.id}/cover/${crypto.randomUUID()}.${safeImageExt(file)}`;
+  const { error: uploadError } = await supabase.storage
+    .from("portfolio")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) return { ok: false, error: dbError(uploadError, "photographer") };
+
+  const { error: updErr } = await supabase
+    .from("photographer_details")
+    .update({ cover_path: path })
+    .eq("profile_id", user.id);
+  if (updErr) {
+    await supabase.storage.from("portfolio").remove([path]);
+    return { ok: false, error: dbError(updErr, "photographer") };
+  }
+
+  // Best-effort cleanup of the previous cover object.
+  if (current?.cover_path) {
+    await supabase.storage.from("portfolio").remove([current.cover_path]);
+  }
+
+  const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(path);
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true, url: urlData.publicUrl };
+}
+
+export async function removeCover(): Promise<{ ok: true } | ErrResult> {
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { data: current } = await supabase
+    .from("photographer_details")
+    .select("cover_path")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  const { error } = await supabase
+    .from("photographer_details")
+    .update({ cover_path: null })
+    .eq("profile_id", user.id);
+  if (error) return { ok: false, error: dbError(error, "photographer") };
+
+  if (current?.cover_path) {
+    await supabase.storage.from("portfolio").remove([current.cover_path]);
+  }
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// 2c. reorderPortfolioImages / setPortfolioCaption — portfolio editor pro
+// ---------------------------------------------------------------------------
+
+/**
+ * Persist a new portfolio order. `orderedIds` is the caller's full set of image
+ * ids in the desired order; each row's sort_order becomes its index. RLS gates
+ * the writes, and we additionally verify every id belongs to the caller.
+ */
+export async function reorderPortfolioImages(
+  orderedIds: string[]
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = reorderPortfolioSchema.safeParse(orderedIds);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+
+  // The provided ids must be exactly the caller's own portfolio set — otherwise
+  // a partial reorder could collide sort_order values or touch foreign rows.
+  const { data: owned, error: fetchError } = await supabase
+    .from("portfolio_images")
+    .select("id")
+    .eq("photographer_id", user.id);
+  if (fetchError) return { ok: false, error: dbError(fetchError, "photographer") };
+
+  const ownedIds = new Set((owned ?? []).map((r) => r.id));
+  const ids = parsed.data;
+  if (ids.length !== ownedIds.size || !ids.every((id) => ownedIds.has(id))) {
+    return { ok: false, error: "invalid_input" };
+  }
+
+  const results = await Promise.all(
+    ids.map((id, index) =>
+      supabase
+        .from("portfolio_images")
+        .update({ sort_order: index })
+        .eq("id", id)
+        .eq("photographer_id", user.id)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error)
+    return { ok: false, error: dbError(failed.error, "photographer") };
+
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
+}
+
+/**
+ * Set or clear an image caption. An empty/whitespace caption clears it (→ null).
+ * Own-row only; RLS + the explicit photographer_id filter keep it scoped.
+ */
+export async function setPortfolioCaption(
+  imageId: string,
+  caption: string | null
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = portfolioCaptionSchema.safeParse({ imageId, caption });
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { data: updated, error } = await supabase
+    .from("portfolio_images")
+    .update({ caption: parsed.data.caption })
+    .eq("id", parsed.data.imageId)
+    .eq("photographer_id", user.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: dbError(error, "photographer") };
+  if (!updated) return { ok: false, error: "not_found" };
+
+  revalidateTag(`photographer:${user.id}`, "max");
+  revalidatePath("/[locale]/(app)/profile", "page");
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------------------
@@ -158,14 +377,14 @@ export async function removePortfolioImage(
     .eq("photographer_id", user.id) // defensive: only own images
     .maybeSingle();
 
-  if (fetchError) return { ok: false, error: fetchError.message };
+  if (fetchError) return { ok: false, error: dbError(fetchError, "photographer") };
   if (!row) return { ok: false, error: "not_found" };
 
   const { error: storageError } = await supabase.storage
     .from("portfolio")
     .remove([row.storage_path]);
 
-  if (storageError) return { ok: false, error: storageError.message };
+  if (storageError) return { ok: false, error: dbError(storageError, "photographer") };
 
   const { error: deleteError } = await supabase
     .from("portfolio_images")
@@ -173,7 +392,7 @@ export async function removePortfolioImage(
     .eq("id", imageId)
     .eq("photographer_id", user.id);
 
-  if (deleteError) return { ok: false, error: deleteError.message };
+  if (deleteError) return { ok: false, error: dbError(deleteError, "photographer") };
 
   revalidateTag(`photographer:${user.id}`, "max");
 

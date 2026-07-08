@@ -22,6 +22,16 @@ describe("createBidSchema", () => {
     expect(r.success).toBe(false);
   });
 
+  it("accepts amountChf at the 1000000 ceiling", () => {
+    const r = createBidSchema.safeParse({ ...valid, amountChf: 1000000 });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects amountChf above 1000000", () => {
+    const r = createBidSchema.safeParse({ ...valid, amountChf: 1000001 });
+    expect(r.success).toBe(false);
+  });
+
   it("rejects message shorter than 10 chars", () => {
     const r = createBidSchema.safeParse({ ...valid, message: "short" });
     expect(r.success).toBe(false);

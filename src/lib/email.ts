@@ -2,41 +2,169 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureError } from "@/lib/observability";
 
-// Email is an optional, gated feature: with no RESEND_API_KEY the whole module
-// is a no-op, so local/dev runs behave exactly as before. When the key is set
-// (production), notifications are mirrored to email via the Resend REST API.
+// Notification emails are durable: actions ENQUEUE into email_outbox (a fast,
+// non-blocking insert via the service role), and a scheduled drainer
+// (drainEmailOutbox, called from /api/cron/process) renders and sends them with
+// retry. This removes the two old failure modes — silent loss on a transient
+// Resend error, and the request path blocking on a slow send. With no service
+// role configured, enqueue is a no-op (same graceful degradation as before).
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_FROM = process.env.EMAIL_FROM ?? "Rintakez <onboarding@resend.dev>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-export type EmailKind = "bid_received" | "bid_accepted" | "bid_declined";
+const MAX_ATTEMPTS = 5;
+const SEND_TIMEOUT_MS = 8000;
+
+export type EmailKind =
+  | "bid_received"
+  | "bid_accepted"
+  | "bid_declined"
+  | "shoot_cancelled"
+  | "message_received"
+  | "shoot_invitation"
+  | "shoot_match"
+  | "welcome"
+  | "onboarding_reminder"
+  | "zero_bid_rescue"
+  | "review_request"
+  | "shoot_match_digest"
+  | "admin_alert";
 type Locale = "de" | "fr" | "en";
 
-async function sendEmail(to: string, subject: string, html: string) {
-  if (!RESEND_API_KEY) return;
+// Which notification-preference column gates each email kind (missing = always
+// send). Partial: the lifecycle kinds (welcome/onboarding_reminder/
+// zero_bid_rescue/review_request/shoot_match_digest) are enqueued directly
+// into email_outbox by a DB trigger or the cron scans in lifecycle.ts, never
+// via notifyEmail, so they have no entry here — the `if (prefColumn)` guard
+// below treats that as "always send" (harmless; notifyEmail simply isn't the
+// enqueue path for them). shoot_match_digest specifically: scanShootMatchDigest
+// already excludes photographers via filterByNotifyShootUpdates before
+// enqueuing, so the preference is honored at the scan, not here.
+const PREF_COLUMN: Partial<
+  Record<EmailKind, "notify_bids" | "notify_shoot_updates" | "notify_messages">
+> = {
+  bid_received: "notify_bids",
+  bid_accepted: "notify_bids",
+  bid_declined: "notify_bids",
+  shoot_cancelled: "notify_shoot_updates",
+  message_received: "notify_messages",
+  shoot_invitation: "notify_shoot_updates",
+  shoot_match: "notify_shoot_updates",
+};
+
+/**
+ * Enqueue the email mirror of an in-app notification. Fast, non-blocking, and a
+ * no-op when the service role is not configured. Respects the recipient's
+ * notification preferences. Never throws into the caller.
+ *
+ * `dedupeWindowMs`, when set, collapses a burst of the same notification into
+ * ~one email per window: before inserting, we check email_outbox for an
+ * existing row with the same recipient_id + kind + shoot_id created within
+ * the window, and skip the insert if one is found. This is what keeps a busy
+ * back-and-forth message thread from sending one email per message (and
+ * training the recipient to mark the sender as spam). Callers that omit
+ * dedupeWindowMs keep the old always-enqueue behaviour.
+ */
+export async function notifyEmail(opts: {
+  kind: EmailKind;
+  recipientId: string;
+  shootId?: string | null;
+  shootTitle?: string | null;
+  dedupeWindowMs?: number;
+}): Promise<void> {
+  const admin = createAdminClient();
+  if (!admin) return;
   try {
-    await fetch("https://api.resend.com/emails", {
+    // Honour the recipient's preference for this category before enqueuing.
+    const prefColumn = PREF_COLUMN[opts.kind];
+    if (prefColumn) {
+      const { data: pref } = await admin
+        .from("profiles")
+        .select(prefColumn)
+        .eq("id", opts.recipientId)
+        .maybeSingle();
+      const enabled = (pref as Record<string, boolean> | null)?.[prefColumn];
+      if (enabled === false) return;
+    }
+
+    if (opts.dedupeWindowMs) {
+      const since = new Date(Date.now() - opts.dedupeWindowMs).toISOString();
+      let dedupeQuery = admin
+        .from("email_outbox")
+        .select("id")
+        .eq("recipient_id", opts.recipientId)
+        .eq("kind", opts.kind)
+        .gte("created_at", since);
+      // `.eq` can't match NULL in SQL semantics, so branch on whether this
+      // kind carries a shoot_id (message_received always does — a
+      // conversation is 1:1 with its shoot).
+      dedupeQuery = opts.shootId
+        ? dedupeQuery.eq("shoot_id", opts.shootId)
+        : dedupeQuery.is("shoot_id", null);
+      const { data: recent } = await dedupeQuery.limit(1).maybeSingle();
+      if (recent) return;
+    }
+
+    await admin.from("email_outbox").insert({
+      recipient_id: opts.recipientId,
+      kind: opts.kind,
+      shoot_id: opts.shootId ?? null,
+      shoot_title: opts.shootTitle ?? null,
+    });
+  } catch (err) {
+    // Enqueue failure must never break the originating action.
+    captureError(err, { scope: "email.enqueue", kind: opts.kind });
+  }
+}
+
+async function sendEmail(to: string, subject: string, html: string) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ from: EMAIL_FROM, to, subject, html }),
+      signal: controller.signal,
     });
-  } catch (err) {
-    // Email must never break the originating action, but the failure should be
-    // visible in observability rather than silently swallowed.
-    captureError(err, { scope: "email.send", subject });
+    if (!res.ok) {
+      throw new Error(`resend ${res.status}: ${await res.text()}`);
+    }
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 function link(kind: EmailKind, locale: Locale, shootId?: string | null): string {
-  const path =
-    kind === "bid_received" && shootId
-      ? `/${locale}/shoots/${shootId}`
-      : `/${locale}/my-bids`;
-  return `${APP_URL}${path}`;
+  let path: string;
+  if (kind === "welcome") {
+    path = `/${locale}/home`;
+  } else if (kind === "onboarding_reminder") {
+    path = `/${locale}/onboarding`;
+  } else if (kind === "message_received") {
+    path = `/${locale}/messages`;
+  } else if (kind === "admin_alert") {
+    path = `/${locale}/admin`;
+  } else if (kind === "shoot_match_digest") {
+    path = `/${locale}/shoots`;
+  } else if (
+    (kind === "bid_received" ||
+      kind === "shoot_cancelled" ||
+      kind === "shoot_invitation" ||
+      kind === "shoot_match" ||
+      kind === "zero_bid_rescue" ||
+      kind === "review_request") &&
+    shootId
+  ) {
+    path = `/${locale}/shoots/${shootId}`;
+  } else {
+    path = `/${locale}/my-bids`;
+  }
+  return `${SITE_URL}${path}`;
 }
 
 const COPY: Record<
@@ -44,56 +172,80 @@ const COPY: Record<
   Record<Locale, { subject: string; lead: string; cta: string }>
 > = {
   bid_received: {
-    de: {
-      subject: "Neues Angebot für dein Shooting",
-      lead: "Du hast ein neues Angebot erhalten",
-      cta: "Angebot ansehen",
-    },
-    fr: {
-      subject: "Nouvelle offre pour ton shooting",
-      lead: "Tu as reçu une nouvelle offre",
-      cta: "Voir l’offre",
-    },
-    en: {
-      subject: "New offer for your shoot",
-      lead: "You received a new offer",
-      cta: "View offer",
-    },
+    de: { subject: "Neues Angebot für dein Shooting", lead: "Du hast ein neues Angebot erhalten", cta: "Angebot ansehen" },
+    fr: { subject: "Nouvelle offre pour ton shooting", lead: "Tu as reçu une nouvelle offre", cta: "Voir l’offre" },
+    en: { subject: "New offer for your shoot", lead: "You received a new offer", cta: "View offer" },
   },
   bid_accepted: {
-    de: {
-      subject: "Dein Angebot wurde angenommen",
-      lead: "Glückwunsch — dein Angebot wurde angenommen",
-      cta: "Zu meinen Angeboten",
-    },
-    fr: {
-      subject: "Ton offre a été acceptée",
-      lead: "Félicitations — ton offre a été acceptée",
-      cta: "Mes offres",
-    },
-    en: {
-      subject: "Your offer was accepted",
-      lead: "Congratulations — your offer was accepted",
-      cta: "Go to my offers",
-    },
+    de: { subject: "Dein Angebot wurde angenommen", lead: "Glückwunsch — dein Angebot wurde angenommen", cta: "Zu meinen Angeboten" },
+    fr: { subject: "Ton offre a été acceptée", lead: "Félicitations — ton offre a été acceptée", cta: "Mes offres" },
+    en: { subject: "Your offer was accepted", lead: "Congratulations — your offer was accepted", cta: "Go to my offers" },
   },
   bid_declined: {
-    de: {
-      subject: "Update zu deinem Angebot",
-      lead: "Dein Angebot wurde leider abgelehnt",
-      cta: "Zu meinen Angeboten",
-    },
-    fr: {
-      subject: "Mise à jour de ton offre",
-      lead: "Ton offre a malheureusement été refusée",
-      cta: "Mes offres",
-    },
-    en: {
-      subject: "Update on your offer",
-      lead: "Your offer was unfortunately declined",
-      cta: "Go to my offers",
-    },
+    de: { subject: "Update zu deinem Angebot", lead: "Dein Angebot wurde leider abgelehnt", cta: "Zu meinen Angeboten" },
+    fr: { subject: "Mise à jour de ton offre", lead: "Ton offre a malheureusement été refusée", cta: "Mes offres" },
+    en: { subject: "Update on your offer", lead: "Your offer was unfortunately declined", cta: "Go to my offers" },
   },
+  shoot_cancelled: {
+    de: { subject: "Ein Shooting wurde abgesagt", lead: "Ein dir zugewiesenes Shooting wurde abgesagt", cta: "Shooting ansehen" },
+    fr: { subject: "Un shooting a été annulé", lead: "Un shooting qui t’était attribué a été annulé", cta: "Voir le shooting" },
+    en: { subject: "A shoot was cancelled", lead: "A shoot assigned to you was cancelled", cta: "View shoot" },
+  },
+  message_received: {
+    de: { subject: "Neue Nachricht auf Rintakez", lead: "Du hast eine neue Nachricht erhalten", cta: "Nachricht öffnen" },
+    fr: { subject: "Nouveau message sur Rintakez", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
+    en: { subject: "New message on Rintakez", lead: "You received a new message", cta: "Open message" },
+  },
+  shoot_invitation: {
+    de: { subject: "Ein Kunde hat dich zu seinem Shooting eingeladen", lead: "Du wurdest eingeladen, ein Angebot abzugeben", cta: "Shooting ansehen" },
+    fr: { subject: "Un client t’a invité à sa séance", lead: "Tu as été invité à faire une offre", cta: "Voir la séance" },
+    en: { subject: "A client invited you to their shoot", lead: "You've been invited to bid on a shoot", cta: "View shoot" },
+  },
+  shoot_match: {
+    de: { subject: "Neues Shooting in deiner Region", lead: "Ein neues Shooting passt zu deinem Profil", cta: "Shooting ansehen" },
+    fr: { subject: "Nouvelle séance dans ta région", lead: "Une nouvelle séance correspond à ton profil", cta: "Voir la séance" },
+    en: { subject: "New shoot in your area", lead: "A new shoot matches your coverage", cta: "View shoot" },
+  },
+  welcome: {
+    de: { subject: "Willkommen bei Rintakez", lead: "Willkommen bei Rintakez — schön, dass du da bist", cta: "Los geht’s" },
+    fr: { subject: "Bienvenue sur Rintakez", lead: "Bienvenue sur Rintakez — ravis de t’avoir avec nous", cta: "C’est parti" },
+    en: { subject: "Welcome to Rintakez", lead: "Welcome to Rintakez — glad to have you here", cta: "Get started" },
+  },
+  onboarding_reminder: {
+    de: { subject: "Vervollständige dein Fotografen-Profil", lead: "Dein Profil ist fast fertig — ergänze deine Angaben, um Aufträge zu erhalten", cta: "Profil vervollständigen" },
+    fr: { subject: "Complète ton profil de photographe", lead: "Ton profil est presque prêt — complète tes informations pour recevoir des mandats", cta: "Compléter mon profil" },
+    en: { subject: "Complete your photographer profile", lead: "Your profile is almost ready — finish it to start receiving shoots", cta: "Complete profile" },
+  },
+  zero_bid_rescue: {
+    de: { subject: "Noch keine Angebote für dein Shooting", lead: "Dein Shooting hat noch keine Angebote erhalten", cta: "Shooting ansehen" },
+    fr: { subject: "Pas encore d’offre pour ta séance", lead: "Ta séance n’a pas encore reçu d’offre", cta: "Voir la séance" },
+    en: { subject: "No offers yet for your shoot", lead: "Your shoot hasn't received any offers yet", cta: "View shoot" },
+  },
+  review_request: {
+    de: { subject: "Wie war dein Shooting?", lead: "Dein Shooting ist abgeschlossen — hinterlasse jetzt eine Bewertung", cta: "Bewertung abgeben" },
+    fr: { subject: "Comment s’est passée ta séance ?", lead: "Ta séance est terminée — laisse une évaluation dès maintenant", cta: "Laisser une évaluation" },
+    en: { subject: "How was your shoot?", lead: "Your shoot is complete — leave a review now", cta: "Leave a review" },
+  },
+  admin_alert: {
+    de: { subject: "Neuer Vorgang zur Prüfung", lead: "Ein neuer Vorgang muss moderiert werden", cta: "Admin öffnen" },
+    fr: { subject: "Nouveau signalement à examiner", lead: "Un nouvel élément nécessite une modération", cta: "Ouvrir l’admin" },
+    en: { subject: "New report/dispute to review", lead: "A new item needs moderation", cta: "Open admin" },
+  },
+  shoot_match_digest: {
+    de: { subject: "Neue Shootings passen zu deinem Profil", lead: "Heute haben neue Shootings zu deinem Profil gepasst", cta: "Shootings ansehen" },
+    fr: { subject: "De nouvelles séances correspondent à ton profil", lead: "Aujourd’hui, de nouvelles séances ont correspondu à ton profil", cta: "Voir les séances" },
+    en: { subject: "New shoots match your profile", lead: "New shoots matched your profile today", cta: "View shoots" },
+  },
+};
+
+// Footer link to the notification-preferences section of the profile page.
+// Shown on every email so a recipient annoyed by volume can turn a category
+// off instead of hitting "mark as spam" (which hurts sender reputation for
+// everyone). Kept short and muted so it doesn't compete with the main CTA.
+const FOOTER: Record<Locale, string> = {
+  de: "Benachrichtigungen verwalten",
+  fr: "Gérer tes préférences de notifications",
+  en: "Manage your notification preferences",
 };
 
 function render(
@@ -108,6 +260,7 @@ function render(
   const titleLine = shootTitle
     ? `<p style="margin:0 0 16px;color:#666;font-size:14px">${shootTitle}</p>`
     : "";
+  const prefsUrl = `${SITE_URL}/${locale}/profile#notifications`;
   const html = `
   <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
     <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Rintakez</p>
@@ -115,50 +268,85 @@ function render(
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.01em">${c.lead}</h1>
     ${titleLine}
     <a href="${url}" style="display:inline-block;margin-top:16px;background:#111;color:#fff;text-decoration:none;padding:12px 22px;font-size:14px">${c.cta}</a>
+    <p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#999">
+      <a href="${prefsUrl}" style="color:#999;text-decoration:underline">${FOOTER[locale]}</a>
+    </p>
   </div>`;
   return { subject: c.subject, html };
 }
 
 /**
- * Send the email mirror of an in-app notification. Fully no-op without
- * RESEND_API_KEY (it returns before any admin lookup). Never throws.
+ * Drain pending outbox rows: render + send each, marking sent/failed and
+ * tracking attempts. Safe to call repeatedly (idempotent per row via status).
+ * Returns a small summary for the cron route. No-op without RESEND_API_KEY.
  */
-export async function notifyEmail(opts: {
-  kind: EmailKind;
-  recipientId: string;
-  shootId?: string | null;
-  shootTitle?: string | null;
-}): Promise<void> {
-  if (!RESEND_API_KEY) return;
-
+export async function drainEmailOutbox(
+  limit = 25
+): Promise<{ processed: number; sent: number; failed: number; skipped: boolean }> {
   const admin = createAdminClient();
-  if (!admin) return;
+  if (!admin) return { processed: 0, sent: 0, failed: 0, skipped: true };
+  if (!RESEND_API_KEY) return { processed: 0, sent: 0, failed: 0, skipped: true };
 
-  try {
-    const { data: userRes } = await admin.auth.admin.getUserById(
-      opts.recipientId
-    );
-    const email = userRes?.user?.email;
-    if (!email) return;
+  const { data: rows } = await admin
+    .from("email_outbox")
+    .select("id, recipient_id, kind, shoot_id, shoot_title, attempts")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true })
+    .limit(limit);
 
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("display_name, locale")
-      .eq("id", opts.recipientId)
-      .single();
+  if (!rows || rows.length === 0)
+    return { processed: 0, sent: 0, failed: 0, skipped: false };
 
-    const locale = (profile?.locale ?? "de") as Locale;
-    const { subject, html } = render(
-      opts.kind,
-      locale,
-      profile?.display_name ?? "",
-      opts.shootTitle ?? null,
-      link(opts.kind, locale, opts.shootId)
-    );
+  let sent = 0;
+  let failed = 0;
 
-    await sendEmail(email, subject, html);
-  } catch (err) {
-    // Best-effort — never throw into the caller, but surface to observability.
-    captureError(err, { scope: "email.notify", kind: opts.kind });
+  for (const row of rows) {
+    try {
+      const { data: userRes } = await admin.auth.admin.getUserById(
+        row.recipient_id
+      );
+      const email = userRes?.user?.email;
+      if (!email) throw new Error("recipient has no email");
+
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("display_name, locale")
+        .eq("id", row.recipient_id)
+        .single();
+
+      const locale = (profile?.locale ?? "de") as Locale;
+      const kind = row.kind as EmailKind;
+      const { subject, html } = render(
+        kind,
+        locale,
+        profile?.display_name ?? "",
+        row.shoot_title,
+        link(kind, locale, row.shoot_id)
+      );
+
+      await sendEmail(email, subject, html);
+
+      await admin
+        .from("email_outbox")
+        .update({ status: "sent", sent_at: new Date().toISOString() })
+        .eq("id", row.id);
+      sent++;
+    } catch (err) {
+      const attempts = row.attempts + 1;
+      const message = err instanceof Error ? err.message : String(err);
+      await admin
+        .from("email_outbox")
+        .update({
+          // Give up after MAX_ATTEMPTS so a poison row doesn't loop forever.
+          status: attempts >= MAX_ATTEMPTS ? "failed" : "pending",
+          attempts,
+          last_error: message.slice(0, 500),
+        })
+        .eq("id", row.id);
+      captureError(err, { scope: "email.drain", id: String(row.id) });
+      failed++;
+    }
   }
+
+  return { processed: rows.length, sent, failed, skipped: false };
 }

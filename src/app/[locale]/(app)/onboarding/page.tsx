@@ -26,7 +26,7 @@ export default async function OnboardingPage() {
   const { data: details } = await supabase
     .from("photographer_details")
     .select(
-      "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+      "specialties, disciplines, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
     )
     .eq("profile_id", profile.id)
     .maybeSingle();
@@ -49,6 +49,7 @@ export default async function OnboardingPage() {
 
   const initial = {
     specialties: details?.specialties ?? [],
+    disciplines: details?.disciplines ?? ["photo"],
     cantons: details?.coverage_cantons ?? [],
     hourlyRate:
       details?.hourly_rate_chf != null ? String(details.hourly_rate_chf) : "",

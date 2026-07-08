@@ -1,7 +1,9 @@
+import { getTranslations } from "next-intl/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
 import { PublicNav } from "@/components/public-nav";
+import { ToasterProvider } from "@/components/ui/toaster";
 
 export default async function AppLayout({
   children,
@@ -16,12 +18,14 @@ export default async function AppLayout({
   // are gated by middleware, so an anon request never reaches them here.
   if (!profile) {
     return (
-      <div className="min-h-screen bg-paper">
-        <PublicNav />
-        <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">
-          {children}
+      <ToasterProvider>
+        <div className="min-h-screen bg-paper">
+          <PublicNav />
+          <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">
+            {children}
+          </div>
         </div>
-      </div>
+      </ToasterProvider>
     );
   }
 
@@ -38,16 +42,34 @@ export default async function AppLayout({
     }
   }
 
+  let suspendedBanner: string | null = null;
+  if (profile.is_suspended) {
+    const t = await getTranslations("account");
+    suspendedBanner = profile.suspension_reason
+      ? `${t("suspendedBanner")} ${profile.suspension_reason}`
+      : t("suspendedBanner");
+  }
+
   return (
-    <div className="min-h-screen bg-paper">
-      <AppNav
-        role={profile.role as "client" | "photographer"}
-        displayName={profile.display_name ?? ""}
-        userId={profile.id}
-        avatarUrl={avatarUrl}
-        isAdmin={profile.is_admin}
-      />
-      <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">{children}</div>
-    </div>
+    <ToasterProvider>
+      <div className="min-h-screen bg-paper">
+        <AppNav
+          role={profile.role as "client" | "photographer"}
+          displayName={profile.display_name ?? ""}
+          userId={profile.id}
+          avatarUrl={avatarUrl}
+          isAdmin={profile.is_admin}
+        />
+        {suspendedBanner ? (
+          <div
+            role="alert"
+            className="border-b border-red-300 bg-red-50 px-5 py-3 text-center text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
+          >
+            {suspendedBanner}
+          </div>
+        ) : null}
+        <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">{children}</div>
+      </div>
+    </ToasterProvider>
   );
 }

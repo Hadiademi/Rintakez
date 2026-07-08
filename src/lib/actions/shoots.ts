@@ -1,5 +1,6 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -76,6 +77,7 @@ export async function createShootAction(
       client_id: user.id,
       title: v.title,
       type: v.type,
+      discipline: v.discipline,
       brief: v.brief,
       location_city: v.locationCity,
       location_postcode: v.locationPostcode || null,
@@ -88,7 +90,7 @@ export async function createShootAction(
     .select("id")
     .single();
 
-  if (error || !data) return { ok: false, error: error?.message ?? "insert_failed" };
+  if (error || !data) return { ok: false, error: dbError(error, "shoots") };
 
   revalidatePath("/[locale]/(app)/my-shoots", "page");
   revalidatePath("/[locale]/(app)/home", "page");
@@ -99,6 +101,47 @@ export async function createShootAction(
 // ---------------------------------------------------------------------------
 // Reference images — optional inspiration photos attached to a shoot brief.
 // ---------------------------------------------------------------------------
+export async function updateShootAction(
+  shootId: string,
+  raw: unknown
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = createShootSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const v = parsed.data;
+  const supabase = await createClient();
+  // Owner-scoped, open-only edit. RLS enforces ownership too; the status guard
+  // keeps it open→open. A 0-row result means not-owner or no longer open.
+  const { data, error } = await supabase
+    .from("shoots")
+    .update({
+      title: v.title,
+      type: v.type,
+      discipline: v.discipline,
+      brief: v.brief,
+      location_city: v.locationCity,
+      location_postcode: v.locationPostcode || null,
+      canton: v.canton,
+      shoot_date: v.shootDate,
+      duration_hours: v.durationHours,
+      budget_min_chf: v.budgetMinChf,
+      budget_max_chf: v.budgetMaxChf,
+    })
+    .eq("id", shootId)
+    .eq("client_id", user.id)
+    .eq("status", "open")
+    .select("id");
+  if (error) return { ok: false, error: dbError(error, "shoots") };
+  if (!data || data.length === 0) return { ok: false, error: "forbidden" };
+
+  revalidatePath("/[locale]/(app)/shoots/[id]", "page");
+  revalidatePath("/[locale]/(app)/my-shoots", "page");
+  return { ok: true };
+}
+
 export async function addShootImage(
   shootId: string,
   formData: FormData
@@ -139,7 +182,7 @@ export async function addShootImage(
   const { error: uploadError } = await supabase.storage
     .from("shoot-refs")
     .upload(path, file, { contentType: file.type, upsert: false });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "shoots") };
 
   const { data: inserted, error: insertError } = await supabase
     .from("shoot_images")
@@ -149,7 +192,7 @@ export async function addShootImage(
 
   if (insertError || !inserted) {
     await supabase.storage.from("shoot-refs").remove([path]);
-    return { ok: false, error: insertError?.message ?? "insert_failed" };
+    return { ok: false, error: dbError(insertError, "shoots") };
   }
 
   // Private bucket: return a short-lived signed URL for the immediate preview.
@@ -192,7 +235,7 @@ export async function removeShootImage(
     .from("shoot_images")
     .delete()
     .eq("id", imageId);
-  if (deleteError) return { ok: false, error: deleteError.message };
+  if (deleteError) return { ok: false, error: dbError(deleteError, "shoots") };
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   return { ok: true };
@@ -206,7 +249,7 @@ export async function acceptBidAction(
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_bid", { p_bid_id: bidId });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "shoots") };
 
   await emailBidOutcome(supabase, bidId, "bid_accepted");
 
@@ -223,7 +266,7 @@ export async function declineBidAction(
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("decline_bid", { p_bid_id: bidId });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "shoots") };
 
   await emailBidOutcome(supabase, bidId, "bid_declined");
 
@@ -242,7 +285,7 @@ export async function completeShootAction(
   const { error } = await supabase.rpc("complete_shoot", {
     p_shoot_id: shootId,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "shoots") };
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");
@@ -257,15 +300,39 @@ export async function cancelShootAction(
   if (!user) return { ok: false, error: "unauthorized" };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // Scope the update to the owner AND surface a clear "forbidden" when nothing
+  // matched (a non-owner's update silently affects 0 rows otherwise — RLS still
+  // blocks it, but the caller must not see a misleading success).
+  const { data, error } = await supabase
     .from("shoots")
     .update({
       status: "cancelled",
       cancellation_reason: reason?.trim() ? reason.trim().slice(0, 500) : null,
     })
     .eq("id", shootId)
-    .eq("client_id", user.id);
-  if (error) return { ok: false, error: error.message };
+    .eq("client_id", user.id)
+    .select("id, title, accepted_bid_id");
+  if (error) return { ok: false, error: dbError(error, "shoots") };
+  if (!data || data.length === 0) return { ok: false, error: "forbidden" };
+
+  // If a photographer was assigned, email them the cancellation (in-app
+  // notification is already created by the shoot_cancelled DB trigger).
+  const cancelled = data[0];
+  if (cancelled.accepted_bid_id) {
+    const { data: bid } = await supabase
+      .from("bids")
+      .select("photographer_id")
+      .eq("id", cancelled.accepted_bid_id)
+      .maybeSingle();
+    if (bid) {
+      await notifyEmail({
+        kind: "shoot_cancelled",
+        recipientId: bid.photographer_id,
+        shootId,
+        shootTitle: cancelled.title,
+      });
+    }
+  }
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");

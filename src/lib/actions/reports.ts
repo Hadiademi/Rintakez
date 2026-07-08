@@ -1,16 +1,19 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { REPORT_CATEGORIES } from "@/lib/validation/report";
 
 type ErrResult = { ok: false; error: string };
 
 const reportSchema = z.object({
-  targetType: z.enum(["profile", "shoot"]),
+  targetType: z.enum(["profile", "shoot", "review", "message"]),
   targetId: z.string().uuid(),
   reason: z.string().min(1).max(1000),
+  category: z.enum(REPORT_CATEGORIES).default("other"),
 });
 
 export async function submitReport(
@@ -30,8 +33,9 @@ export async function submitReport(
     target_type: parsed.data.targetType,
     target_id: parsed.data.targetId,
     reason: parsed.data.reason.trim(),
+    category: parsed.data.category,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "reports") };
 
   return { ok: true };
 }

@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 
 interface MobileTabBarProps {
   role: "client" | "photographer";
+  messagesUnread?: number;
 }
 
 function HomeIcon() {
@@ -100,7 +101,7 @@ function ChatIcon() {
   );
 }
 
-export function MobileTabBar({ role }: MobileTabBarProps) {
+export function MobileTabBar({ role, messagesUnread = 0 }: MobileTabBarProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
@@ -128,16 +129,29 @@ export function MobileTabBar({ role }: MobileTabBarProps) {
       className="fixed bottom-0 inset-x-0 z-40 flex lg:hidden border-t border-line bg-paper pb-[env(safe-area-inset-bottom)]"
     >
       {tabs.map(({ href, label, icon }) => {
-        const isActive = pathname === href;
+        // Match the desktop nav: stay active on sub-routes (e.g. Messages on a
+        // thread, Shoots on a shoot detail), not just the exact path.
+        const isActive = pathname === href || pathname.startsWith(`${href}/`);
+        const badge = href === "/messages" && messagesUnread > 0;
         return (
           <Link
             key={href}
             href={href}
-            className={`flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors ${
+            className={`relative flex-1 flex flex-col items-center gap-0.5 py-2 text-[10px] transition-colors ${
               isActive ? "text-ink" : "text-mute"
             }`}
           >
-            {icon}
+            <span className="relative">
+              {icon}
+              {badge && (
+                <span
+                  data-testid="tab-messages-badge"
+                  className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-accent px-1 text-[9px] font-semibold leading-none text-paper"
+                >
+                  {messagesUnread > 9 ? "9+" : messagesUnread}
+                </span>
+              )}
+            </span>
             <span>{label}</span>
           </Link>
         );

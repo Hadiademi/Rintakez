@@ -8,6 +8,7 @@ import { registerAction } from "@/lib/actions/auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { errorKey } from "@/lib/error-messages";
 import { GoogleButton } from "@/components/google-button";
+import { track } from "@/lib/track";
 import { useState } from "react";
 
 export default function RegisterForm() {
@@ -38,6 +39,7 @@ export default function RegisterForm() {
     setServerError(null);
     const result = await registerAction({ ...values, locale });
     if (result.ok) {
+      track("signup");
       // Always land on the login page. `registered` = account is ready to use;
       // `confirm` = email confirmation is required first.
       router.push(result.session ? "/login?registered=1" : "/login?confirm=1");
@@ -66,6 +68,7 @@ export default function RegisterForm() {
           data-testid="register-displayName"
           type="text"
           autoComplete="name"
+          autoFocus
           {...register("displayName")}
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
@@ -147,7 +150,7 @@ export default function RegisterForm() {
             ].join(" ")}
           >
             <span className="text-[14px] font-medium text-ink">
-              {t("rolePhotographer")}
+              {t("roleProTitle")}
             </span>
             <span className="text-[12px] text-mute">
               {t("rolePhotographerHint")}

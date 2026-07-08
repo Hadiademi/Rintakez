@@ -2,10 +2,12 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/",
     name: "Rintakez",
     short_name: "Rintakez",
     description: "Fotografie-Marktplatz Schweiz",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#ffffff",
     theme_color: "#c8462c",

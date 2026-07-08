@@ -32,6 +32,13 @@ values
    'authenticated', 'authenticated', 'claire@example.ch',
    extensions.crypt('password123', extensions.gen_salt('bf')), now(),
    '{"role":"photographer","display_name":"Claire Dubois","locale":"fr"}', now(), now(),
+   '', '', '', '', ''),
+  -- Dedicated platform admin for oversight (is_admin set below). Strong initial
+  -- password; change it after first login (a `db reset` reverts it to this).
+  ('a0000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000',
+   'authenticated', 'authenticated', 'admin@rintakez.ch',
+   extensions.crypt('gzOuYKoDplFbJWNqtdJyAa1!', extensions.gen_salt('bf')), now(),
+   '{"role":"client","display_name":"Platform Admin","locale":"en"}', now(), now(),
    '', '', '', '', '');
 
 -- Identities for the email provider (required for password sign-in).
@@ -45,8 +52,13 @@ where u.id in (
   'a0000000-0000-0000-0000-000000000001',
   'a0000000-0000-0000-0000-000000000002',
   'a0000000-0000-0000-0000-000000000003',
-  'a0000000-0000-0000-0000-000000000004'
+  'a0000000-0000-0000-0000-000000000004',
+  'a0000000-0000-0000-0000-000000000005'
 );
+
+-- Grant the dedicated admin account oversight access.
+update public.profiles set is_admin = true
+  where id = 'a0000000-0000-0000-0000-000000000005';
 
 update public.profiles set city = 'Zürich', canton = 'ZH'
   where id = 'a0000000-0000-0000-0000-000000000003';
@@ -54,12 +66,26 @@ update public.profiles set city = 'Lausanne', canton = 'VD'
   where id = 'a0000000-0000-0000-0000-000000000004';
 
 insert into public.photographer_details
-  (profile_id, specialties, coverage_cantons, hourly_rate_chf)
+  (profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status,
+   disciplines)
 values
   ('a0000000-0000-0000-0000-000000000003',
-   '{wedding,portrait}', '{ZH,ZG,SZ,VS}', 280),
+   '{wedding,portrait}', '{ZH,ZG,SZ,VS}', 280, 'verified', '{photo}'),
   ('a0000000-0000-0000-0000-000000000004',
-   '{commercial,architecture,portrait}', '{VD,GE,FR}', 320);
+   '{commercial,architecture,portrait}', '{VD,GE,FR}', 320, 'verified',
+   '{photo,video}');
+
+-- Grant both seed photographers a 1-year standard comp so local dev has
+-- entitled photographers (fixes P1's local free-cap-tripping). The
+-- photographer_details rows already exist above, so update explicitly — the
+-- P0 seed trigger only fires on INSERT.
+insert into public.subscriptions (user_id, plan, status, source, comp_until, granted_by, note)
+values
+  ('a0000000-0000-0000-0000-000000000003','standard','comp','admin_comp', now() + interval '1 year', 'a0000000-0000-0000-0000-000000000005', 'Founding photographer comp'),
+  ('a0000000-0000-0000-0000-000000000004','standard','comp','admin_comp', now() + interval '1 year', 'a0000000-0000-0000-0000-000000000005', 'Founding photographer comp');
+update public.photographer_details
+  set plan_tier = 'standard', plan_expires_at = now() + interval '1 year'
+  where profile_id in ('a0000000-0000-0000-0000-000000000003','a0000000-0000-0000-0000-000000000004');
 
 -- ── Shoots: 3 open + 1 assigned + 1 cancelled ────────────────────────────────
 -- All inserted as 'open' (default); assigned/cancelled updated below via valid FSM path.
@@ -136,3 +162,74 @@ update public.shoots
 -- ── Cancel the Familienportrait shoot ─────────────────────────────────────────
 update public.shoots set status = 'cancelled'
   where id = 'a0000000-0000-0000-0001-000000000005';
+
+-- ── Past, completed shoots with reviews ───────────────────────────────────────
+-- So the demo photographers have real ratings + bios instead of looking like
+-- brand-new, empty, "verified" accounts (which read as fake on a fresh deploy).
+insert into public.shoots
+  (id, client_id, title, type, brief, location_city, location_postcode, canton,
+   shoot_date, duration_hours, budget_min_chf, budget_max_chf)
+values
+  ('a0000000-0000-0000-0001-000000000006',
+   'a0000000-0000-0000-0000-000000000001',
+   'Standesamtliche Trauung Zürich', 'wedding',
+   'Kleine Zeremonie im Stadthaus, danach Apéro am Wasser. Reportage-Stil.',
+   'Zürich', '8001', 'ZH', '2026-05-10', 5, 1800, 2600),
+  ('a0000000-0000-0000-0001-000000000007',
+   'a0000000-0000-0000-0000-000000000002',
+   'Markenshooting Designstudio', 'commercial',
+   'Porträts des Teams und Produktdetails fürs Rebranding. Helle Bildsprache.',
+   'Genève', '1201', 'GE', '2026-05-28', 6, 3200, 4200);
+
+insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
+values
+  ('a0000000-0000-0000-0002-000000000004',
+   'a0000000-0000-0000-0001-000000000006',
+   'a0000000-0000-0000-0000-000000000003', 2200,
+   'Reportage ist mein Zuhause — ich halte mich im Hintergrund.'),
+  ('a0000000-0000-0000-0002-000000000005',
+   'a0000000-0000-0000-0001-000000000007',
+   'a0000000-0000-0000-0000-000000000004', 3800,
+   'Branding-Shootings sind mein Schwerpunkt — konsistente, helle Bildsprache.');
+
+update public.bids set status = 'accepted'
+  where id in ('a0000000-0000-0000-0002-000000000004',
+               'a0000000-0000-0000-0002-000000000005');
+
+update public.shoots
+  set status = 'assigned', accepted_bid_id = 'a0000000-0000-0000-0002-000000000004'
+  where id = 'a0000000-0000-0000-0001-000000000006';
+update public.shoots
+  set status = 'assigned', accepted_bid_id = 'a0000000-0000-0000-0002-000000000005'
+  where id = 'a0000000-0000-0000-0001-000000000007';
+
+update public.shoots set status = 'completed'
+  where id in ('a0000000-0000-0000-0001-000000000006',
+               'a0000000-0000-0000-0001-000000000007');
+
+insert into public.reviews (id, shoot_id, client_id, photographer_id, rating, comment)
+values
+  ('a0000000-0000-0000-0003-000000000001',
+   'a0000000-0000-0000-0001-000000000006',
+   'a0000000-0000-0000-0000-000000000001',
+   'a0000000-0000-0000-0000-000000000003', 5,
+   'Marko war ruhig, präzise und einfühlsam. Die Bilder sind ehrlich und schön.'),
+  ('a0000000-0000-0000-0003-000000000002',
+   'a0000000-0000-0000-0001-000000000007',
+   'a0000000-0000-0000-0000-000000000002',
+   'a0000000-0000-0000-0000-000000000004', 5,
+   'Claire a parfaitement saisi notre identité de marque. Travail rapide et lumineux.');
+
+-- Bios + verification evidence so the demo profiles aren't bare.
+update public.profiles
+  set bio = 'Dokumentarische Hochzeits- und Porträtfotografie aus Zürich. Ruhig, ehrlich, nah.'
+  where id = 'a0000000-0000-0000-0000-000000000003';
+update public.profiles
+  set bio = 'Photographe commerciale et architecturale à Lausanne. Lumière naturelle, lignes nettes.'
+  where id = 'a0000000-0000-0000-0000-000000000004';
+update public.photographer_details
+  set verification_note = 'Website: markostudio.ch · Handelsregister CHE-123.456.789'
+  where profile_id = 'a0000000-0000-0000-0000-000000000003';
+update public.photographer_details
+  set verification_note = 'Portfolio: claire-photo.ch · IDE CHE-987.654.321'
+  where profile_id = 'a0000000-0000-0000-0000-000000000004';

@@ -33,7 +33,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={t("toggle")}
       data-testid="theme-toggle"
-      className="press text-mute hover:text-ink"
+      className="press -m-2 flex h-10 w-10 items-center justify-center text-mute hover:text-ink"
     >
       {/* sun when dark (click → light), moon when light (click → dark) */}
       {theme === "dark" ? (

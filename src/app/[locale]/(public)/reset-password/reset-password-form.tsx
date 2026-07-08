@@ -73,6 +73,7 @@ export default function ResetPasswordForm() {
           data-testid="reset-password"
           type="password"
           autoComplete="new-password"
+          autoFocus
           {...register("password")}
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />

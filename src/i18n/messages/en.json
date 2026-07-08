@@ -1,15 +1,27 @@
 {
   "meta": {
-    "title": "Rintakez — Swiss photography marketplace",
-    "description": "Describe your shoot and get offers from professional photographers in your region.",
-    "ogTitle": "Rintakez — Swiss photography marketplace"
+    "title": "Rintakez — Photo & Video Marketplace Switzerland",
+    "description": "Describe your shoot and get offers from professional photographers and videographers in your area.",
+    "ogTitle": "Rintakez — Photo & Video Marketplace Switzerland",
+    "photographersTitle": "Photographers & videographers in Switzerland",
+    "photographersDescription": "Browse verified photographers and videographers across Switzerland and find the right match for your shoot.",
+    "shootsTitle": "Open shoots in Switzerland",
+    "shootsDescription": "Browse open photo and video shoots from clients across Switzerland and place your offer.",
+    "shootFallbackTitle": "Shoot",
+    "landingTitle": "{type} photographers in {canton}",
+    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse verified profiles, portfolios and reviews, then post your shoot for offers.",
+    "pricingTitle": "Pricing — Rintakez",
+    "pricingDescription": "Subscription plans for photographers on Rintakez."
   },
   "common": {
     "appName": "Rintakez",
     "back": "Back",
     "next": "Next",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "remove": "Remove",
+    "close": "Close",
+    "removeConfirm": "Remove this? This can't be undone."
   },
   "nav": {
     "home": "Home",
@@ -24,17 +36,25 @@
     "myBids": "My bids",
     "create": "Create",
     "searchPlaceholder": "Open shoots",
+    "searchNoResults": "No results",
+    "searchSeeAll": "Search all shoots",
     "notifications": "Notifications",
     "photographers": "Photographers",
     "messages": "Messages",
-    "admin": "Admin"
+    "admin": "Admin",
+    "pricing": "Pricing",
+    "subscription": "Subscription"
   },
   "landing": {
-    "title": "Photography. Direct. Across Switzerland.",
-    "subtitle": "Describe your shoot and receive offers from professional photographers in your region.",
+    "title": "Photo & video. Direct. Across Switzerland.",
+    "subtitle": "Describe your shoot and get offers from professional photographers and videographers in your area.",
     "cta": "Post a shoot",
     "latestShoots": "Open shoots",
-    "offersCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+    "offersCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}",
+    "trust1": "Direct contact — no middleman on your shoot.",
+    "trust2": "Reviewed photographers with real, verified ratings.",
+    "trust3": "Swiss-hosted, with your data kept in Zürich.",
+    "noShoots": "No open shoots right now — post the first one."
   },
   "auth": {
     "registerTitle": "Create account",
@@ -44,7 +64,7 @@
     "displayName": "Name or studio",
     "roleQuestion": "I am …",
     "roleClient": "Client",
-    "roleClientHint": "I'm hiring a photographer",
+    "roleClientHint": "I’m hiring a photographer or videographer",
     "rolePhotographer": "Photographer",
     "rolePhotographerHint": "I offer shoots",
     "submitRegister": "Create account",
@@ -57,7 +77,7 @@
     "genericError": "Something went wrong. Please try again.",
     "loginSubtitle": "Welcome back. Sign in to continue.",
     "registerSubtitle": "Create your account in seconds.",
-    "tagline": "Photography. Direct. Across Switzerland.",
+    "tagline": "Photo & video. Direct. Across Switzerland.",
     "registeredSuccess": "Account created — please sign in.",
     "continueWithGoogle": "Continue with Google",
     "orDivider": "or",
@@ -74,7 +94,10 @@
     "resetLinkInvalid": "The link is invalid or expired.",
     "termsAgree": "I accept the <agb>Terms</agb> and <privacy>Privacy Policy</privacy>.",
     "errorAcceptTerms": "Please accept the Terms and Privacy Policy.",
-    "googleConsent": "By continuing you accept our Terms and Privacy Policy."
+    "googleConsent": "By continuing you accept our Terms and Privacy Policy.",
+    "roleProTitle": "Photographer / Videographer",
+    "roleVideographer": "Videographer",
+    "rolePhotoVideo": "Photographer & Videographer"
   },
   "home": {
     "greeting": "Hi, {name}.",
@@ -102,6 +125,11 @@
     "statShoots": "Shoots",
     "statBids": "Bids",
     "statPending": "Pending",
+    "statViews30d": "Views (30d)",
+    "statApplicationRate": "Acceptance rate",
+    "statBenchmark": "Platform median",
+    "statBenchmarkLocked": "Benchmark — Premium",
+    "dashboardUpsell": "Unlock your performance dashboard →",
     "yourShoots": "Your shoots",
     "openShoots": "Open shoots",
     "seeAll": "See all",
@@ -119,11 +147,13 @@
     "instagram": "Instagram (optional)",
     "portfolio": "Portfolio",
     "addPhotos": "Add photos",
+    "portfolioFull": "You've reached the maximum number of photos.",
     "finish": "Finish",
     "errorSave": "Could not save.",
     "editTitle": "Edit profile",
     "editSubtitle": "Update your details and portfolio.",
-    "save": "Save"
+    "save": "Save",
+    "disciplines": "Discipline"
   },
   "createShoot": {
     "title": "Post a shoot",
@@ -146,7 +176,11 @@
     "errorCreate": "Could not create.",
     "stepLabel": "Step {current} of {total}",
     "fieldReferences": "References (optional)",
-    "referencesHint": "Images that show the style you want. Max 6."
+    "referencesHint": "Images that show the style you want. Max 6.",
+    "editTitle": "Edit shoot",
+    "saveChanges": "Save changes",
+    "draftRestored": "Draft restored",
+    "discardDraft": "Discard"
   },
   "shoot": {
     "date": "Date",
@@ -156,6 +190,7 @@
     "type": "Type",
     "statusOpen": "Open",
     "hours": "{count} h",
+    "perHour": "/hr",
     "types": {
       "wedding": "Wedding",
       "portrait": "Portrait",
@@ -178,9 +213,27 @@
       "open": "Open",
       "assigned": "Assigned",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "reviewed": "Reviewed"
     },
-    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}"
+    "bidsCount": "{count, plural, =0 {No offers} one {# offer} other {# offers}}",
+    "discipline": "Medium",
+    "disciplines": {
+      "photo": "Photo",
+      "video": "Video"
+    },
+    "edit": "Edit",
+    "addToCalendar": "Add to calendar",
+    "findPhotographersCta": "Find & invite photographers"
+  },
+  "shootStepper": {
+    "aria": "Shoot status",
+    "cancelledNote": "This shoot was cancelled.",
+    "hint": {
+      "invite": "Invite photographers to receive your first offer.",
+      "contact": "Get in touch and mark the shoot complete once it's done.",
+      "review": "Review your photographer to wrap up the shoot."
+    }
   },
   "myShoots": {
     "title": "My shoots",
@@ -196,7 +249,8 @@
     "filterBudget": "Budget up to",
     "all": "All",
     "clear": "Clear",
-    "empty": "No open shoots match your filters."
+    "empty": "No open shoots match your filters.",
+    "filterDiscipline": "Medium"
   },
   "shootDetail": {
     "brief": "Brief",
@@ -212,7 +266,21 @@
     "cancelReasonLabel": "Reason (optional)",
     "cancelReasonPlaceholder": "Why are you cancelling?",
     "cancelledReason": "Cancellation reason",
-    "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time."
+    "cancelPolicy": "Cancelling notifies the other party. Please cancel in good time.",
+    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}",
+    "acceptConfirm": "Accept this offer? The other offers will be declined.",
+    "declineConfirm": "Decline this offer? This can't be undone.",
+    "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}",
+    "compare": {
+      "sortLabel": "Sort offers by",
+      "sortPrice": "Price",
+      "sortRating": "Rating",
+      "sortNewest": "Newest",
+      "viewProfile": "View profile",
+      "messageNote": "Messaging opens once you accept.",
+      "readMore": "Read more",
+      "readLess": "Show less"
+    }
   },
   "myBids": {
     "title": "My bids",
@@ -233,6 +301,10 @@
     "hourlyRate": "Hourly rate",
     "portfolio": "Portfolio",
     "noPortfolio": "No images yet.",
+    "moveUp": "Move earlier",
+    "moveDown": "Move later",
+    "captionLabel": "Caption",
+    "captionPlaceholder": "Add a caption…",
     "website": "Website",
     "instagram": "Instagram",
     "hourlyFrom": "from {amount}/hr",
@@ -241,6 +313,7 @@
     "role": "Role",
     "viewPublic": "View public profile",
     "changePhoto": "Change photo",
+    "viewPhoto": "View photo",
     "editDetails": "Edit details",
     "dangerZone": "Delete account",
     "deleteAccount": "Permanently delete account",
@@ -253,16 +326,175 @@
     "availSub": "Mark the days you are not available.",
     "availAdd": "Block a day",
     "availEmpty": "No blocked days.",
-    "availUnavailable": "Unavailable"
+    "availUnavailable": "Unavailable",
+    "availAvailable": "Available",
+    "availPrevMonth": "Previous month",
+    "availNextMonth": "Next month",
+    "verified": "Verified",
+    "verificationLabel": "Verification",
+    "requestVerification": "Request verification",
+    "verificationEvidenceHint": "Add links that prove your identity or business — your website, business registration, or a public profile. Verification is reviewed by our team.",
+    "verificationEvidencePlaceholder": "Links to your website, business registration or ID…",
+    "verificationStatus": {
+      "unverified": "Not verified",
+      "pending": "Under review",
+      "verified": "Verified",
+      "rejected": "Rejected"
+    },
+    "dataPrivacy": "Data & privacy",
+    "exportData": "Download my data",
+    "exporting": "Preparing…",
+    "exportDataHint": "Download a copy of all data we hold about you as a JSON file.",
+    "securityTitle": "Security",
+    "passwordTitle": "Change password",
+    "emailTitle": "Email address",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed.",
+    "currentPasswordWrong": "Current password is incorrect.",
+    "genericError": "Something went wrong. Please try again.",
+    "currentEmail": "Current email",
+    "newEmail": "New email",
+    "changeEmail": "Update email",
+    "emailChangePending": "Confirmation link sent to the new address.",
+    "emailSame": "That’s already your email address.",
+    "notificationsTitle": "Email notifications",
+    "notifyBidsLabel": "Offers",
+    "notifyBidsHint": "New offers and offer decisions",
+    "notifyShootUpdatesLabel": "Shoot updates",
+    "notifyShootUpdatesHint": "Cancellations and changes to your shoots",
+    "notifyMessagesLabel": "Messages",
+    "notifyMessagesHint": "New messages from clients and photographers",
+    "prefsSaved": "Saved.",
+    "termsAccepted": "Terms accepted",
+    "disciplines": "Discipline",
+    "postShootCta": "Post a shoot",
+    "publicProfileTitle": "Public profile",
+    "coverTitle": "Cover photo",
+    "coverUpload": "Upload cover",
+    "coverReplace": "Replace cover",
+    "coverRemove": "Remove",
+    "inviteCta": "Invite to your shoot",
+    "invitePickTitle": "Choose a shoot",
+    "inviteNoOpenShoots": "You have no open shoots.",
+    "inviteCreateShoot": "Create a shoot",
+    "inviteSuccess": "Invitation sent",
+    "inviteAlready": "Already invited",
+    "inviteError": "Could not send invitation",
+    "inviteUnavailableDate": "Unavailable on this date",
+    "memberSince": "Member since {year}",
+    "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}",
+    "billingTitle": "Billing",
+    "billingCurrentPlan": "Current plan",
+    "billingFreePlan": "Free plan",
+    "billingSourceComp": "Gift until {date}",
+    "billingSourceStripeRenews": "Renews {date}",
+    "billingSourceStripeEnds": "Ends {date}",
+    "billingCancelNotice": "Your subscription will not renew.",
+    "billingUsage": "{used}/{limit} this month",
+    "billingUsageUnlimited": "Unlimited",
+    "billingManage": "Manage subscription",
+    "billingViewPlans": "View plans"
+  },
+  "profileBasics": {
+    "edit": "Edit name & location",
+    "displayName": "Name or studio",
+    "city": "City",
+    "canton": "Canton",
+    "bio": "Bio",
+    "bioPlaceholder": "A short introduction clients will see on your profile.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Saved"
+  },
+  "billing": {
+    "plan": {
+      "free": {
+        "name": "Free",
+        "feature": {
+          "quota": "1 offer per month",
+          "profile": "Public photographer profile",
+          "bell": "In-app job alerts",
+          "browse": "Browse all open shoots"
+        }
+      },
+      "basic": {
+        "name": "Basic",
+        "feature": {
+          "quota": "5 offers per month",
+          "digest": "Daily job digest",
+          "everythingFree": "Everything in Free"
+        }
+      },
+      "standard": {
+        "name": "Standard",
+        "feature": {
+          "quota": "32 offers per month",
+          "placement": "Preferred directory placement",
+          "alerts": "Instant job alerts",
+          "dashboard": "Performance dashboard",
+          "everythingBasic": "Everything in Basic"
+        }
+      },
+      "premium": {
+        "name": "Premium",
+        "feature": {
+          "quota": "Unlimited offers",
+          "placement": "Top placement + SEO priority",
+          "badge": "Top Partner badge",
+          "benchmark": "Benchmark comparison",
+          "spotlight": "Homepage spotlight",
+          "everythingStandard": "Everything in Standard"
+        }
+      }
+    },
+    "pricing": {
+      "heading": "Plans for photographers",
+      "subheading": "Win more shoots. Cancel anytime.",
+      "freePrice": "Free",
+      "perMonth": "/month",
+      "perYear": "/year",
+      "mostPopular": "Most popular",
+      "intervalMonthly": "Monthly",
+      "intervalYearly": "Yearly",
+      "ctaChoose": "Choose {plan}",
+      "ctaCurrent": "Your plan",
+      "ctaManage": "Manage",
+      "ctaRegister": "Sign up to start",
+      "clientNote": "Subscriptions are for photographers.",
+      "compNote": "Gift active until {date}",
+      "trialNote": "First month free",
+      "foundingNote": "Founding member? Enter your code at checkout.",
+      "yearlyTeaser": "Yearly plans coming soon",
+      "securedByStripe": "Payments secured by Stripe",
+      "trustNoCommission": "0% commission",
+      "trustCancel": "Cancel anytime",
+      "eyebrow": "For photographers"
+    }
   },
   "errors": {
     "invalid_input": "Please check your input.",
     "unauthorized": "Please log in.",
     "forbidden": "You're not allowed to do that.",
     "already_bid": "You've already submitted an offer.",
+    "already_reviewed": "You've already submitted a review.",
     "not_found": "Not found.",
     "limit_reached": "Limit reached.",
+    "quota_reached": "You've reached your monthly bid limit.",
     "invalid_file": "Invalid file. Images up to 5 MB.",
+    "invalid_credentials": "Wrong email or password.",
+    "email_not_confirmed": "Please confirm your email address first.",
+    "email_taken": "An account with this email already exists.",
+    "comp_conflicts_stripe": "This user has an active paid subscription — revoke it in Stripe first.",
+    "not_photographer": "This user is not a photographer.",
+    "not_comp": "No comp subscription to revoke.",
+    "already_subscribed": "You already have an active subscription.",
+    "comp_active": "You have an active complimentary plan.",
+    "price_unavailable": "This plan isn't available right now.",
+    "no_customer": "No billing account found.",
+    "stripe_not_configured": "Billing isn't available right now.",
+    "billing_cancel_failed": "Couldn't cancel your subscription. Please try again.",
     "generic": "Something went wrong. Please try again."
   },
   "theme": {
@@ -275,7 +507,7 @@
     "impressumIntro": "Provider identification pursuant to applicable transparency obligations.",
     "impressumOperator": "Operator",
     "impressumContact": "Contact",
-    "impressumPlaceholder": "[TO COMPLETE: full name / company, street and number, postcode city, email address] — This information must be accurate and complete before public launch.",
+    "impressumOperatorBody": "Rinor Mustafi – Rintakez\nSole proprietorship\nVia Calundis 19a\n7013 Domat/Ems\nSwitzerland\nUID: CHE-466.681.384",
     "datenschutzTitle": "Privacy policy",
     "dsIntro": "This privacy policy explains how Rintakez collects, processes and protects personal data. It applies to all users of the platform rintakez.ch and is governed by the revised Swiss Federal Act on Data Protection (revFADP / nFADP).",
     "dsDataTitle": "Data we collect",
@@ -287,7 +519,7 @@
     "dsRightsTitle": "Your rights",
     "dsRights": "You have the right at any time to request access to your stored data, to correct inaccurate information, and to request deletion of your account and associated data. You may exercise these rights via the contact address below. We will respond to your request within 30 days.",
     "dsContactTitle": "Data protection contact",
-    "dsContactPlaceholder": "[TO COMPLETE: data protection contact email address] — This information must be accurate before public launch.",
+    "dsContactPlaceholder": "For questions about data protection, contact us at Rinormustafi@hotmail.com.",
     "dsUpdated": "Last updated: June 2026",
     "footerImpressum": "Legal notice",
     "footerDatenschutz": "Privacy",
@@ -306,7 +538,7 @@
     "agbS5T": "5. Shoots, offers & contracts",
     "agbS5B": "When a client accepts an offer, the contract is formed directly between the client and the photographer. Rintakez is not a party to it.",
     "agbS6T": "6. Fees",
-    "agbS6B": "The current fee structure is shown transparently before any paid use. [To be completed before launch.]",
+    "agbS6B": "Use of the platform is currently free of charge. Any future fee structure will be shown transparently before any paid use.",
     "agbS7T": "7. Content & rights",
     "agbS7B": "You keep the rights to your uploaded content and grant Rintakez the right to display it to present your profile or shoot.",
     "agbS8T": "8. Prohibited conduct",
@@ -315,7 +547,13 @@
     "agbS9B": "Rintakez is not liable for the photography service itself. Liability is limited, to the extent permitted by law, to intent and gross negligence.",
     "agbS10T": "10. Termination, changes & law",
     "agbS10B": "You may delete your account at any time. We may amend these terms and will inform you in good time. Swiss law applies; place of jurisdiction is the operator's seat.",
-    "footerAgb": "Terms"
+    "footerAgb": "Terms",
+    "dsSubprocessorsTitle": "Sub-processors in detail",
+    "dsSubprocessors": "We share data with carefully selected providers that help us run the platform: Supabase (database, authentication, file storage), Vercel (hosting), Resend (sending notification emails), and Plausible Analytics (anonymous, cookieless usage statistics) where enabled. These providers process data solely on our behalf.",
+    "dsRetentionTitle": "Retention & deletion",
+    "dsRetention": "We keep personal data only as long as needed to operate the marketplace. You can delete your account at any time; your profile data, shoots, bids, messages and files are removed. Reviews may remain in anonymised form.",
+    "dsCookiesTitle": "Cookies",
+    "dsCookies": "We use only technically necessary cookies for sign-in (session). No tracking or advertising cookies are set; the optional usage analytics (Plausible) works without cookies."
   },
   "states": {
     "errorTitle": "Something went wrong.",
@@ -342,7 +580,10 @@
     "bidStatusDeclined": "Declined",
     "bidStatusWithdrawn": "Withdrawn",
     "errorSubmit": "Could not send.",
-    "notOpen": "This shoot is no longer accepting offers."
+    "notOpen": "This shoot is no longer accepting offers.",
+    "quotaThisMonth": "{used}/{limit} this month",
+    "quotaReached": "You've reached your monthly limit.",
+    "viewPlans": "See plans"
   },
   "notifications": {
     "title": "Notifications",
@@ -351,12 +592,26 @@
     "bid_received": "New offer received",
     "bid_accepted": "Your offer was accepted",
     "bid_declined": "Your offer was declined",
-    "shoot_cancelled": "A shoot was cancelled"
+    "shoot_cancelled": "A shoot was cancelled",
+    "message_received": "New message received",
+    "shoot_reopened": "A booking reopened — the photographer is no longer available",
+    "review_received": "You received a new review",
+    "verification_approved": "Your profile was verified",
+    "verification_rejected": "Your verification request was declined",
+    "shoot_invitation": "You were invited to a shoot",
+    "shoot_match": "A new shoot matches your profile",
+    "heading": "Notifications",
+    "markAllRead": "Mark all read",
+    "loadMore": "Load more",
+    "viewAll": "View all",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "review": {
     "title": "Review",
     "markCompleted": "Mark as completed",
     "completedHint": "Shoot done? Mark it completed to review the photographer.",
+    "completeConfirm": "Mark this shoot as completed? This unlocks the review and can't be undone.",
     "leaveReview": "Review the photographer",
     "yourRating": "Your rating",
     "comment": "Comment (optional)",
@@ -366,7 +621,13 @@
     "recommended": "Recommended photographers",
     "newBadge": "New",
     "reviews": "Reviews",
-    "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}"
+    "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
+    "noReviews": "No reviews yet.",
+    "verifiedBooking": "Verified booking",
+    "replyFrom": "Reply from {name}",
+    "replyLabel": "Reply to this review",
+    "replyPlaceholder": "Your public reply …",
+    "replySubmit": "Send reply"
   },
   "directory": {
     "navPhotographers": "Photographers",
@@ -376,11 +637,20 @@
     "allCantons": "All cantons",
     "sortLabel": "Sort",
     "sortRating": "Top rated",
+    "sortNewest": "Newest",
     "sortPriceAsc": "Price: low to high",
+    "searchName": "Search by name",
+    "search": "Search",
+    "clear": "Clear",
     "minRating": "Min. rating",
     "empty": "No photographers match your filters.",
     "count": "{count, plural, =0 {None} one {# photographer} other {# photographers}}",
-    "savedOnly": "Saved only"
+    "savedOnly": "Saved only",
+    "verified": "Verified",
+    "verifiedOnly": "Verified only",
+    "allDisciplines": "All disciplines",
+    "popularSearches": "Popular searches",
+    "topPartner": "Top Partner"
   },
   "messages": {
     "navMessages": "Messages",
@@ -390,16 +660,47 @@
     "send": "Send",
     "about": "About: {title}",
     "threadEmpty": "No messages yet. Write the first one.",
-    "open": "Send a message"
+    "loadEarlier": "Load earlier messages",
+    "loadingEarlier": "Loading…",
+    "selectConversation": "Select a conversation.",
+    "open": "Send a message",
+    "block": "Block",
+    "unblock": "Unblock",
+    "blockedNotice": "You blocked this person. Unblock to write.",
+    "blockedByNotice": "You can’t send messages to this person.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "newMessages": "New messages",
+    "back": "Back",
+    "you": "You",
+    "retry": "Send again",
+    "discard": "Discard",
+    "sendFailed": "Not sent",
+    "limitReached": "You're sending a little too fast. Wait a moment, then try again.",
+    "conversationLabel": "Conversation with {name}",
+    "inputLabel": "Write a message",
+    "attachPhoto": "Attach a photo",
+    "photoAlt": "Photo",
+    "photoPreview": "📷 Photo",
+    "imageTooLarge": "This image is too large. Please pick one under 5 MB.",
+    "imageInvalid": "Please choose an image file."
   },
   "report": {
     "report": "Report",
     "reportTitle": "Report content",
+    "reportCategory": "Category",
     "reportReason": "What would you like to report?",
     "reportPlaceholder": "Briefly describe the issue …",
     "reportSubmit": "Report",
     "reportThanks": "Thanks. We'll review your report.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "categories": {
+      "spam": "Spam",
+      "harassment": "Harassment",
+      "scam": "Scam",
+      "inappropriate_content": "Inappropriate content",
+      "other": "Other"
+    }
   },
   "admin": {
     "navAdmin": "Admin",
@@ -416,7 +717,79 @@
     "reporter": "Reporter",
     "target": "Target",
     "reason": "Reason",
-    "viewTarget": "View"
+    "viewTarget": "View",
+    "suspended": "Suspended",
+    "notePlaceholder": "Note / reason (optional)",
+    "suspendUser": "Suspend user",
+    "unsuspendUser": "Unsuspend",
+    "suspendShoot": "Suspend shoot",
+    "unsuspendShoot": "Unsuspend",
+    "verifications": "Verifications",
+    "noVerifications": "No pending verifications.",
+    "approveVerification": "Approve",
+    "rejectVerification": "Reject",
+    "submittedEvidence": "Submitted evidence",
+    "noEvidence": "No evidence provided.",
+    "tabDashboard": "Overview",
+    "tabUsers": "Users",
+    "tabVerifications": "Verifications",
+    "tabReports": "Reports",
+    "tabAudit": "Audit log",
+    "tabEmail": "Emails",
+    "metricSignups7": "New (7d)",
+    "metricSignups30": "New (30d)",
+    "metricZeroBidOpen": "Open shoots, no bids",
+    "metricMedianBidsPerOpenShoot": "Median bids / open shoot",
+    "metricMedianHoursToFirstBid": "Median time to first bid",
+    "metricInvitesSent7": "Invites sent (7d)",
+    "needsAttention": "Needs attention",
+    "suspendedUsers": "Suspended users",
+    "failedEmails": "Failed emails",
+    "searchUsers": "Search by name…",
+    "search": "Search",
+    "noUsers": "No users found.",
+    "resultsCapped": "Showing the first {n} results. Search to narrow.",
+    "badgeAdmin": "Admin",
+    "makeAdmin": "Make admin",
+    "revokeAdmin": "Revoke admin",
+    "cannotRevokeSelf": "You can’t revoke your own admin status.",
+    "confirmSuspend": "Suspend {name}? They won’t be able to create new content.",
+    "confirmMakeAdmin": "Grant admin to {name}?",
+    "confirmRevokeAdmin": "Revoke admin from {name}?",
+    "auditLog": "Audit log",
+    "noAudit": "No entries yet.",
+    "auditBy": "by",
+    "emailHealth": "Email health",
+    "emailPending": "Pending",
+    "emailSent": "Sent",
+    "emailFailed": "Failed",
+    "emailQueueEmpty": "No pending or failed emails.",
+    "emailAttempts": "{n} attempts",
+    "retry": "Retry",
+    "reportStatus": {
+      "open": "Open",
+      "reviewed": "Reviewed",
+      "dismissed": "Dismissed"
+    },
+    "userFilter": {
+      "all": "All",
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "tabDisputes": "Disputes",
+    "disputes": "Disputes",
+    "noDisputes": "No open disputes.",
+    "disputeResolve": "Mark resolved",
+    "disputeDismiss": "Dismiss",
+    "compGrant": "Grant free period",
+    "compMonths": "Months",
+    "compGrantButton": "Grant",
+    "compChip": "{plan} · until {date}",
+    "compRevoke": "Revoke",
+    "confirmRevokeComp": "Revoke {name}'s free period?",
+    "tierBasic": "Basic",
+    "tierStandard": "Standard",
+    "tierPremium": "Premium"
   },
   "pagination": {
     "label": "Pagination",
@@ -428,5 +801,85 @@
     "loginToBid": "Log in to place a bid",
     "loginToPost": "Log in to post a shoot",
     "browseAll": "Browse all shoots"
+  },
+  "account": {
+    "suspendedBanner": "Your account has been suspended. You can’t create new content for now."
+  },
+  "dispute": {
+    "open": "Report a problem",
+    "placeholder": "Describe the problem…",
+    "minChars": "At least 10 characters — {count}/10",
+    "submit": "Open dispute",
+    "cancel": "Cancel",
+    "error": "Something went wrong.",
+    "existing": "Dispute",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "dismissed": "Dismissed"
+    }
+  },
+  "landingSeo": {
+    "h1": {
+      "wedding": "Wedding photographers in {canton}",
+      "portrait": "Portrait photographers in {canton}",
+      "commercial": "Commercial photographers in {canton}",
+      "event": "Event photographers in {canton}",
+      "architecture": "Architecture photographers in {canton}",
+      "family": "Family photographers in {canton}",
+      "other": "Photographers in {canton}"
+    },
+    "intro": {
+      "wedding": "Planning a wedding in {canton}? Browse local wedding photographers, compare portfolios and reviews, then invite your favorites to bid on your day.",
+      "portrait": "Looking for a portrait session in {canton}? Compare local portrait photographers by style, price and rating before you book.",
+      "commercial": "Need commercial photography in {canton}? Browse photographers experienced with product, campaign and editorial work in your area.",
+      "event": "Hosting an event in {canton}? Find event photographers who know the local venues and can cover it start to finish.",
+      "architecture": "Need architecture photography in {canton}? Browse photographers who specialize in interiors and exteriors near you.",
+      "family": "Looking for a family shoot in {canton}? Browse relaxed, local family photographers and see their recent work before you reach out.",
+      "other": "Browse photographers covering {canton} for shoots that don't fit a standard category — describe your project and compare offers."
+    },
+    "snapshotHeading": "Photographers matching {type} in {canton}",
+    "viewAllCta": "View all {type} photographers in {canton}",
+    "emptyTitle": "No photographers here yet",
+    "emptyDescription": "No {type} photographers are listed for {canton} yet. Be the first to add your profile, or browse the full directory.",
+    "emptyBrowseAll": "Browse all photographers",
+    "emptyJoin": "Join as a photographer"
+  },
+  "toast": {
+    "dismiss": "Dismiss",
+    "bidSubmitted": "Bid submitted",
+    "bidWithdrawn": "Bid withdrawn",
+    "reviewSubmitted": "Review submitted",
+    "replySubmitted": "Reply sent",
+    "shootCreated": "Shoot published",
+    "shootUpdated": "Shoot updated",
+    "availabilitySaved": "Availability saved"
+  },
+  "checklist": {
+    "title": "Complete your profile",
+    "hint": "Complete profiles win more work. A few steps left.",
+    "progressLabel": "Profile {percent}% complete",
+    "item": {
+      "avatar": "Add a profile photo",
+      "bio": "Write a short bio",
+      "portfolio": "Add portfolio images",
+      "rate": "Set your hourly rate",
+      "cantons": "Choose your coverage areas",
+      "specialties": "Pick your specialties",
+      "verification": "Request verification"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Install Rintakez",
+      "body": "Add it to your home screen for faster access and a full-screen experience.",
+      "action": "Install",
+      "dismiss": "Dismiss"
+    },
+    "ios": {
+      "title": "Add Rintakez to your Home Screen",
+      "body": "Tap the Share icon, then choose “Add to Home Screen”.",
+      "dismiss": "Dismiss"
+    }
   }
 }

@@ -4,6 +4,7 @@ import { createShootSchema } from "./shoot";
 const valid = {
   title: "Hochzeit in Zermatt",
   type: "wedding",
+  discipline: "photo",
   brief: "Dokumentarischer Stil im Detail beschrieben.",
   locationCity: "Zermatt",
   locationPostcode: "3920",

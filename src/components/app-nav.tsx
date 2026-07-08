@@ -8,7 +8,11 @@ import { NavLinks } from "@/components/nav-links";
 import { NavSearch } from "@/components/nav-search";
 import { Wordmark } from "@/components/wordmark";
 import { NotificationBell } from "@/components/notification-bell";
+import { MessagesLive } from "@/components/messages-live";
+import { SignupTracker } from "@/components/signup-tracker";
 import { getNotificationData } from "@/lib/actions/notifications";
+import { getUnreadConversationCount } from "@/lib/actions/messages";
+import { initials } from "@/lib/name";
 
 interface AppNavProps {
   role: "client" | "photographer";
@@ -16,13 +20,6 @@ interface AppNavProps {
   userId: string;
   avatarUrl?: string | null;
   isAdmin?: boolean;
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
 export async function AppNav({
@@ -33,8 +30,8 @@ export async function AppNav({
   isAdmin,
 }: AppNavProps) {
   const t = await getTranslations("nav");
-  const { items: notifItems, unread: notifUnread } =
-    await getNotificationData();
+  const [{ items: notifItems, unread: notifUnread }, messagesUnread] =
+    await Promise.all([getNotificationData(), getUnreadConversationCount()]);
   const adminLink = isAdmin
     ? ([{ href: "/admin", label: t("admin") }] as const)
     : ([] as const);
@@ -52,6 +49,7 @@ export async function AppNav({
     { href: "/shoots", label: t("browseShoots") },
     { href: "/my-bids", label: t("myBids") },
     { href: "/messages", label: t("messages") },
+    { href: "/pricing", label: t("subscription") },
     { href: "/profile", label: t("profile") },
   ] as const;
 
@@ -62,6 +60,11 @@ export async function AppNav({
 
   return (
     <>
+      {/* Invisible: keeps the inbox list + unread badge live on every page. */}
+      <MessagesLive userId={userId} />
+      {/* Invisible: fires the Plausible `signup` event once for OAuth signups. */}
+      <SignupTracker />
+
       {/* Desktop top bar — hidden on mobile, shown on lg+ */}
       <nav className="hidden lg:block border-b border-line bg-paper">
         <div className="mx-auto flex max-w-7xl items-center gap-8 px-8 py-4">
@@ -69,7 +72,7 @@ export async function AppNav({
           <Link href="/home" className="text-lg shrink-0">
             <Wordmark />
           </Link>
-          <NavLinks links={links} />
+          <NavLinks links={links} messagesUnread={messagesUnread} />
 
           {/* Search — grows to fill, capped */}
           <NavSearch className="ml-auto w-full max-w-sm" />
@@ -116,9 +119,24 @@ export async function AppNav({
       {/* Mobile top bar — shown on mobile, hidden on lg+ */}
       <nav className="flex lg:hidden border-b border-line bg-paper">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5">
-          <Link href="/home" className="text-lg">
-            <Wordmark />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/home" className="text-lg">
+              <Wordmark />
+            </Link>
+            {/* Photographer-only: the collapsed mobile nav drops the /pricing
+                link, so surface a compact accent entry to the plans here.
+                -my-2 keeps the 44px tap target from inflating the bar (same
+                trick as the bell/theme controls opposite). */}
+            {role === "photographer" && (
+              <Link
+                href="/pricing"
+                data-testid="mobile-subscription-link"
+                className="press label -my-2 inline-flex min-h-11 items-center px-2 text-accent"
+              >
+                {t("subscription")}
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <NotificationBell
               userId={userId}
@@ -133,7 +151,7 @@ export async function AppNav({
       </nav>
 
       {/* Mobile bottom tab bar — client component, lg:hidden */}
-      <MobileTabBar role={role} />
+      <MobileTabBar role={role} messagesUnread={messagesUnread} />
     </>
   );
 }

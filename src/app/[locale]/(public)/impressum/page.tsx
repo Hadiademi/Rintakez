@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
+const EMAIL = "Rinormustafi@hotmail.com";
+const PHONE_DISPLAY = "079 338 75 33";
+const PHONE_TEL = "+41793387533";
+
 export async function generateMetadata({
   params,
 }: {
@@ -24,20 +28,25 @@ export default async function ImpressumPage() {
 
         <section className="mt-10 space-y-3">
           <h2 className="label text-mute">{t("impressumOperator")}</h2>
-          {/* Operator placeholder — MUST be filled before public launch */}
           <div className="rounded border border-line bg-surface px-4 py-4">
-            <p className="text-sm font-medium text-ink">
-              {t("impressumPlaceholder")}
+            <p className="whitespace-pre-line text-sm leading-relaxed text-ink">
+              {t("impressumOperatorBody")}
             </p>
           </div>
         </section>
 
         <section className="mt-10 space-y-3">
           <h2 className="label text-mute">{t("impressumContact")}</h2>
-          {/* Contact placeholder — same as operator block above */}
-          <div className="rounded border border-line bg-surface px-4 py-4">
-            <p className="text-sm font-medium text-ink">
-              {t("impressumPlaceholder")}
+          <div className="space-y-1.5 rounded border border-line bg-surface px-4 py-4 text-sm text-ink">
+            <p>
+              <a href={`mailto:${EMAIL}`} className="transition-colors hover:text-accent">
+                {EMAIL}
+              </a>
+            </p>
+            <p>
+              <a href={`tel:${PHONE_TEL}`} className="transition-colors hover:text-accent">
+                {PHONE_DISPLAY}
+              </a>
             </p>
           </div>
         </section>

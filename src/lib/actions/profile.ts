@@ -1,12 +1,58 @@
 "use server";
 
+import { z } from "zod";
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getStripe } from "@/lib/stripe";
+import { captureError } from "@/lib/observability";
 import { getSessionUser } from "@/lib/auth";
+import { CANTONS } from "@/lib/validation/photographer";
 
 type ErrResult = { ok: false; error: string };
 type Ok<T extends object = object> = { ok: true } & T;
+
+const profileBasicsSchema = z.object({
+  displayName: z.string().trim().min(1).max(80),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  canton: z.enum(CANTONS).optional().or(z.literal("")),
+  bio: z.string().trim().max(2000).optional().or(z.literal("")),
+});
+
+/**
+ * Update the current user's public basics — display name, city, canton, bio.
+ * These render on the header, the public photographer profile and directory
+ * cards, but had no setter anywhere (registration/onboarding never collected
+ * them), so they were permanently blank. RLS scopes the write to the own row;
+ * the profiles UPDATE grant is column-scoped to exactly these columns.
+ */
+export async function updateProfileBasics(
+  raw: unknown
+): Promise<{ ok: true } | ErrResult> {
+  const parsed = profileBasicsSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false, error: "invalid_input" };
+
+  const user = await getSessionUser();
+  if (!user) return { ok: false, error: "unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: parsed.data.displayName,
+      city: parsed.data.city ? parsed.data.city : null,
+      canton: parsed.data.canton ? parsed.data.canton : null,
+      bio: parsed.data.bio ? parsed.data.bio : null,
+    })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: dbError(error, "profile") };
+
+  revalidatePath("/[locale]/(app)/profile", "page");
+  revalidatePath("/[locale]/(public)/photographers/[id]", "page");
+  revalidateTag(`photographer:${user.id}`, "max");
+  return { ok: true };
+}
 
 function extFor(file: File): string {
   const rawExt = file.name.includes(".")
@@ -27,6 +73,35 @@ function extFor(file: File): string {
 
 function isStoragePath(value: string): boolean {
   return !value.startsWith("http://") && !value.startsWith("https://");
+}
+
+type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
+
+/**
+ * Recursively collect every object path under a storage prefix. Storage `list`
+ * returns nested folders as entries with a null id; we descend into them so
+ * nested objects (e.g. `<uid>/cover/...`, `<uid>/<shootId>/...`) are not left
+ * behind. Throws on any listing error so the caller can fail safe.
+ */
+async function collectStoragePaths(
+  admin: AdminClient,
+  bucket: string,
+  prefix: string
+): Promise<string[]> {
+  const { data, error } = await admin.storage
+    .from(bucket)
+    .list(prefix, { limit: 1000 });
+  if (error) throw error;
+  const out: string[] = [];
+  for (const entry of data ?? []) {
+    const full = `${prefix}/${entry.name}`;
+    if (entry.id === null) {
+      out.push(...(await collectStoragePaths(admin, bucket, full)));
+    } else {
+      out.push(full);
+    }
+  }
+  return out;
 }
 
 /**
@@ -68,7 +143,7 @@ export async function uploadAvatar(
   const { error: uploadError } = await supabase.storage
     .from("avatars")
     .upload(path, file, { contentType: file.type, upsert: false });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  if (uploadError) return { ok: false, error: dbError(uploadError, "profile") };
 
   const { error: updateError } = await supabase
     .from("profiles")
@@ -76,7 +151,7 @@ export async function uploadAvatar(
     .eq("id", user.id);
   if (updateError) {
     await supabase.storage.from("avatars").remove([path]);
-    return { ok: false, error: updateError.message };
+    return { ok: false, error: dbError(updateError, "profile") };
   }
 
   if (oldPath) await supabase.storage.from("avatars").remove([oldPath]);
@@ -103,19 +178,67 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   const admin = createAdminClient();
   if (!admin) return { ok: false, error: "generic" };
 
-  // Best-effort storage cleanup (avatars/portfolio/shoot-refs live under the
-  // user's uid folder); DB rows cascade from the auth.users delete.
-  for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
-    const { data: files } = await admin.storage.from(bucket).list(user.id);
-    if (files?.length) {
-      await admin.storage
-        .from(bucket)
-        .remove(files.map((f) => `${user.id}/${f.name}`));
+  // Storage cleanup (avatars/portfolio/shoot-refs live under the user's uid
+  // folder, possibly nested); DB rows cascade from the auth.users delete.
+  // Fail-safe: if any listing/removal errors, abort BEFORE deleting the auth
+  // user so we never leave orphaned PII behind with no account to retry from.
+  try {
+    for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
+      const paths = await collectStoragePaths(admin, bucket, user.id);
+      if (paths.length > 0) {
+        const { error: removeError } = await admin.storage
+          .from(bucket)
+          .remove(paths);
+        if (removeError) throw removeError;
+      }
+    }
+  } catch {
+    return { ok: false, error: "storage_cleanup_failed" };
+  }
+
+  // Cancel any live Stripe subscription before the account (and its
+  // subscriptions row) disappears. If cancellation fails, ABORT the deletion
+  // — never orphan a live paid Stripe subscription behind a deleted account,
+  // where no one can reach it to cancel and the customer keeps getting
+  // charged with no way to stop it themselves. No subscription row, or no
+  // stripe_subscription_id, or Stripe not configured (local dev/test) all
+  // proceed straight to deletion — there's nothing to cancel.
+  const { data: sub, error: subError } = await admin
+    .from("subscriptions")
+    .select("stripe_subscription_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  // Fail-safe on a transient READ error: do NOT proceed to delete. A swallowed
+  // read error would leave `sub` null → cancellation skipped → the account is
+  // erased while a live paid Stripe subscription keeps billing with no way to
+  // reach it. Same posture as a cancel failure: abort with billing_cancel_failed.
+  if (subError) {
+    captureError(subError, { scope: "profile.deleteAccount.subRead", userId: user.id });
+    return { ok: false, error: "billing_cancel_failed" };
+  }
+  if (sub?.stripe_subscription_id) {
+    const stripe = getStripe();
+    if (stripe) {
+      try {
+        await stripe.subscriptions.cancel(sub.stripe_subscription_id);
+      } catch (err) {
+        captureError(err, { scope: "profile.deleteAccount.stripeCancel", userId: user.id });
+        return { ok: false, error: "billing_cancel_failed" };
+      }
     }
   }
 
+  // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET
+  // NULL, so the row survives the cascade as an anonymised audit entry).
+  await admin.from("audit_log").insert({
+    actor_id: user.id,
+    action: "account_deleted",
+    target_type: "profile",
+    target_id: user.id,
+  });
+
   const { error } = await admin.auth.admin.deleteUser(user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   // Tear down the now-orphaned session cookies.
   const supabase = await createClient();
@@ -141,7 +264,7 @@ export async function removeAvatar(): Promise<{ ok: true } | ErrResult> {
     .from("profiles")
     .update({ avatar_url: null })
     .eq("id", user.id);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "profile") };
 
   if (current?.avatar_url && isStoragePath(current.avatar_url)) {
     await supabase.storage.from("avatars").remove([current.avatar_url]);

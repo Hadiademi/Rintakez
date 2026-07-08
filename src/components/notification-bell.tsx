@@ -2,24 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { createClient as createRealtimeClient } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
+import { getRealtimeClient } from "@/lib/supabase/realtime";
 import {
   markNotificationsRead,
   type NotificationItem,
 } from "@/lib/actions/notifications";
-
-// Unique storage key per realtime client so multiple instances never share an
-// auth-storage lock (which would log "Multiple GoTrueClient instances").
-let rtSeq = 0;
-
-function hrefFor(item: NotificationItem): string {
-  // Client (bid_received) → the shoot's offers. Photographer → their bids.
-  if (item.type === "bid_received" && item.shootId)
-    return `/shoots/${item.shootId}`;
-  return "/my-bids";
-}
+import { hrefFor } from "@/lib/notifications-href";
+import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
 
 function BellIcon() {
   return (
@@ -50,6 +41,7 @@ export function NotificationBell({
   initialUnread: number;
 }) {
   const t = useTranslations("notifications");
+  const tCommon = useTranslations("common");
   const [items, setItems] = useState<NotificationItem[]>(initialItems);
   const [unread, setUnread] = useState(initialUnread);
   const [open, setOpen] = useState(false);
@@ -59,23 +51,10 @@ export function NotificationBell({
 
   // ── Realtime: live notifications for this user ─────────────────────
   useEffect(() => {
-    // A dedicated realtime client seeded with the user's access token. The SSR
-    // browser client does not reliably push its session token onto the realtime
-    // socket, so we authorize this one explicitly (RLS on `notifications`
-    // filters by auth.uid(), which requires the user token, not the anon key).
-    const rt = createRealtimeClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      // Realtime-only client — we set the token via setAuth, so it must not
-      // touch the shared auth storage (avoids "multiple GoTrueClient" warnings).
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storageKey: `sb-rt-notif-${++rtSeq}`,
-        },
-      }
-    );
+    // Shared realtime client (one websocket per tab), authorized with the user
+    // token in the module. RLS on `notifications` filters by auth.uid(), which
+    // requires the user token, not the anon key.
+    const rt = getRealtimeClient();
 
     function onInsert(payload: { new: Record<string, unknown> }) {
       const row = payload.new as {
@@ -89,6 +68,8 @@ export function NotificationBell({
         id: row.id,
         type: row.type,
         shootId: row.shoot_id,
+        // Realtime payload has no conversation id; the inbox is the fallback.
+        conversationId: null,
         title: null,
         readAt: row.read_at,
         createdAt: row.created_at,
@@ -121,13 +102,14 @@ export function NotificationBell({
 
     return () => {
       cancelled = true;
+      // Remove only THIS channel — never disconnect the shared socket, which
+      // other components' channels multiplex over.
       rt.removeChannel(channel);
-      rt.realtime.disconnect();
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, [userId]);
 
-  // ── Close dropdown on outside click ────────────────────────────────
+  // ── Close dropdown on outside click or Escape ──────────────────────
   useEffect(() => {
     if (!open) return;
     function onDown(e: MouseEvent) {
@@ -135,9 +117,32 @@ export function NotificationBell({
         setOpen(false);
       }
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
     document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
+
+  // Zero the badge when notifications are marked read elsewhere (the full
+  // /notifications page). The bell persists across app navigation, so it won't
+  // re-seed its unread count on its own.
+  useEffect(() => {
+    function onRead() {
+      setUnread(0);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.readAt ? i : { ...i, readAt: new Date().toISOString() }
+        )
+      );
+    }
+    window.addEventListener(NOTIFICATIONS_READ_EVENT, onRead);
+    return () => window.removeEventListener(NOTIFICATIONS_READ_EVENT, onRead);
+  }, []);
 
   async function toggle() {
     const next = !open;
@@ -157,14 +162,16 @@ export function NotificationBell({
         type="button"
         onClick={toggle}
         aria-label={t("title")}
+        aria-haspopup="menu"
+        aria-expanded={open}
         data-testid="notification-bell"
-        className="press relative text-mute hover:text-ink"
+        className="press relative -m-2 flex h-10 w-10 items-center justify-center text-mute hover:text-ink"
       >
         <BellIcon />
         {unread > 0 && (
           <span
             data-testid="notification-badge"
-            className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-paper"
+            className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold leading-none text-paper"
           >
             {unread > 9 ? "9+" : unread}
           </span>
@@ -212,23 +219,42 @@ export function NotificationBell({
               ))}
             </ul>
           )}
+          <div className="border-t border-line">
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="press flex min-h-11 items-center justify-center px-4 py-3 text-[13px] font-medium text-accent hover:bg-surface"
+            >
+              {t("viewAll")}
+            </Link>
+          </div>
         </div>
       )}
 
-      {/* Realtime toast */}
+      {/* Realtime toast — the whole card navigates; a ✕ dismisses it. */}
       {toast && (
         <div
           data-testid="notification-toast"
-          className="fixed right-5 top-20 z-[60] w-72 border border-line bg-ink px-4 py-3 text-paper shadow-xl"
+          className="fixed right-5 top-20 z-[60] w-72 border border-line bg-ink text-paper shadow-xl"
         >
-          <p className="label text-paper/60">{t("title")}</p>
           <Link
             href={hrefFor(toast)}
             onClick={() => setToast(null)}
-            className="mt-1 block text-[14px] font-medium underline-offset-2 hover:underline"
+            className="press block px-4 py-3 pr-9"
           >
-            {t(toast.type)}
+            <span className="label block text-paper/60">{t("title")}</span>
+            <span className="mt-1 block text-[14px] font-medium">
+              {t(toast.type)}
+            </span>
           </Link>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            aria-label={tCommon("close")}
+            className="press absolute right-1 top-1 flex h-7 w-7 items-center justify-center text-paper/70 hover:text-paper"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>

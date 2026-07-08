@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(83);
+select plan(84);
 
 -- ── fixtures: 1 client + 2 photographers (trigger creates profiles) ──
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -269,13 +269,17 @@ reset role;
 
 -- ── 24: photographer cannot move bid to a different shoot ─────────────
 -- Marko (00...0002) tries to move bid 3 (on shoot 3) to shoot 1.
--- The trigger must block the shoot_id change.
+-- bids_immutable_guard (P0001) still blocks this for any writer with a wider
+-- grant (e.g. service_role), but since 20260707000000_subscriptions.sql (F2)
+-- column-scoped the authenticated UPDATE grant to amount_chf/message/status,
+-- a shoot_id write from `authenticated` is now rejected even earlier, at the
+-- grant check (42501), before the trigger runs.
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000002","role":"authenticated"}';
 select throws_ok(
   $$update public.bids set shoot_id = '10000000-0000-0000-0000-000000000001'
     where id = '20000000-0000-0000-0000-000000000003'$$,
-  'P0001',
+  '42501',
   null,
   'photographer cannot change shoot_id on own bid'
 );
@@ -485,6 +489,15 @@ select results_eq(
 );
 reset role;
 
+-- Shoot 1 must be in the FUTURE for the earlier bid tests (t11's WITH CHECK
+-- requires shoot_date >= current_date, and it fires before the unique
+-- constraint). But complete_shoot's premature-completion guard requires
+-- shoot_date <= current_date, so date-shift shoot 1 into the past here — after
+-- the bid tests, before completion — via a superuser UPDATE (bypasses RLS, no
+-- status change so the FSM trigger is untouched).
+update public.shoots set shoot_date = '2020-08-14'
+  where id = '10000000-0000-0000-0000-000000000001';
+
 -- ── 48: non-owner cannot complete a shoot ────────────────────────────
 -- Shoot 1 is assigned to Marko. Marko (the photographer) is not the client.
 set local role authenticated;
@@ -505,6 +518,16 @@ select lives_ok(
   'client completes own assigned shoot'
 );
 reset role;
+
+-- ── 49b: complete_shoot stamps completed_at ──────────────────────────
+-- The review-request lifecycle scan measures its window off completed_at, so
+-- completing a shoot must record a non-null completion timestamp.
+select isnt(
+  (select completed_at from public.shoots
+   where id = '10000000-0000-0000-0000-000000000001'),
+  null,
+  'complete_shoot sets completed_at'
+);
 
 -- ── 50: reviews table exists ─────────────────────────────────────────
 select has_table('public', 'reviews', 'reviews exists');

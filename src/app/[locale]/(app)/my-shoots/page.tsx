@@ -1,8 +1,10 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { shootImage } from "@/lib/shoot-image";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { PageHeading } from "@/components/section-label";
 
@@ -34,14 +36,21 @@ export default async function MyShootsPage() {
 
   const shootList = shoots ?? [];
 
-  const bidCounts = await Promise.all(
-    shootList.map(async (shoot) => {
-      const { data, error } = await supabase.rpc("shoot_bid_count", {
-        p_shoot_id: shoot.id,
-      });
-      return error || data === null ? 0 : (data as number);
-    })
-  );
+  // Active-offer counts in a single query (was one shoot_bid_count RPC per row).
+  // Mirrors shoot_bid_count: count only pending + accepted bids. RLS lets the
+  // owning client read bids on their own shoots.
+  const shootIds = shootList.map((s) => s.id);
+  const { data: bidRows } = shootIds.length
+    ? await supabase
+        .from("bids")
+        .select("shoot_id, status")
+        .in("shoot_id", shootIds)
+        .in("status", ["pending", "accepted"])
+    : { data: [] as { shoot_id: string; status: string }[] };
+  const bidCountBy = new Map<string, number>();
+  for (const b of bidRows ?? []) {
+    bidCountBy.set(b.shoot_id, (bidCountBy.get(b.shoot_id) ?? 0) + 1);
+  }
 
   const createCtaLink = (
     <Link
@@ -71,28 +80,54 @@ export default async function MyShootsPage() {
           data-testid="my-shoots-list"
           className="divide-y divide-line border-y border-line"
         >
-          {shootList.map((shoot, i) => (
-            <Link
+          {shootList.map((shoot) => (
+            <div
               key={shoot.id}
-              href={`/shoots/${shoot.id}`}
-              data-testid={`my-shoot-${shoot.id}`}
-              className="press flex items-center justify-between gap-4 py-5"
+              className="flex flex-col gap-2 py-5 transition-colors hover:bg-surface sm:gap-1"
             >
-              <div className="min-w-0">
-                <p className="label uppercase text-mute">
-                  {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
-                  {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
-                </p>
-                <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
-                  {shoot.title}
-                </h2>
-                <p className="mt-0.5 tabular text-sm text-mute">
-                  {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)} ·{" "}
-                  {tShoot("bidsCount", { count: bidCounts[i] })}
-                </p>
-              </div>
-              <ShootStatusBadge status={shoot.status} />
-            </Link>
+              <Link
+                href={`/shoots/${shoot.id}`}
+                data-testid={`my-shoot-${shoot.id}`}
+                className="press flex items-center gap-4"
+              >
+                <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
+                  <Image
+                    src={shootImage(shoot.type, shoot.id, 240, 160)}
+                    alt=""
+                    fill
+                    sizes="96px"
+                    className="object-cover grayscale"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="label uppercase text-mute">
+                    {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
+                    {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
+                  </p>
+                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
+                    {shoot.title}
+                  </h2>
+                  <p className="mt-0.5 tabular text-sm text-mute">
+                    {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)}{" "}
+                    ·{" "}
+                    {tShoot("bidsCount", {
+                      count: bidCountBy.get(shoot.id) ?? 0,
+                    })}
+                  </p>
+                </div>
+                <ShootStatusBadge status={shoot.status} />
+              </Link>
+              {shoot.status === "open" &&
+              (bidCountBy.get(shoot.id) ?? 0) === 0 ? (
+                <Link
+                  href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
+                  data-testid={`find-photographers-cta-${shoot.id}`}
+                  className="press inline-block self-start pl-0 text-[13px] text-accent hover:opacity-70 sm:pl-[112px]"
+                >
+                  {tShoot("findPhotographersCta")}
+                </Link>
+              ) : null}
+            </div>
           ))}
         </div>
       )}

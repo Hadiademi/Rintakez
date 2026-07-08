@@ -7,9 +7,14 @@ import {
   addUnavailableDate,
   removeUnavailableDate,
 } from "@/lib/actions/availability";
+import { formatSwissDate } from "@/lib/format";
+import { useToast } from "@/components/ui/toaster";
 
 export function AvailabilityManager({ initial }: { initial: string[] }) {
   const t = useTranslations("profile");
+  const tCommon = useTranslations("common");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [dates, setDates] = useState<string[]>(initial);
   const [value, setValue] = useState("");
@@ -25,7 +30,10 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
     startTransition(async () => {
       const res = await addUnavailableDate(date);
       if (!res.ok) setDates((prev) => prev.filter((d) => d !== date));
-      else router.refresh();
+      else {
+        toast(tToast("availabilitySaved"));
+        router.refresh();
+      }
     });
   }
 
@@ -58,7 +66,7 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
           type="button"
           data-testid="availability-add"
           onClick={add}
-          disabled={isPending || !value}
+          disabled={isPending || !value || dates.includes(value)}
           className="press bg-ink px-4 py-2.5 text-sm font-medium text-paper disabled:opacity-40"
         >
           {t("availAdd")}
@@ -75,8 +83,9 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
               type="button"
               onClick={() => remove(d)}
               className="press tabular inline-flex items-center gap-1.5 rounded-full bg-chip px-3 py-1 text-[13px] text-ink hover:bg-line"
+              aria-label={`${tCommon("remove")} ${formatSwissDate(d)}`}
             >
-              {d}
+              {formatSwissDate(d)}
               <span className="text-mute-2">✕</span>
             </button>
           ))}

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { SHOOT_TYPES, CANTONS } from "@/lib/validation/photographer";
+import { Select } from "@/components/ui/select";
 
 export function PhotographerFilters() {
   const t = useTranslations("directory");
@@ -20,16 +21,54 @@ export function PhotographerFilters() {
     router.push(`${pathname}?${next.toString()}`);
   }
 
-  const selectClass =
-    "border border-line bg-surface px-3 py-2 text-[14px] text-ink focus:border-ink focus:outline-none";
+  // Any active filter (ignoring pagination) enables the reset.
+  const hasFilters = [
+    "type",
+    "canton",
+    "discipline",
+    "minRating",
+    "saved",
+    "verified",
+    "sort",
+    "q",
+  ].some((k) => params.get(k));
+
+  function clearAll() {
+    router.push(pathname);
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <select
+    <div className="space-y-3">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const v = new FormData(e.currentTarget).get("q");
+          setParam("q", typeof v === "string" ? v.trim() : "");
+        }}
+        className="flex gap-2"
+      >
+        <input
+          key={params.get("q") ?? ""}
+          name="q"
+          type="search"
+          defaultValue={params.get("q") ?? ""}
+          placeholder={t("searchName")}
+          data-testid="filter-search"
+          className="w-full max-w-xs border border-line bg-surface px-3.5 py-2 text-[14px] text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="press shrink-0 border border-line px-4 py-2 text-[14px] text-ink hover:border-ink"
+        >
+          {t("search")}
+        </button>
+      </form>
+
+      <div className="flex flex-wrap items-center gap-3">
+      <Select
         data-testid="filter-specialty"
         value={params.get("type") ?? ""}
         onChange={(e) => setParam("type", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("allSpecialties")}</option>
         {SHOOT_TYPES.map((v) => (
@@ -37,13 +76,12 @@ export function PhotographerFilters() {
             {tShoot(`types.${v}`)}
           </option>
         ))}
-      </select>
+      </Select>
 
-      <select
+      <Select
         data-testid="filter-canton"
         value={params.get("canton") ?? ""}
         onChange={(e) => setParam("canton", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("allCantons")}</option>
         {CANTONS.map((c) => (
@@ -51,13 +89,22 @@ export function PhotographerFilters() {
             {c}
           </option>
         ))}
-      </select>
+      </Select>
 
-      <select
+      <Select
+        data-testid="filter-discipline"
+        value={params.get("discipline") ?? ""}
+        onChange={(e) => setParam("discipline", e.target.value)}
+      >
+        <option value="">{t("allDisciplines")}</option>
+        <option value="photo">{tShoot("disciplines.photo")}</option>
+        <option value="video">{tShoot("disciplines.video")}</option>
+      </Select>
+
+      <Select
         data-testid="filter-minrating"
         value={params.get("minRating") ?? ""}
         onChange={(e) => setParam("minRating", e.target.value)}
-        className={selectClass}
       >
         <option value="">{t("minRating")}</option>
         {[3, 4, 4.5].map((r) => (
@@ -65,7 +112,7 @@ export function PhotographerFilters() {
             ★ {r}+
           </option>
         ))}
-      </select>
+      </Select>
 
       <button
         type="button"
@@ -81,15 +128,43 @@ export function PhotographerFilters() {
         ♥ {t("savedOnly")}
       </button>
 
-      <select
-        data-testid="filter-sort"
-        value={params.get("sort") ?? "rating"}
-        onChange={(e) => setParam("sort", e.target.value)}
-        className={`${selectClass} ml-auto`}
+      <button
+        type="button"
+        data-testid="filter-verified"
+        onClick={() => setParam("verified", params.get("verified") ? "" : "1")}
+        aria-pressed={!!params.get("verified")}
+        className={`press border px-3 py-2 text-[14px] transition-colors ${
+          params.get("verified")
+            ? "border-ink bg-ink text-paper"
+            : "border-line text-ink hover:border-ink"
+        }`}
       >
-        <option value="rating">{t("sortRating")}</option>
-        <option value="price">{t("sortPriceAsc")}</option>
-      </select>
+        ✓ {t("verifiedOnly")}
+      </button>
+
+      {hasFilters && (
+        <button
+          type="button"
+          data-testid="filter-clear"
+          onClick={clearAll}
+          className="press border border-line px-3 py-2 text-[14px] text-mute hover:border-ink hover:text-ink"
+        >
+          {t("clear")}
+        </button>
+      )}
+
+      <div className="w-full lg:ml-auto lg:w-auto">
+        <Select
+          data-testid="filter-sort"
+          value={params.get("sort") ?? "rating"}
+          onChange={(e) => setParam("sort", e.target.value)}
+        >
+          <option value="rating">{t("sortRating")}</option>
+          <option value="newest">{t("sortNewest")}</option>
+          <option value="price">{t("sortPriceAsc")}</option>
+        </Select>
+      </div>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
@@ -7,10 +8,26 @@ import { ShootCard } from "@/components/shoot-card";
 import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
 import { Pagination } from "@/components/pagination";
+import { EmptyState } from "@/components/ui/empty-state";
+import { buildAlternates } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
 const PER_PAGE = 12;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return {
+    title: t("shootsTitle"),
+    description: t("shootsDescription"),
+    alternates: buildAlternates(locale, "/shoots"),
+  };
+}
 
 export default async function BrowseShootsPage({
   searchParams,
@@ -18,6 +35,7 @@ export default async function BrowseShootsPage({
   searchParams: Promise<{
     canton?: string;
     type?: string;
+    discipline?: string;
     budgetMax?: string;
     q?: string;
     page?: string;
@@ -29,6 +47,7 @@ export default async function BrowseShootsPage({
   const sp = await searchParams;
   const canton = sp.canton;
   const type = sp.type;
+  const discipline = sp.discipline;
   const budgetMax = sp.budgetMax;
   const q = sp.q?.trim();
   const page = Math.max(1, Number(sp.page) || 1);
@@ -37,13 +56,17 @@ export default async function BrowseShootsPage({
   const tNav = await getTranslations("nav");
   const supabase = await createClient();
 
+  // Only open shoots whose date hasn't passed — stale past-date shoots are inert
+  // (they can no longer receive bids, enforced in RLS) so they leave the browse.
+  const today = new Date().toISOString().slice(0, 10);
   let query = supabase
     .from("shoots")
     .select(
-      "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
+      "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
       { count: "exact" }
     )
-    .eq("status", "open");
+    .eq("status", "open")
+    .gte("shoot_date", today);
 
   if (canton && (CANTONS as readonly string[]).includes(canton)) {
     query = query.eq("canton", canton as (typeof CANTONS)[number]);
@@ -53,9 +76,16 @@ export default async function BrowseShootsPage({
     query = query.eq("type", type as (typeof SHOOT_TYPES)[number]);
   }
 
+  if (discipline === "photo" || discipline === "video") {
+    query = query.eq("discipline", discipline);
+  }
+
   const budgetMaxNum = budgetMax ? Number(budgetMax) : NaN;
   if (!isNaN(budgetMaxNum) && budgetMaxNum > 0) {
-    query = query.lte("budget_min_chf", budgetMaxNum);
+    // "Budget up to X" means the shoot's whole range fits within X — match on
+    // the ceiling, not the floor (otherwise a 500–3000 shoot shows for a 1000
+    // cap because its minimum happens to be low).
+    query = query.lte("budget_max_chf", budgetMaxNum);
   }
 
   if (q) {
@@ -95,7 +125,7 @@ export default async function BrowseShootsPage({
 
         <div>
           {list.length === 0 ? (
-            <p className="text-mute">{t("empty")}</p>
+            <EmptyState description={t("empty")} />
           ) : (
             <div
               data-testid="browse-list"
@@ -112,7 +142,7 @@ export default async function BrowseShootsPage({
           <Pagination
             page={page}
             totalPages={totalPages}
-            params={{ canton, type, budgetMax, q }}
+            params={{ canton, type, discipline, budgetMax, q }}
             basePath="/shoots"
           />
         </div>

@@ -1,35 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
-import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
+import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
+import { track } from "@/lib/track";
+import { useToast } from "@/components/ui/toaster";
+import {
+  draftKey,
+  deserializeDraft,
+  isMeaningfulDraft,
+  serializeDraft,
+} from "@/lib/shoot-draft";
 
 const STEP_COUNT = 3;
 const MAX_REF_IMAGES = 6;
+const DRAFT_SAVE_DELAY = 500;
+
+// Mirrors the useForm defaultValues so restore/discard can reset cleanly.
+const DEFAULT_VALUES: Partial<CreateShootInput> = {
+  type: undefined,
+  discipline: "photo",
+  durationHours: 4,
+};
 
 // Fields per step — used for per-step validation gating
 const STEP_FIELDS: Array<Array<keyof CreateShootInput>> = [
-  ["type"],
+  ["discipline", "type"],
   ["locationCity", "locationPostcode", "canton", "shootDate", "durationHours"],
   ["title", "brief", "budgetMinChf", "budgetMaxChf"],
 ];
 
+// `text-base` (16px) is explicit here so touch keyboards never trigger iOS's
+// auto-zoom on focus. The inherited base is already 16px (no html/body
+// override), but pinning it guards against a future base change.
 const inputClass =
-  "w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
+  "w-full border border-line bg-surface px-4 py-3 text-base text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
 
-export default function NewShootForm() {
+export default function NewShootForm({ userId }: { userId: string }) {
   const t = useTranslations("createShoot");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
+  const tCommon = useTranslations("common");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
   // Reference images are held in memory and uploaded after the shoot is created
   // (the upload needs the new shoot id, which only exists post-insert).
   const [refImages, setRefImages] = useState<{ file: File; url: string }[]>([]);
@@ -64,15 +87,75 @@ export default function NewShootForm() {
     setValue,
     control,
     trigger,
+    reset,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createShootSchema) as any,
-    defaultValues: { type: undefined, durationHours: 4 },
+    defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
 
   const selectedType = useWatch({ control, name: "type" });
+  const selectedDiscipline = useWatch({ control, name: "discipline" });
+  // All form values, reactive — drives the debounced autosave below.
+  const watchedValues = useWatch({ control });
+
+  const key = draftKey(userId);
+
+  // Restore a saved draft once on mount.
+  useEffect(() => {
+    try {
+      const draft = deserializeDraft(localStorage.getItem(key));
+      if (draft && isMeaningfulDraft(draft.values)) {
+        reset({ ...DEFAULT_VALUES, ...draft.values });
+        // One-time sync of local state from localStorage (an external store),
+        // matching the repo's theme-toggle pattern.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setStep(draft.step);
+        setDraftRestored(true);
+      }
+    } catch {
+      // Malformed/old payload — ignore and start fresh.
+    }
+    // Restore is intentionally per-user and mount-only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  // Debounced autosave of the current values + step. Never persists an
+  // all-default draft (so a fresh page load leaves no draft behind). The
+  // autosave effect skips its OWN first invocation (the mount render) so a
+  // freshly-loaded page — or the mount-time restore — never writes back
+  // before the user has actually touched anything; this guard is local to the
+  // effect and does not depend on effect-declaration ordering.
+  const saveEffectRuns = useRef(0);
+  useEffect(() => {
+    saveEffectRuns.current += 1;
+    if (saveEffectRuns.current === 1) return;
+    const timer = setTimeout(() => {
+      try {
+        const values = getValues();
+        if (isMeaningfulDraft(values)) {
+          localStorage.setItem(key, serializeDraft(values, step));
+        }
+      } catch {
+        // Storage unavailable (private mode / quota) — autosave is best-effort.
+      }
+    }, DRAFT_SAVE_DELAY);
+    return () => clearTimeout(timer);
+  }, [watchedValues, step, key, getValues]);
+
+  function discardDraft() {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
+    reset(DEFAULT_VALUES);
+    setStep(0);
+    setDraftRestored(false);
+  }
 
   async function handleNext() {
     const valid = await trigger(STEP_FIELDS[step]);
@@ -86,14 +169,33 @@ export default function NewShootForm() {
       setServerError(tErr(errorKey(result.error)));
       return;
     }
-    // Upload any reference images now that we have the shoot id. Failures here
-    // are non-fatal — the shoot already exists, so we still navigate to it.
-    for (const { file } of refImages) {
-      const fd = new FormData();
-      fd.append("file", file);
-      await addShootImage(result.id, fd);
+    track("post_shoot");
+    // The shoot exists now — drop the saved draft so the next visit is clean.
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore
     }
-    router.push(`/shoots/${result.id}`);
+    // The ToasterProvider lives in the (app) layout, which persists across the
+    // client-side navigation below, so this confirmation survives the push.
+    toast(tToast("shootCreated"));
+    // Upload reference images now that we have the shoot id. Failures are
+    // non-fatal (the shoot already exists), but must not be silently swallowed
+    // or let an exception strand the user on the form — count them and tell the
+    // detail page so it can warn instead of showing a brief with missing refs.
+    let failed = 0;
+    for (const { file } of refImages) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        const r = await addShootImage(result.id, fd);
+        if (!r.ok) failed++;
+      } catch {
+        failed++;
+      }
+    }
+    const query = failed > 0 ? `?imgFailed=${failed}` : "";
+    router.push(`/shoots/${result.id}${query}`);
     router.refresh();
   }
 
@@ -132,10 +234,69 @@ export default function NewShootForm() {
         {stepHeadings[step]}
       </h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-10 flex flex-col gap-5">
+      {draftRestored && (
+        <div
+          role="status"
+          className="mt-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border border-line bg-surface px-4 py-3 text-sm text-mute"
+        >
+          <span>{t("draftRestored")}</span>
+          <button
+            type="button"
+            data-testid="shoot-draft-discard"
+            onClick={discardDraft}
+            className="press -mx-2 inline-flex min-h-[44px] items-center px-2 font-medium text-accent hover:underline"
+          >
+            {t("discardDraft")}
+          </button>
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        onKeyDown={(e) => {
+          // Enter advances the step (matching the last step's submit) instead of
+          // doing nothing; Shift+Enter / textareas keep their newline behaviour.
+          if (
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            step < STEP_COUNT - 1 &&
+            (e.target as HTMLElement).tagName !== "TEXTAREA"
+          ) {
+            e.preventDefault();
+            handleNext();
+          }
+        }}
+        noValidate
+        className="mt-10 flex flex-col gap-5"
+      >
         {/* ── Step 0: Type of shoot — editorial option rows ── */}
         {step === 0 && (
           <div className="flex flex-col gap-3">
+            {/* Discipline: photo or video */}
+            <div className="mb-2 flex gap-2">
+              {DISCIPLINES.map((d) => {
+                const active = selectedDiscipline === d;
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    data-testid={`shoot-discipline-${d}`}
+                    onClick={() =>
+                      setValue("discipline", d, { shouldValidate: true })
+                    }
+                    aria-pressed={active}
+                    className={`press flex-1 border px-5 py-3 text-sm font-medium transition-colors ${
+                      active
+                        ? "border-ink bg-ink text-paper"
+                        : "border-line text-ink hover:border-mute-2"
+                    }`}
+                  >
+                    {tShoot(`disciplines.${d}`)}
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="flex flex-col gap-3">
               {SHOOT_TYPES.map((v) => {
                 const active = selectedType === v;
@@ -263,8 +424,8 @@ export default function NewShootForm() {
                     <button
                       type="button"
                       onClick={() => removeRefImage(img.url)}
-                      className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-0 transition-opacity group-hover:opacity-100"
-                      aria-label="Remove"
+                      className="press absolute right-1 top-1 border border-line bg-paper/80 px-1.5 py-0.5 text-xs text-ink opacity-100 transition-opacity [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
+                      aria-label={tCommon("remove")}
                     >
                       ✕
                     </button>

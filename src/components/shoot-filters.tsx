@@ -14,6 +14,7 @@ export function ShootFilters() {
 
   const canton = searchParams.get("canton") ?? "";
   const type = searchParams.get("type") ?? "";
+  const discipline = searchParams.get("discipline") ?? "";
   const budgetMax = searchParams.get("budgetMax") ?? "";
 
   function buildParams(overrides: Record<string, string>) {
@@ -34,6 +35,9 @@ export function ShootFilters() {
   }
   function handleBudgetMax(e: React.ChangeEvent<HTMLInputElement>) {
     router.push(`${pathname}?${buildParams({ budgetMax: e.target.value }).toString()}`);
+  }
+  function handleDiscipline(e: React.ChangeEvent<HTMLSelectElement>) {
+    router.push(`${pathname}?${buildParams({ discipline: e.target.value }).toString()}`);
   }
   function handleClear() {
     router.push(pathname);
@@ -85,6 +89,18 @@ export function ShootFilters() {
               {c}
             </option>
           ))}
+        </select>
+
+        <p className="label mt-6 text-mute-2">{t("filterDiscipline")}</p>
+        <select
+          data-testid="filter-discipline"
+          value={discipline}
+          onChange={handleDiscipline}
+          className={`${selectClass} mt-3`}
+        >
+          <option value="">{t("all")}</option>
+          <option value="photo">{tShoot("disciplines.photo")}</option>
+          <option value="video">{tShoot("disciplines.video")}</option>
         </select>
 
         <p className="label mt-6 text-mute-2">{t("filterBudget")}</p>
@@ -140,6 +156,18 @@ export function ShootFilters() {
                   {c}
                 </option>
               ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="label text-mute">{t("filterDiscipline")}</label>
+            <select
+              value={discipline}
+              onChange={handleDiscipline}
+              className={selectClass}
+            >
+              <option value="">{t("all")}</option>
+              <option value="photo">{tShoot("disciplines.photo")}</option>
+              <option value="video">{tShoot("disciplines.video")}</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">

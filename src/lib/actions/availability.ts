@@ -1,9 +1,10 @@
 "use server";
 
+import { dbError } from "@/lib/action-error";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { getSessionUser, getProfile } from "@/lib/auth";
+import { getProfile } from "@/lib/auth";
 
 type ErrResult = { ok: false; error: string };
 
@@ -25,7 +26,7 @@ export async function addUnavailableDate(
     .insert({ photographer_id: profile.id, date });
   // 23505 = the date is already blocked, which is the desired end state.
   if (error && error.code !== "23505")
-    return { ok: false, error: error.message };
+    return { ok: false, error: dbError(error, "availability") };
 
   revalidatePath("/[locale]/(app)/profile", "page");
   revalidateTag(`photographer:${profile.id}`, "max");
@@ -35,18 +36,22 @@ export async function addUnavailableDate(
 export async function removeUnavailableDate(
   date: string
 ): Promise<{ ok: true } | ErrResult> {
-  const user = await getSessionUser();
-  if (!user) return { ok: false, error: "unauthorized" };
+  if (!dateSchema.safeParse(date).success)
+    return { ok: false, error: "invalid_input" };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "photographer")
+    return { ok: false, error: "forbidden" };
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("photographer_unavailable")
     .delete()
-    .eq("photographer_id", user.id)
+    .eq("photographer_id", profile.id)
     .eq("date", date);
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbError(error, "availability") };
 
   revalidatePath("/[locale]/(app)/profile", "page");
-  revalidateTag(`photographer:${user.id}`, "max");
+  revalidateTag(`photographer:${profile.id}`, "max");
   return { ok: true };
 }

@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { formatCHF } from "@/lib/format";
 import { updateBidAction, withdrawBidAction } from "@/lib/actions/bids";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -23,6 +24,8 @@ export function MyBidPanel({
 }) {
   const t = useTranslations("bidSheet");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(String(bid.amount_chf));
@@ -80,6 +83,7 @@ export function MyBidPanel({
     startTransition(async () => {
       const res = await withdrawBidAction(bid.id);
       if (res.ok) {
+        toast(tToast("bidWithdrawn"));
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));

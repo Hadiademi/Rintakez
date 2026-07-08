@@ -5,10 +5,13 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { submitReviewAction } from "@/lib/actions/reviews";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
 export function ReviewForm({ shootId }: { shootId: string }) {
   const t = useTranslations("review");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -24,8 +27,10 @@ export function ReviewForm({ shootId }: { shootId: string }) {
         rating,
         comment: comment.trim() || undefined,
       });
-      if (res.ok) router.refresh();
-      else setError(tErr(errorKey(res.error)));
+      if (res.ok) {
+        toast(tToast("reviewSubmitted"));
+        router.refresh();
+      } else setError(tErr(errorKey(res.error)));
     });
   }
 

@@ -8,8 +8,11 @@ import { ShootCard } from "@/components/shoot-card";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { RecommendedPhotographers } from "@/components/recommended-photographers";
+import { ProfileChecklist } from "@/components/profile-checklist";
+import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { acceptanceRate } from "@/lib/bid-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +50,7 @@ function Hero({
 }) {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-      <div className="order-2 lg:order-1">
+      <div className="order-1 lg:order-1">
         <p className="label text-mute">{label}</p>
         <h1 className="mt-5 text-4xl font-semibold leading-[1.02] tracking-tight text-ink sm:text-5xl lg:text-6xl">
           {greeting}
@@ -83,7 +86,7 @@ function Hero({
       {featured && (
         <Link
           href={`/shoots/${featured.id}`}
-          className="press group order-1 block lg:order-2"
+          className="press group order-2 block lg:order-2"
         >
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-chip">
             <Image
@@ -133,11 +136,19 @@ function HowItWorks({ heading, steps }: { heading: string; steps: Step[] }) {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({
+  value,
+  label,
+  formatted,
+}: {
+  value?: number;
+  label: string;
+  formatted?: string;
+}) {
   return (
     <div className="bg-paper px-5 py-6">
       <div className="text-4xl font-semibold tabular tracking-tight text-ink">
-        {String(value).padStart(2, "0")}
+        {formatted ?? String(value ?? 0).padStart(2, "0")}
       </div>
       <div className="label mt-2 text-mute">{label}</div>
     </div>
@@ -169,6 +180,7 @@ export default async function HomePage() {
   }
 
   const t = await getTranslations("home");
+  const tShoot = await getTranslations("shoot");
   const supabase = await createClient();
   const fullName = profile.display_name ?? "";
   const firstName = fullName.split(/\s+/)[0] || fullName;
@@ -187,6 +199,9 @@ export default async function HomePage() {
     const assigned = all.filter((s) => s.status === "assigned").length;
     const recent = all.slice(0, 5);
     const featured = all.find((s) => s.status !== "cancelled") ?? all[0];
+    // Recent shoot types (newest few, already loaded above) — a cheap signal
+    // to nudge "Recommended photographers" toward the client's specialties.
+    const recentTypes = [...new Set(all.slice(0, 5).map((s) => s.type))];
 
     const steps: Step[] = [
       { n: 1, title: t("stepClient1Title"), desc: t("stepClient1Desc") },
@@ -203,7 +218,9 @@ export default async function HomePage() {
           primary={{ href: "/shoots/new", text: t("ctaClientTitle") }}
           secondary={{ href: "/my-shoots", text: t("yourShoots") }}
           featured={featured}
-          featuredLabel={t("ctaClientLabel")}
+          featuredLabel={
+            featured ? tShoot(`status.${featured.status}`) : t("ctaClientLabel")
+          }
           featuredMeta={
             featured
               ? formatCHFRange(featured.budget_min_chf, featured.budget_max_chf)
@@ -238,7 +255,7 @@ export default async function HomePage() {
                 <Link
                   key={s.id}
                   href={`/shoots/${s.id}`}
-                  className="press flex items-center justify-between gap-4 py-5"
+                  className="press flex items-center justify-between gap-4 py-5 transition-colors hover:bg-surface"
                 >
                   <div className="min-w-0">
                     <p className="label uppercase text-mute">
@@ -261,30 +278,128 @@ export default async function HomePage() {
           <HowItWorks heading={t("howItWorks")} steps={steps} />
         )}
 
-        <RecommendedPhotographers />
+        <RecommendedPhotographers
+          viewerCanton={profile.canton}
+          viewerTypes={recentTypes}
+        />
       </div>
     );
   }
 
   // Photographer
-  const [{ data: openShoots }, { data: myBids }] = await Promise.all([
+  const OPEN_SHOOTS_COLUMNS =
+    "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf";
+  const OPEN_SHOOTS_LIMIT = 7;
+  const MIN_PERSONALIZED_RESULTS = 3;
+
+  const [
+    { data: details },
+    { data: myBids },
+    { data: ownProfile },
+    { count: portfolioCount },
+    { data: effTierRow },
+  ] = await Promise.all([
     supabase
-      .from("shoots")
+      .from("photographer_details")
       .select(
-        "id,title,type,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf"
+        "coverage_cantons, disciplines, specialties, hourly_rate_chf, verification_status"
       )
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
+    supabase.from("bids").select("id,status").eq("photographer_id", profile.id),
+    supabase.from("profiles").select("bio").eq("id", profile.id).single(),
+    supabase
+      .from("portfolio_images")
+      .select("id", { count: "exact", head: true })
+      .eq("photographer_id", profile.id),
+    supabase
+      .from("photographer_effective_tier")
+      .select("effective_tier")
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
+  ]);
+
+  const tier = effTierRow?.effective_tier ?? "free";
+
+  const coverageCantons = details?.coverage_cantons ?? [];
+  const disciplines = details?.disciplines ?? [];
+
+  const completeness = scoreProfileCompleteness({
+    hasAvatar: Boolean(profile.avatar_url),
+    bioLength: ownProfile?.bio?.length ?? 0,
+    portfolioCount: portfolioCount ?? 0,
+    hasRate: (details?.hourly_rate_chf ?? 0) > 0,
+    cantonsCount: coverageCantons.length,
+    specialtiesCount: (details?.specialties ?? []).length,
+    verificationStatus: details?.verification_status ?? "unverified",
+  });
+
+  let personalizedQuery = supabase
+    .from("shoots")
+    .select(OPEN_SHOOTS_COLUMNS)
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+    .limit(OPEN_SHOOTS_LIMIT);
+  if (coverageCantons.length > 0) {
+    personalizedQuery = personalizedQuery.in("canton", coverageCantons);
+  }
+  if (disciplines.length > 0) {
+    personalizedQuery = personalizedQuery.in("discipline", disciplines);
+  }
+  const { data: personalizedShoots } = await personalizedQuery;
+
+  const open = personalizedShoots ?? [];
+
+  // Photographers with little/no coverage or brand-new accounts can get a
+  // sparse (or empty) personalized result — top it up with the newest global
+  // open shoots so the feed is never empty, de-duplicated by id.
+  if (open.length < MIN_PERSONALIZED_RESULTS) {
+    const { data: globalShoots } = await supabase
+      .from("shoots")
+      .select(OPEN_SHOOTS_COLUMNS)
       .eq("status", "open")
       .order("created_at", { ascending: false })
-      .limit(7),
-    supabase.from("bids").select("id,status").eq("photographer_id", profile.id),
-  ]);
+      .limit(OPEN_SHOOTS_LIMIT);
+
+    const seen = new Set(open.map((s) => s.id));
+    for (const shoot of globalShoots ?? []) {
+      if (open.length >= OPEN_SHOOTS_LIMIT) break;
+      if (seen.has(shoot.id)) continue;
+      seen.add(shoot.id);
+      open.push(shoot);
+    }
+  }
 
   const bids = myBids ?? [];
   const pending = bids.filter((b) => b.status === "pending").length;
   const accepted = bids.filter((b) => b.status === "accepted").length;
-  const open = openShoots ?? [];
   const featured = open[0];
   const rest = open.slice(1, 7);
+  const rate = acceptanceRate(bids);
+
+  // Only call the entitled RPCs for tiers that need them — free/basic never
+  // fetch views30d or the premium benchmark.
+  const showDashboard = tier === "standard" || tier === "premium";
+  let views30d: number | null = null;
+  let benchmark: number | null = null;
+  if (showDashboard) {
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const sinceStr = since.toISOString().slice(0, 10);
+    const [{ data: viewsData }, { data: benchmarkData }] = await Promise.all([
+      supabase.rpc("photographer_view_count", {
+        p_photographer_id: profile.id,
+        p_since: sinceStr,
+      }),
+      tier === "premium"
+        ? supabase.rpc("platform_median_acceptance_rate")
+        : Promise.resolve({ data: null }),
+    ]);
+    views30d = viewsData ?? 0;
+    if (tier === "premium") {
+      benchmark = benchmarkData ?? null;
+    }
+  }
 
   const steps: Step[] = [
     { n: 1, title: t("stepPhotog1Title"), desc: t("stepPhotog1Desc") },
@@ -309,12 +424,50 @@ export default async function HomePage() {
         }
       />
 
+      <ProfileChecklist result={completeness} />
+
       {bids.length > 0 && (
         <StatStrip>
           <Stat value={bids.length} label={t("statBids")} />
           <Stat value={pending} label={t("statPending")} />
           <Stat value={accepted} label={t("statAssigned")} />
         </StatStrip>
+      )}
+
+      {showDashboard && (
+        <StatStrip>
+          <Stat value={views30d ?? 0} label={t("statViews30d")} />
+          <Stat
+            formatted={rate === null ? "—" : `${Math.round(rate * 100)} %`}
+            label={t("statApplicationRate")}
+          />
+          {tier === "premium" ? (
+            <Stat
+              formatted={
+                benchmark == null ? "—" : `${Math.round(Number(benchmark) * 100)} %`
+              }
+              label={t("statBenchmark")}
+            />
+          ) : (
+            <Link href="/pricing" className="press block bg-paper px-5 py-6">
+              <div className="text-4xl font-semibold tabular tracking-tight text-mute">
+                —
+              </div>
+              <div className="label mt-2 text-mute">
+                {t("statBenchmarkLocked")}
+              </div>
+            </Link>
+          )}
+        </StatStrip>
+      )}
+
+      {(tier === "free" || tier === "basic") && (
+        <Link
+          href="/pricing"
+          className="press block border border-line px-4 py-3 text-sm text-mute hover:text-ink"
+        >
+          {t("dashboardUpsell")}
+        </Link>
       )}
 
       {bids.length === 0 && (
