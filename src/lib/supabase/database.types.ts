@@ -1122,6 +1122,7 @@ export type Database = {
         Args: { p_photographer_id: string; p_since?: string }
         Returns: number
       }
+      platform_median_acceptance_rate: { Args: never; Returns: number }
       record_profile_view: {
         Args: { p_photographer_id: string }
         Returns: undefined

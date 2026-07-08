@@ -12,6 +12,7 @@ import { ProfileChecklist } from "@/components/profile-checklist";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { acceptanceRate } from "@/lib/bid-stats";
 
 export const dynamic = "force-dynamic";
 
@@ -135,11 +136,19 @@ function HowItWorks({ heading, steps }: { heading: string; steps: Step[] }) {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({
+  value,
+  label,
+  formatted,
+}: {
+  value?: number;
+  label: string;
+  formatted?: string;
+}) {
   return (
     <div className="bg-paper px-5 py-6">
       <div className="text-4xl font-semibold tabular tracking-tight text-ink">
-        {String(value).padStart(2, "0")}
+        {formatted ?? String(value ?? 0).padStart(2, "0")}
       </div>
       <div className="label mt-2 text-mute">{label}</div>
     </div>
@@ -288,6 +297,7 @@ export default async function HomePage() {
     { data: myBids },
     { data: ownProfile },
     { count: portfolioCount },
+    { data: effTierRow },
   ] = await Promise.all([
     supabase
       .from("photographer_details")
@@ -302,7 +312,14 @@ export default async function HomePage() {
       .from("portfolio_images")
       .select("id", { count: "exact", head: true })
       .eq("photographer_id", profile.id),
+    supabase
+      .from("photographer_effective_tier")
+      .select("effective_tier")
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
   ]);
+
+  const tier = effTierRow?.effective_tier ?? "free";
 
   const coverageCantons = details?.coverage_cantons ?? [];
   const disciplines = details?.disciplines ?? [];
@@ -358,6 +375,29 @@ export default async function HomePage() {
   const accepted = bids.filter((b) => b.status === "accepted").length;
   const featured = open[0];
   const rest = open.slice(1, 7);
+  const rate = acceptanceRate(bids);
+
+  // Only call the entitled RPCs for tiers that need them — free/basic never
+  // fetch views30d or the premium benchmark.
+  const showDashboard = tier === "standard" || tier === "premium";
+  let views30d: number | null = null;
+  let benchmark: number | null = null;
+  if (showDashboard) {
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const sinceStr = since.toISOString().slice(0, 10);
+    const { data: viewsData } = await supabase.rpc("photographer_view_count", {
+      p_photographer_id: profile.id,
+      p_since: sinceStr,
+    });
+    views30d = viewsData ?? 0;
+    if (tier === "premium") {
+      const { data: benchmarkData } = await supabase.rpc(
+        "platform_median_acceptance_rate"
+      );
+      benchmark = benchmarkData ?? null;
+    }
+  }
 
   const steps: Step[] = [
     { n: 1, title: t("stepPhotog1Title"), desc: t("stepPhotog1Desc") },
@@ -390,6 +430,42 @@ export default async function HomePage() {
           <Stat value={pending} label={t("statPending")} />
           <Stat value={accepted} label={t("statAssigned")} />
         </StatStrip>
+      )}
+
+      {showDashboard && (
+        <StatStrip>
+          <Stat value={views30d ?? 0} label={t("statViews30d")} />
+          <Stat
+            formatted={rate === null ? "—" : `${Math.round(rate * 100)} %`}
+            label={t("statApplicationRate")}
+          />
+          {tier === "premium" ? (
+            <Stat
+              formatted={
+                benchmark == null ? "—" : `${Math.round(Number(benchmark) * 100)} %`
+              }
+              label={t("statBenchmark")}
+            />
+          ) : (
+            <Link href="/pricing" className="press block bg-paper px-5 py-6">
+              <div className="text-4xl font-semibold tabular tracking-tight text-mute">
+                —
+              </div>
+              <div className="label mt-2 text-mute">
+                {t("statBenchmarkLocked")}
+              </div>
+            </Link>
+          )}
+        </StatStrip>
+      )}
+
+      {(tier === "free" || tier === "basic") && (
+        <Link
+          href="/pricing"
+          className="press block border border-line px-4 py-3 text-sm text-mute hover:text-ink"
+        >
+          {t("dashboardUpsell")}
+        </Link>
       )}
 
       {bids.length === 0 && (
