@@ -7,6 +7,14 @@
 -- both insert-only for authenticated users, so assertions read them via
 -- `reset role` (postgres bypasses RLS), then re-authenticate for any further
 -- RLS-scoped actions (idiom from rls.test.sql).
+--
+-- The matching photographer (e2) is seeded on the 'standard' effective tier
+-- (see 20260708000000_shoot_match_alert_gating.sql): this suite exercises the
+-- match PREDICATE (canton/discipline/opt-out/poster-exclusion), which is
+-- orthogonal to alert-gating tier policy — a free/basic photographer would
+-- correctly get 0 email_outbox rows here regardless of matching, which would
+-- make this suite indistinguishable from a gating test. Tier-gating itself is
+-- covered by shoot_match_alert_gating.test.sql.
 begin;
 create extension if not exists pgtap;
 
@@ -39,12 +47,12 @@ values
 update public.profiles set notify_shoot_updates = false
   where id = '00000000-0000-0000-0000-0000000000e5';
 
-insert into public.photographer_details (profile_id, coverage_cantons, disciplines)
+insert into public.photographer_details (profile_id, coverage_cantons, disciplines, plan_tier, plan_expires_at)
 values
-  ('00000000-0000-0000-0000-0000000000e2', array['BE']::public.canton[], array['photo']::public.discipline[]),
-  ('00000000-0000-0000-0000-0000000000e3', array['ZH']::public.canton[], array['photo']::public.discipline[]),
-  ('00000000-0000-0000-0000-0000000000e4', array['BE']::public.canton[], array['video']::public.discipline[]),
-  ('00000000-0000-0000-0000-0000000000e5', array['BE']::public.canton[], array['photo']::public.discipline[]);
+  ('00000000-0000-0000-0000-0000000000e2', array['BE']::public.canton[], array['photo']::public.discipline[], 'standard', now() + interval '30 days'),
+  ('00000000-0000-0000-0000-0000000000e3', array['ZH']::public.canton[], array['photo']::public.discipline[], 'standard', now() + interval '30 days'),
+  ('00000000-0000-0000-0000-0000000000e4', array['BE']::public.canton[], array['video']::public.discipline[], 'standard', now() + interval '30 days'),
+  ('00000000-0000-0000-0000-0000000000e5', array['BE']::public.canton[], array['photo']::public.discipline[], 'standard', now() + interval '30 days');
 
 -- Act as the client posting a new open shoot: canton BE, discipline photo.
 set local role authenticated;

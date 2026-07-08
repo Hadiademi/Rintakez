@@ -7,8 +7,9 @@ import { captureError } from "@/lib/observability";
 // `Authorization: Bearer <CRON_SECRET>` to cron requests when CRON_SECRET is set;
 // we require it so the endpoint cannot be triggered by anyone. Drains the
 // durable email outbox, then runs the lifecycle-email scans (onboarding
-// reminder, zero-bid rescue, review request — see src/lib/lifecycle.ts) so
-// their enqueued rows are picked up by the very next drain. Stale open shoots
+// reminder, zero-bid rescue, review request, basic-tier shoot-match digest —
+// see src/lib/lifecycle.ts) so their enqueued rows are picked up by the very
+// next drain. Stale open shoots
 // are handled at query/RLS level (past-date shoots are hidden from browse and
 // cannot receive bids).
 

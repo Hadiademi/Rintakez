@@ -28,15 +28,19 @@ export type EmailKind =
   | "onboarding_reminder"
   | "zero_bid_rescue"
   | "review_request"
+  | "shoot_match_digest"
   | "admin_alert";
 type Locale = "de" | "fr" | "en";
 
 // Which notification-preference column gates each email kind (missing = always
 // send). Partial: the lifecycle kinds (welcome/onboarding_reminder/
-// zero_bid_rescue/review_request) are enqueued directly into email_outbox by a
-// DB trigger or the cron scans in lifecycle.ts, never via notifyEmail, so they
-// have no entry here — the `if (prefColumn)` guard below treats that as
-// "always send" (harmless; notifyEmail simply isn't the enqueue path for them).
+// zero_bid_rescue/review_request/shoot_match_digest) are enqueued directly
+// into email_outbox by a DB trigger or the cron scans in lifecycle.ts, never
+// via notifyEmail, so they have no entry here — the `if (prefColumn)` guard
+// below treats that as "always send" (harmless; notifyEmail simply isn't the
+// enqueue path for them). shoot_match_digest specifically: scanShootMatchDigest
+// already excludes photographers via filterByNotifyShootUpdates before
+// enqueuing, so the preference is honored at the scan, not here.
 const PREF_COLUMN: Partial<
   Record<EmailKind, "notify_bids" | "notify_shoot_updates" | "notify_messages">
 > = {
@@ -145,6 +149,8 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
     path = `/${locale}/messages`;
   } else if (kind === "admin_alert") {
     path = `/${locale}/admin`;
+  } else if (kind === "shoot_match_digest") {
+    path = `/${locale}/shoots`;
   } else if (
     (kind === "bid_received" ||
       kind === "shoot_cancelled" ||
@@ -224,6 +230,11 @@ const COPY: Record<
     de: { subject: "Neuer Vorgang zur Prüfung", lead: "Ein neuer Vorgang muss moderiert werden", cta: "Admin öffnen" },
     fr: { subject: "Nouveau signalement à examiner", lead: "Un nouvel élément nécessite une modération", cta: "Ouvrir l’admin" },
     en: { subject: "New report/dispute to review", lead: "A new item needs moderation", cta: "Open admin" },
+  },
+  shoot_match_digest: {
+    de: { subject: "Neue Shootings passen zu deinem Profil", lead: "Heute haben neue Shootings zu deinem Profil gepasst", cta: "Shootings ansehen" },
+    fr: { subject: "De nouvelles séances correspondent à ton profil", lead: "Aujourd’hui, de nouvelles séances ont correspondu à ton profil", cta: "Voir les séances" },
+    en: { subject: "New shoots match your profile", lead: "New shoots matched your profile today", cta: "View shoots" },
   },
 };
 
