@@ -119,9 +119,24 @@ export async function AppNav({
       {/* Mobile top bar — shown on mobile, hidden on lg+ */}
       <nav className="flex lg:hidden border-b border-line bg-paper">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-3.5">
-          <Link href="/home" className="text-lg">
-            <Wordmark />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/home" className="text-lg">
+              <Wordmark />
+            </Link>
+            {/* Photographer-only: the collapsed mobile nav drops the /pricing
+                link, so surface a compact accent entry to the plans here.
+                -my-2 keeps the 44px tap target from inflating the bar (same
+                trick as the bell/theme controls opposite). */}
+            {role === "photographer" && (
+              <Link
+                href="/pricing"
+                data-testid="mobile-subscription-link"
+                className="press label -my-2 inline-flex min-h-11 items-center px-2 text-accent"
+              >
+                {t("subscription")}
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <NotificationBell
               userId={userId}

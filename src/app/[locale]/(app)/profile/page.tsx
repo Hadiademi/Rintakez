@@ -236,6 +236,50 @@ export default async function ProfilePage() {
         </p>
       )}
 
+      {/* Subscription summary (photographer, mobile-only). On desktop the top-bar
+          "Abo" link + the billing tab in the left rail already make billing
+          discoverable; on mobile the nav links collapse and the billing sub-tab
+          scrolls off-screen, so this high-placed card is the entry point to the
+          current plan, this month's bid quota, and the full billing surface. */}
+      {isPhotographer && entitlement && quota && (
+        <section
+          aria-label={t("billingTitle")}
+          data-testid="profile-subscription-card"
+          className="mt-8 border border-line bg-surface p-5 sm:p-6 lg:hidden"
+        >
+          <p className="label text-mute">{t("billingTitle")}</p>
+          <p className="mt-2 text-xl font-semibold tracking-tight text-ink">
+            {entitlement.isActive
+              ? tBilling(`plan.${entitlement.plan}.name`)
+              : t("billingFreePlan")}
+          </p>
+          <p className="tabular mt-1 text-sm text-mute">
+            {quota.limit === Infinity
+              ? t("billingUsageUnlimited")
+              : t("billingUsage", { used: quota.used, limit: quota.limit })}
+          </p>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            {/* Native anchor (not the i18n <Link>): this is a same-page
+                fragment, and only a browser-handled fragment navigation fires
+                `hashchange`, which is what ProfileTabs listens on to switch to
+                the Billing tab. A soft-navigating <Link> would update the URL
+                to #billing without a hashchange, leaving the wrong tab shown. */}
+            <a
+              href="#billing"
+              className="press label flex min-h-11 flex-1 items-center justify-center border border-accent px-4 text-accent"
+            >
+              {t("billingManage")}
+            </a>
+            <Link
+              href="/pricing"
+              className="press label flex min-h-11 flex-1 items-center justify-center border border-line px-4 text-ink"
+            >
+              {t("billingViewPlans")}
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* Settings — tabbed; only the active section is shown */}
       <ProfileTabs tabs={tabs}>
         {/* Public profile (photographer) */}
