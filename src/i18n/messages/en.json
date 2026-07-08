@@ -683,7 +683,11 @@
     "photoAlt": "Photo",
     "photoPreview": "📷 Photo",
     "imageTooLarge": "This image is too large. Please pick one under 5 MB.",
-    "imageInvalid": "Please choose an image file."
+    "imageInvalid": "Please choose an image file.",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "noUnread": "No unread messages",
+    "viewShoot": "View shoot"
   },
   "report": {
     "report": "Report",

@@ -18,7 +18,7 @@ export default async function MessagesLayout({
 
   const sidebar = (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-line px-4 py-5">
+      <div className="shrink-0 px-4 pb-3 pt-5">
         <h1 className="text-2xl font-semibold tracking-tight text-ink">
           {t("title")}
         </h1>

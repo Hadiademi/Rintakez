@@ -683,7 +683,11 @@
     "photoAlt": "Photo",
     "photoPreview": "📷 Photo",
     "imageTooLarge": "Cette image est trop lourde. Choisis-en une de moins de 5 Mo.",
-    "imageInvalid": "Choisis un fichier image."
+    "imageInvalid": "Choisis un fichier image.",
+    "filterAll": "Tous",
+    "filterUnread": "Non lus",
+    "noUnread": "Aucun message non lu",
+    "viewShoot": "Voir la mission"
   },
   "report": {
     "report": "Signaler",
