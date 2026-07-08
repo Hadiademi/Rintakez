@@ -489,6 +489,42 @@ describe("POST /api/stripe/webhook — event handling", () => {
     expect(admin.upsert).not.toHaveBeenCalled();
   });
 
+  // FIX 5 — a subscriptions-upsert FK violation (23503) means the profile
+  // (and its subscriptions row) was already cascade-deleted by
+  // deleteAccount() before this event arrived: the Stripe subscription is
+  // already canceled, so retrying can never succeed. Ack 200 (not 500) and
+  // do NOT compensate the dedupe row — we want it marked processed so
+  // Stripe stops retrying, unlike a genuine transient upsert error.
+  it("returns 200 (not 500) and does NOT compensate the dedupe row when the upsert FK-violates (profile deleted)", async () => {
+    const stripe = stripeWithRetrieve(fakeSubscription());
+    getStripe.mockReturnValue(stripe);
+    const admin = fakeAdmin({
+      byUserResult: { data: null, error: null },
+      upsertResult: {
+        error: {
+          code: "23503",
+          message:
+            'insert or update on table "subscriptions" violates foreign key constraint "subscriptions_user_id_fkey"',
+        },
+      },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const body = JSON.stringify({
+      id: "evt_profile_deleted",
+      type: "customer.subscription.deleted",
+      data: { object: { id: "sub_123" } },
+    });
+
+    const res = await POST(signedRequest(body));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ received: true });
+    expect(captureError).toHaveBeenCalledTimes(1);
+    expect(admin.stripeEventsDelete).not.toHaveBeenCalled();
+    expect(admin.detailsUpdate).not.toHaveBeenCalled();
+  });
+
   // FIX 4 — an entitled status with a missing current_period_end must 500 +
   // captureError, never silently free-downgrade the subscriber.
   it("500s + captures (no free-downgrade write) when an entitled sub is missing current_period_end", async () => {

@@ -238,7 +238,28 @@ export async function POST(request: Request) {
       },
       { onConflict: "user_id" }
     );
-    if (upsertError) throw upsertError;
+    if (upsertError) {
+      if (upsertError.code === "23503") {
+        // Permanent, non-retryable — the FK on user_id violated because the
+        // profile no longer exists. deleteAccount() cancels the Stripe
+        // subscription BEFORE cascade-deleting the profile (and this
+        // subscriptions row); this event's cancellation webhook typically
+        // lands after that delete, so by the time we get here there's no
+        // profile left to write against and the subscription is already
+        // canceled in Stripe. Retrying would only recreate this same FK
+        // violation forever, so ack (200) and flag it — do NOT compensate
+        // the dedupe row, we want this event marked processed.
+        captureError(upsertError, {
+          scope: "stripe.webhook.subscriptions.profileDeleted",
+          eventId: event.id,
+          eventType: event.type,
+          userId,
+          reason: "profile_deleted",
+        });
+        return NextResponse.json({ received: true, profileDeleted: true });
+      }
+      throw upsertError;
+    }
 
     const details = detailsSyncValues(mapped, now);
     const { error: detailsError } = await admin
