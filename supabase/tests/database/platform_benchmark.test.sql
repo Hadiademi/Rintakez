@@ -1,12 +1,15 @@
 -- Premium benchmark RPC (20260708100000_platform_benchmark.sql):
 -- platform_median_acceptance_rate() self-checks premium entitlement IN SQL
 -- (via photographer_effective_tier) so a UI bypass can't leak it, and is
--- aggregate-only with a >=3-bids k-anonymity guard (never exposes an
--- individual photographer's rate).
+-- aggregate-only with TWO k-anonymity guards: (1) a photographer needs
+-- >=3 bids to contribute a rate, and (2) at least 3 photographers must
+-- contribute before a median is returned (otherwise NULL) — guard (2) is
+-- what stops percentile_cont from just handing back a single contributor's
+-- exact rate when only one/two photographers qualify.
 begin;
 create extension if not exists pgtap;
 
-select plan(4);
+select plan(5);
 
 -- ── fixtures: a client + several photographers with differing tiers ─────
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -55,8 +58,42 @@ values
    'Bench shoot 4', 'portrait', 'Brief long enough for the check.', 'Zurich', 'ZH',
    '2028-01-04', 2, 500, 900);
 
--- Each of c3 (premium), c4, c5 (standard) gets >=3 bids so the k-anonymity
--- guard (having count(*) >= 3) includes them in the percentile calculation.
+-- ── insufficient-sample scenario ──────────────────────────────────────
+-- The demo seed (supabase/seed.sql) already has one photographer, Marko
+-- (...0003), who legitimately reaches the per-photographer >=3-bids
+-- threshold (3 bids: 2 accepted, 1 pending) — the exact single-contributor
+-- leak this fix closes. Claire (...0004) only has 2 seeded bids and does
+-- not qualify. Here none of the test photographers (c3, c4, c5) reach the
+-- >=3-bids threshold either, so system-wide there is still only ONE
+-- contributing photographer (Marko) and the outer "≥3 contributing
+-- photographers" guard must return NULL for a premium caller.
+savepoint bid_fixtures;
+
+insert into public.bids (shoot_id, photographer_id, amount_chf, message, status) values
+  ('10000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c3', 600, 'Message long enough to pass.', 'accepted'),
+  ('10000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000c3', 600, 'Message long enough to pass.', 'declined'),
+
+  ('10000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c4', 550, 'Message long enough to pass.', 'accepted'),
+  ('10000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000c4', 550, 'Message long enough to pass.', 'declined'),
+
+  ('10000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c5', 700, 'Message long enough to pass.', 'declined');
+
+-- ── 5: premium caller, but fewer than 3 contributing photographers → NULL ──
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000c3","role":"authenticated"}';
+select is(
+  (select platform_median_acceptance_rate()),
+  null::numeric,
+  'a premium-tier caller gets NULL when fewer than 3 photographers meet the sample-size guard'
+);
+reset role;
+
+rollback to savepoint bid_fixtures;
+
+-- ── sufficient-sample scenario: c3 (premium), c4, c5 (standard) each get
+-- >=3 bids so the per-photographer guard (having count(*) >= 3) admits all
+-- three of them, satisfying the outer >=3-contributing-photographers guard
+-- too and letting the percentile actually be computed.
 insert into public.bids (shoot_id, photographer_id, amount_chf, message, status) values
   ('10000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000c3', 600, 'Message long enough to pass.', 'accepted'),
   ('10000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000c3', 600, 'Message long enough to pass.', 'accepted'),

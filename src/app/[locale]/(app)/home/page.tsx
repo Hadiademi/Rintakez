@@ -386,15 +386,17 @@ export default async function HomePage() {
     const since = new Date();
     since.setDate(since.getDate() - 30);
     const sinceStr = since.toISOString().slice(0, 10);
-    const { data: viewsData } = await supabase.rpc("photographer_view_count", {
-      p_photographer_id: profile.id,
-      p_since: sinceStr,
-    });
+    const [{ data: viewsData }, { data: benchmarkData }] = await Promise.all([
+      supabase.rpc("photographer_view_count", {
+        p_photographer_id: profile.id,
+        p_since: sinceStr,
+      }),
+      tier === "premium"
+        ? supabase.rpc("platform_median_acceptance_rate")
+        : Promise.resolve({ data: null }),
+    ]);
     views30d = viewsData ?? 0;
     if (tier === "premium") {
-      const { data: benchmarkData } = await supabase.rpc(
-        "platform_median_acceptance_rate"
-      );
       benchmark = benchmarkData ?? null;
     }
   }
