@@ -119,6 +119,9 @@ export default async function Home({
           Rintakez
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
+          <Link href="/pricing" className="text-sm hover:underline">
+            {tNav("pricing")}
+          </Link>
           {profile ? (
             <>
               <Link href="/home" className="text-sm hover:underline">
