@@ -253,6 +253,8 @@
     "filterDiscipline": "Medium"
   },
   "shootDetail": {
+    "back": "Back",
+    "client": "Client",
     "brief": "Brief",
     "details": "Details",
     "offers": "Offers",
@@ -288,6 +290,7 @@
     "browseCta": "Browse shoots"
   },
   "bid": {
+    "viewProfile": "View profile",
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",

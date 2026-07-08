@@ -253,6 +253,8 @@
     "filterDiscipline": "Médium"
   },
   "shootDetail": {
+    "back": "Retour",
+    "client": "Client·e",
     "brief": "Brief",
     "details": "Détails",
     "offers": "Offres",
@@ -288,6 +290,7 @@
     "browseCta": "Parcourir les missions"
   },
   "bid": {
+    "viewProfile": "Voir le profil",
     "status": {
       "pending": "En attente",
       "accepted": "Acceptée",

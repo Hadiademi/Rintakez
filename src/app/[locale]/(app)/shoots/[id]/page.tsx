@@ -11,8 +11,8 @@ import { shootImage } from "@/lib/shoot-image";
 import { buildAlternates } from "@/lib/seo";
 import { ShootStepper, type StepperHint } from "@/components/shoot-stepper";
 import { SectionLabel } from "@/components/section-label";
+import { Avatar } from "@/components/ui/avatar";
 import { BidCard, type BidCardData } from "@/components/bid-card";
-import { BidCompare, type BidCompareItem } from "@/components/bid-compare";
 import { ShootRefGallery } from "@/components/shoot-ref-gallery";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
@@ -84,6 +84,16 @@ export default async function ShootDetailPage({
   const profile = await getProfile();
 
   const supabase = await createClient();
+
+  // Shared avatar-path → public URL resolver (storage paths are relative;
+  // externally-hosted avatars are already absolute). Used for both the
+  // client card and, in the owner branch, every bidder's avatar.
+  const toAvatarUrl = (path: string | null): string | null => {
+    if (!path) return null;
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+  };
+
   const { data: shoot } = await supabase
     .from("shoots")
     .select("*")
@@ -131,10 +141,20 @@ export default async function ShootDetailPage({
     .eq("shoot_id", id)
     .maybeSingle();
 
+  // Poster identity for the details grid's CLIENT cell + the client card.
+  // Clients post public briefs, so showing the poster's name is fine for
+  // every viewer, including anonymous (profiles are select-all under RLS).
+  const { data: clientProfile } = await supabase
+    .from("profiles")
+    .select("display_name, avatar_url, created_at")
+    .eq("id", shoot.client_id)
+    .maybeSingle();
+
   const tShoot = await getTranslations("shoot");
   const t = await getTranslations("shootDetail");
   const tMsg = await getTranslations("messages");
   const tMarket = await getTranslations("marketplace");
+  const tProfile = await getTranslations("profile");
 
   const messageLink = conversation ? (
     <Link
@@ -152,14 +172,15 @@ export default async function ShootDetailPage({
   const isOwner = !!profile && shoot.client_id === profile.id;
 
   // Bid presence drives the owner's "invite photographers" pointer on an open
-  // shoot. Cheap head count, owner-only.
-  const { count: bidCount } =
-    isOwner && shoot.status === "open"
-      ? await supabase
-          .from("bids")
-          .select("id", { count: "exact", head: true })
-          .eq("shoot_id", id)
-      : { count: null };
+  // shoot AND the status chip's offer count. Cheap head count, owner-only —
+  // RLS (bids_select_own_or_shoot_client) means a non-owner would only ever
+  // see their own bid here, so the count is never fetched for them.
+  const { count: bidCount } = isOwner
+    ? await supabase
+        .from("bids")
+        .select("id", { count: "exact", head: true })
+        .eq("shoot_id", id)
+    : { count: null };
 
   // The stepper's single contextual line: it only names the next action for the
   // owner. The real CTAs (invite link, CompleteShootButton, ReviewForm) live
@@ -193,37 +214,55 @@ export default async function ShootDetailPage({
     disputeStatus = latestDispute?.status ?? null;
   }
 
-  const specRows: { label: string; value: string; tabular?: boolean }[] = [
-    { label: tShoot("date"), value: formatSwissDate(shoot.shoot_date), tabular: true },
-    { label: tShoot("location"), value: location },
-    {
-      label: tShoot("duration"),
-      value: tShoot("hours", { count: shoot.duration_hours }),
-      tabular: true,
-    },
-    {
-      label: tShoot("budget"),
-      value: formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf),
-      tabular: true,
-    },
-    { label: tShoot("type"), value: tShoot(`types.${shoot.type}`) },
-    {
-      label: tShoot("discipline"),
-      value: tShoot(`disciplines.${shoot.discipline}`),
-    },
+  // Hoisted out of `shoot` so the nested `budgetBox` closure below doesn't
+  // need to re-narrow `shoot` past the `notFound()` null-check (TS control
+  // flow narrowing doesn't carry into nested function bodies).
+  const budgetRange = formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf);
+
+  // Two-column details grid: [DATE|DURATION], [LOCATION|TYPE], [BUDGET|CLIENT].
+  const gridRows: { label: string; value: string; tabular?: boolean }[][] = [
+    [
+      { label: tShoot("date"), value: formatSwissDate(shoot.shoot_date), tabular: true },
+      {
+        label: tShoot("duration"),
+        value: tShoot("hours", { count: shoot.duration_hours }),
+        tabular: true,
+      },
+    ],
+    [
+      { label: tShoot("location"), value: location },
+      { label: tShoot("type"), value: tShoot(`types.${shoot.type}`) },
+    ],
+    [
+      {
+        label: tShoot("budget"),
+        value: budgetRange,
+        tabular: true,
+      },
+      { label: t("client"), value: clientProfile?.display_name ?? "—" },
+    ],
   ];
 
   const detailsGrid = (
     <dl className="border-t border-line">
-      {specRows.map((row) => (
+      {gridRows.map((row, i) => (
         <div
-          key={row.label}
-          className="flex items-center justify-between gap-6 border-b border-line py-3"
+          key={i}
+          className="grid grid-cols-1 gap-x-10 gap-y-2 border-b border-line py-3 sm:grid-cols-2 sm:gap-y-0"
         >
-          <dt className="label text-mute">{row.label}</dt>
-          <dd className={`text-right text-ink ${row.tabular ? "tabular" : ""}`}>
-            {row.value}
-          </dd>
+          {row.map((cell) => (
+            <div
+              key={cell.label}
+              className="flex items-center justify-between gap-4"
+            >
+              <dt className="label text-mute">{cell.label}</dt>
+              <dd
+                className={`text-right text-ink ${cell.tabular ? "tabular" : ""}`}
+              >
+                {cell.value}
+              </dd>
+            </div>
+          ))}
         </div>
       ))}
     </dl>
@@ -243,6 +282,26 @@ export default async function ShootDetailPage({
       </div>
     );
 
+  // Status + offer-count pill. The count only renders for the owner — RLS
+  // means a photographer can only ever see their own bid and an anonymous
+  // visitor sees none, so showing a count to them would be either wrong or a
+  // leak of how much interest a brief has attracted.
+  const statusChip = (
+    <div className="label inline-flex items-center gap-2 border border-line bg-chip px-3 py-1.5 text-ink">
+      <span>{tShoot(`status.${shoot.status}`)}</span>
+      {isOwner ? (
+        <>
+          <span aria-hidden="true" className="text-mute-2">
+            ·
+          </span>
+          <span className="tabular text-mute">
+            {tShoot("bidsCount", { count: bidCount ?? 0 })}
+          </span>
+        </>
+      ) : null}
+    </div>
+  );
+
   const header = (
     <div className="space-y-4">
       <ShootStepper
@@ -257,8 +316,9 @@ export default async function ShootDetailPage({
   );
 
   const summary = (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {hero}
+      {statusChip}
       {header}
 
       {shoot.status === "cancelled" && shoot.cancellation_reason ? (
@@ -281,21 +341,83 @@ export default async function ShootDetailPage({
     </div>
   );
 
+  const backLink = (
+    <Link
+      href="/shoots"
+      className="press label inline-flex items-center gap-1.5 text-mute hover:text-ink"
+    >
+      ‹ {t("back")}
+    </Link>
+  );
+
+  const clientCard = clientProfile ? (
+    <div className="flex items-center gap-4 border border-line bg-surface p-5">
+      <Avatar
+        name={clientProfile.display_name}
+        src={toAvatarUrl(clientProfile.avatar_url)}
+        size={48}
+      />
+      <div className="min-w-0">
+        <p className="label text-mute">{t("client")}</p>
+        <p className="truncate font-medium text-ink">
+          {clientProfile.display_name}
+        </p>
+        <p className="tabular text-[13px] text-mute">
+          {tProfile("memberSince", {
+            year: new Date(clientProfile.created_at).getFullYear(),
+          })}
+        </p>
+      </div>
+    </div>
+  ) : null;
+
+  // Sidebar's top box: BUDGET line + (optionally) the viewer's primary action
+  // rendered directly inside it, e.g. the bid sheet or the login CTA.
+  function budgetBox(action: React.ReactNode) {
+    return (
+      <div className="space-y-6 border border-line bg-surface p-6">
+        <div>
+          <p className="label text-mute">{tShoot("budget")}</p>
+          <p className="tabular mt-1.5 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+            {budgetRange}
+          </p>
+        </div>
+        {action}
+      </div>
+    );
+  }
+
+  // Two-column editorial shell: shared left column (brief), sticky right
+  // sidebar (deal — budget, action, offers). Collapses to a single stacked
+  // column below `lg`.
+  function shell(left: React.ReactNode, right: React.ReactNode) {
+    return (
+      <div className="mx-auto max-w-6xl lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-12">
+        <div className="min-w-0 space-y-10">{left}</div>
+        <aside className="mt-10 space-y-6 lg:sticky lg:top-6 lg:mt-0 lg:self-start">
+          {right}
+        </aside>
+      </div>
+    );
+  }
+
   // ── Anonymous visitor ─────────────────────────────────────────────
   // Public read-only view; the bid wall is the login CTA.
   if (!profile) {
-    return (
-      <div className="mx-auto max-w-3xl space-y-10">
+    return shell(
+      <>
+        {backLink}
         {summary}
-        <div className="border-t border-line pt-6">
-          <Link
-            href="/login"
-            className="press inline-flex w-fit items-center bg-ink px-5 py-3 text-sm font-medium text-paper"
-          >
-            {tMarket("loginToBid")}
-          </Link>
-        </div>
-      </div>
+        {clientCard}
+      </>,
+      budgetBox(
+        <Link
+          href="/login"
+          className="press flex items-center justify-center bg-ink px-5 py-3 text-sm font-medium text-paper"
+        >
+          {tMarket("loginToBid")}
+        </Link>
+      )
     );
   }
 
@@ -312,30 +434,36 @@ export default async function ShootDetailPage({
     const tBid = await getTranslations("bidSheet");
     const { used, limit } = await getBidQuotaUsage(supabase, profile.id, new Date());
 
-    return (
-      <div className="mx-auto max-w-3xl space-y-10">
+    const primaryAction =
+      (!myBid || myBid.status === "withdrawn") && shoot.status === "open" ? (
+        // No bid yet, or a withdrawn one on an open shoot — let them (re-)bid.
+        <BidSheet
+          shootId={id}
+          budgetRange={budgetRange}
+          quota={{ used, limit: Number.isFinite(limit) ? limit : null }}
+        />
+      ) : myBid ? (
+        <MyBidPanel
+          bid={myBid}
+          canEdit={myBid.status === "pending" && shoot.status === "open"}
+        />
+      ) : (
+        <p className="text-mute">{tBid("notOpen")}</p>
+      );
+
+    const accepted =
+      (shoot.status === "assigned" || shoot.status === "completed") &&
+      myBid?.status === "accepted";
+
+    return shell(
+      <>
+        {backLink}
         {summary}
-        {(!myBid || myBid.status === "withdrawn") &&
-        shoot.status === "open" ? (
-          // No bid yet, or a withdrawn one on an open shoot — let them (re-)bid.
-          <BidSheet
-            shootId={id}
-            budgetRange={formatCHFRange(
-              shoot.budget_min_chf,
-              shoot.budget_max_chf
-            )}
-            quota={{ used, limit: Number.isFinite(limit) ? limit : null }}
-          />
-        ) : myBid ? (
-          <MyBidPanel
-            bid={myBid}
-            canEdit={myBid.status === "pending" && shoot.status === "open"}
-          />
-        ) : (
-          <p className="text-mute">{tBid("notOpen")}</p>
-        )}
-        {(shoot.status === "assigned" || shoot.status === "completed") &&
-        myBid?.status === "accepted" ? (
+        {clientCard}
+      </>,
+      <>
+        {budgetBox(primaryAction)}
+        {accepted ? (
           <div className="space-y-4">
             {/* Symmetric with the client view: the winning photographer also
                 gets the client's contact, the message thread and a calendar
@@ -359,21 +487,28 @@ export default async function ShootDetailPage({
         <div className="border-t border-line pt-6">
           <ReportButton targetType="shoot" targetId={id} />
         </div>
-      </div>
+      </>
     );
   }
 
-  // Non-owner client read-only summary.
+  // Non-owner client read-only summary — budget only, no actions, no offers.
   if (!isOwner) {
-    return <div className="mx-auto max-w-3xl">{summary}</div>;
+    return shell(
+      <>
+        {backLink}
+        {summary}
+        {clientCard}
+      </>,
+      budgetBox(null)
+    );
   }
 
   // ── Owner management view ──────────────────────────────────────────
   // Embedded FK select uses the auto-generated constraint name
   // `bids_photographer_id_fkey` (bids.photographer_id -> profiles.id).
-  // Extended with created_at + the photographer's avatar/created_at so the
-  // owner's comparison grid can show trust signals; BidCard ignores the extra
-  // fields (RawBid is a structural superset of BidCardData). verification_status
+  // Extended with created_at + the photographer's avatar/created_at so every
+  // offer card can show trust signals; BidCard ignores the extra fields
+  // (RawBid is a structural superset of BidCardData). verification_status
   // lives on photographer_details, so it's batch-fetched separately below.
   const { data: bids } = await supabase
     .from("bids")
@@ -403,83 +538,61 @@ export default async function ShootDetailPage({
     : bidList.filter((b) => b.status === "accepted");
   const hiddenBidCount = bidList.length - visibleBids.length;
 
-  // Comparison grid — only when the owner has ≥2 pending offers to weigh.
-  // Mirrors the directory's batched trust join: ratings by id in one query,
-  // completed-shoots count once per bidder (small N). Built only when it renders.
-  const showCompare = canManageBids && visibleBids.length >= 2;
-  let compareItems: BidCompareItem[] = [];
-  if (showCompare) {
-    const bidderIds = [
-      ...new Set(
-        visibleBids
-          .map((b) => b.photographer?.id)
-          .filter((x): x is string => !!x)
-      ),
-    ];
-    const [{ data: ratings }, { data: details }] = await Promise.all([
-      bidderIds.length
-        ? supabase
-            .from("photographer_ratings")
-            .select("photographer_id, avg_rating, review_count")
-            .in("photographer_id", bidderIds)
-        : Promise.resolve({ data: [] }),
-      bidderIds.length
-        ? supabase
-            .from("photographer_details")
-            .select("profile_id, verification_status")
-            .in("profile_id", bidderIds)
-        : Promise.resolve({ data: [] }),
-    ]);
-    const ratingBy = new Map(
-      (ratings ?? []).map((r) => [
-        r.photographer_id,
-        { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
+  // Trust signals for every visible offer card — batched rating + verification
+  // lookups, mirroring the directory's join (ratings by id in one query,
+  // verification status in another). Runs for the whole card list, not just
+  // when there are several to compare.
+  const bidderIds = [
+    ...new Set(
+      visibleBids
+        .map((b) => b.photographer?.id)
+        .filter((x): x is string => !!x)
+    ),
+  ];
+  const [{ data: ratings }, { data: details }] = bidderIds.length
+    ? await Promise.all([
+        supabase
+          .from("photographer_ratings")
+          .select("photographer_id, avg_rating, review_count")
+          .in("photographer_id", bidderIds),
+        supabase
+          .from("photographer_details")
+          .select("profile_id, verification_status")
+          .in("profile_id", bidderIds),
       ])
-    );
-    const verifiedBy = new Map(
-      (details ?? []).map((d) => [
-        d.profile_id,
-        d.verification_status === "verified",
-      ])
-    );
-    const counts = await Promise.all(
-      bidderIds.map((pid) =>
-        supabase.rpc("photographer_completed_shoots_count", {
-          p_photographer_id: pid,
-        })
-      )
-    );
-    const countBy = new Map(
-      bidderIds.map((pid, i) => [pid, counts[i].data ?? 0])
-    );
+    : [{ data: [] }, { data: [] }];
+  const ratingBy = new Map(
+    (ratings ?? []).map((r) => [
+      r.photographer_id,
+      { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
+    ])
+  );
+  const verifiedBy = new Map(
+    (details ?? []).map((d) => [
+      d.profile_id,
+      d.verification_status === "verified",
+    ])
+  );
 
-    const avatarUrl = (path: string | null): string | null => {
-      if (!path) return null;
-      if (path.startsWith("http://") || path.startsWith("https://")) return path;
-      return supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
-    };
-
-    compareItems = visibleBids.map((b) => {
-      const ph = b.photographer;
-      return {
-        id: b.id,
-        amount_chf: b.amount_chf,
-        message: b.message,
-        createdAt: b.created_at,
-        photographer: ph
-          ? {
-              id: ph.id,
-              display_name: ph.display_name,
-              avatarUrl: avatarUrl(ph.avatar_url),
-              verified: verifiedBy.get(ph.id) ?? false,
-              memberSinceYear: new Date(ph.created_at).getFullYear(),
-            }
-          : null,
-        rating: (ph && ratingBy.get(ph.id)) || { avg: 0, count: 0 },
-        completedShoots: (ph && countBy.get(ph.id)) ?? 0,
-      };
-    });
-  }
+  const bidCards: BidCardData[] = visibleBids.map((b) => ({
+    id: b.id,
+    amount_chf: b.amount_chf,
+    message: b.message,
+    status: b.status,
+    photographer: b.photographer
+      ? {
+          id: b.photographer.id,
+          display_name: b.photographer.display_name,
+          city: b.photographer.city,
+          canton: b.photographer.canton,
+        }
+      : null,
+    avatarUrl: b.photographer ? toAvatarUrl(b.photographer.avatar_url) : null,
+    rating: b.photographer ? ratingBy.get(b.photographer.id) : undefined,
+    verified: b.photographer
+      ? (verifiedBy.get(b.photographer.id) ?? false)
+      : false,
+  }));
 
   // Existing review (owner, completed shoot).
   const { data: myReview } =
@@ -493,52 +606,38 @@ export default async function ShootDetailPage({
 
   const tReview = await getTranslations("review");
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-12">
-      <div className="space-y-10">
-        {imgFailed > 0 ? (
-          <div
-            data-testid="ref-upload-warning"
-            className="border-l-2 border-accent bg-surface px-4 py-3 text-[14px] text-ink"
-          >
-            {t("refUploadFailed", { count: imgFailed })}
-          </div>
-        ) : null}
+  return shell(
+    <>
+      {backLink}
 
-        {summary}
-
-        {shoot.status === "open" ? (
-          <div className="flex flex-wrap items-center gap-4">
-            <Link
-              href={`/shoots/${shoot.id}/edit`}
-              className="press border border-line px-5 py-2.5 text-sm text-ink"
-            >
-              {tShoot("edit")}
-            </Link>
-            <CancelShootButton shootId={shoot.id} />
-          </div>
-        ) : null}
-
-        {shoot.status === "assigned" ? (
-          <CompleteShootButton shootId={shoot.id} />
-        ) : null}
-      </div>
-
-      {shoot.status === "assigned" || shoot.status === "completed" ? (
-        <div className="space-y-4">
-          <ContactReveal shootId={id} />
-          {messageLink}
-          <a
-            href={`/api/shoots/${id}/ics`}
-            className="press inline-flex items-center gap-2 text-sm text-accent hover:opacity-70"
-          >
-            {tShoot("addToCalendar")} ↓
-          </a>
-          <div className="border-t border-line pt-4">
-            <DisputePanel shootId={id} existingStatus={disputeStatus} />
-          </div>
+      {imgFailed > 0 ? (
+        <div
+          data-testid="ref-upload-warning"
+          className="border-l-2 border-accent bg-surface px-4 py-3 text-[14px] text-ink"
+        >
+          {t("refUploadFailed", { count: imgFailed })}
         </div>
       ) : null}
+
+      {summary}
+
+      {shoot.status === "open" ? (
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            href={`/shoots/${shoot.id}/edit`}
+            className="press border border-line px-5 py-2.5 text-sm text-ink"
+          >
+            {tShoot("edit")}
+          </Link>
+          <CancelShootButton shootId={shoot.id} />
+        </div>
+      ) : null}
+
+      {shoot.status === "assigned" ? (
+        <CompleteShootButton shootId={shoot.id} />
+      ) : null}
+
+      {clientCard}
 
       {shoot.status === "completed" ? (
         <section className="space-y-4 border-t border-line pt-8">
@@ -558,9 +657,31 @@ export default async function ShootDetailPage({
           )}
         </section>
       ) : null}
+    </>,
+    <>
+      {budgetBox(null)}
+
+      {shoot.status === "assigned" || shoot.status === "completed" ? (
+        <div className="space-y-4">
+          <ContactReveal shootId={id} />
+          {messageLink}
+          <a
+            href={`/api/shoots/${id}/ics`}
+            className="press inline-flex items-center gap-2 text-sm text-accent hover:opacity-70"
+          >
+            {tShoot("addToCalendar")} ↓
+          </a>
+          <div className="border-t border-line pt-4">
+            <DisputePanel shootId={id} existingStatus={disputeStatus} />
+          </div>
+        </div>
+      ) : null}
 
       <section className="space-y-4">
-        <SectionLabel title={t("offers")} />
+        <SectionLabel
+          index={String(bidList.length).padStart(2, "0")}
+          title={t("offers")}
+        />
         {bidList.length === 0 ? (
           <div className="space-y-4">
             <p className="text-mute">{t("noOffers")}</p>
@@ -580,18 +701,9 @@ export default async function ShootDetailPage({
               ? t("pastOffers", { count: hiddenBidCount })
               : t("noOffers")}
           </p>
-        ) : showCompare ? (
-          <div className="space-y-4">
-            <BidCompare bids={compareItems} />
-            {hiddenBidCount > 0 ? (
-              <p className="text-[13px] text-mute-2">
-                {t("pastOffers", { count: hiddenBidCount })}
-              </p>
-            ) : null}
-          </div>
         ) : (
           <div data-testid="bids-list" className="space-y-4">
-            {visibleBids.map((bid) => (
+            {bidCards.map((bid) => (
               <BidCard key={bid.id} bid={bid} canManage={canManageBids} />
             ))}
             {hiddenBidCount > 0 ? (
@@ -602,6 +714,6 @@ export default async function ShootDetailPage({
           </div>
         )}
       </section>
-    </div>
+    </>
   );
 }

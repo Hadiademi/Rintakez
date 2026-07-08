@@ -253,6 +253,8 @@
     "filterDiscipline": "Medium"
   },
   "shootDetail": {
+    "back": "Zurück",
+    "client": "Auftraggeber:in",
     "brief": "Briefing",
     "details": "Eckdaten",
     "offers": "Angebote",
@@ -288,6 +290,7 @@
     "browseCta": "Aufträge durchsuchen"
   },
   "bid": {
+    "viewProfile": "Profil ansehen",
     "status": {
       "pending": "Ausstehend",
       "accepted": "Angenommen",
