@@ -693,6 +693,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
         </div>
         <button
           type="button"
+          data-testid="thread-block-toggle"
           onClick={onToggleBlock}
           disabled={blocking}
           className="press ml-auto flex min-h-11 shrink-0 items-center rounded-full border border-line px-3.5 text-[12px] text-mute transition-colors hover:border-ink hover:text-ink disabled:opacity-50"

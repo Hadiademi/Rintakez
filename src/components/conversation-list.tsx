@@ -56,7 +56,10 @@ export function ConversationList({
                     {preview}
                   </p>
                   {c.unread && (
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
+                    <span
+                      data-testid="conversation-unread-dot"
+                      className="h-2 w-2 shrink-0 rounded-full bg-accent"
+                    />
                   )}
                 </div>
               </div>
