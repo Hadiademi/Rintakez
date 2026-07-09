@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { unstable_cache } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
@@ -386,14 +387,32 @@ export default async function HomePage() {
     const since = new Date();
     since.setDate(since.getDate() - 30);
     const sinceStr = since.toISOString().slice(0, 10);
-    const [{ data: viewsData }, { data: benchmarkData }] = await Promise.all([
+    // The platform median is a single global aggregate over `bids` — identical
+    // for every premium viewer — so it's cached to avoid re-scanning on every
+    // home load. Deliberately kept on the request-scoped `supabase` client
+    // (NOT createPublicClient()): platform_median_acceptance_rate() is
+    // SECURITY DEFINER and re-checks the CALLER's own entitlement via
+    // auth.uid() internally (defense-in-depth against a UI bypass), so an
+    // anon client would always see auth.uid() IS NULL and always get NULL
+    // back. That's safe to cache here specifically because this call only
+    // ever happens below the uncached, per-request `tier === "premium"`
+    // check — every cache miss that runs this closure is already known to be
+    // a premium caller, and the resulting number doesn't depend on WHICH
+    // premium viewer asks, only on entitlement (checked outside the cache).
+    const getCachedBenchmark = unstable_cache(
+      async () => {
+        const { data } = await supabase.rpc("platform_median_acceptance_rate");
+        return data ?? null;
+      },
+      ["platform-benchmark"],
+      { revalidate: 300, tags: ["platform-benchmark"] }
+    );
+    const [{ data: viewsData }, benchmarkData] = await Promise.all([
       supabase.rpc("photographer_view_count", {
         p_photographer_id: profile.id,
         p_since: sinceStr,
       }),
-      tier === "premium"
-        ? supabase.rpc("platform_median_acceptance_rate")
-        : Promise.resolve({ data: null }),
+      tier === "premium" ? getCachedBenchmark() : Promise.resolve(null),
     ]);
     views30d = viewsData ?? 0;
     if (tier === "premium") {

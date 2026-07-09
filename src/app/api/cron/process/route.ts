@@ -14,6 +14,10 @@ import { captureError } from "@/lib/observability";
 // cannot receive bids).
 
 export const dynamic = "force-dynamic";
+// Drains up to ~25 emails sequentially (Resend ~8s each worst case → ~200s
+// possible). Make the ceiling explicit so a smaller platform default can't
+// truncate the drain mid-batch; 300s is the current Vercel default ceiling.
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
