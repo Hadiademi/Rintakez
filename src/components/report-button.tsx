@@ -81,6 +81,10 @@ export function ReportButton({
       <textarea
         id="report-reason"
         data-testid="report-reason"
+        // Panel is revealed by the user's own click (not on page load); moving
+        // focus to the primary field is the standard disclosure-pattern UX,
+        // not a disorienting page-load autofocus.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         rows={3}
         value={reason}

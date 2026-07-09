@@ -709,6 +709,10 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           role="log"
           aria-live="polite"
           aria-label={t("conversationLabel", { name: thread.otherName })}
+          // This is the WCAG-recommended technique for making a scrollable region
+          // keyboard operable (arrow/page keys scroll it) since role="log" isn't
+          // in the rule's interactive-elements list.
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
           className="h-full space-y-0 overflow-y-auto overscroll-contain py-5 focus:outline-none"
         >
@@ -779,6 +783,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                                     src={imgSrc}
                                     alt={t("photoAlt")}
                                     loading="lazy"
+                                    decoding="async"
                                     className="block max-h-80 w-full object-cover"
                                   />
                                 ) : (

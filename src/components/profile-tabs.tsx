@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useSyncExternalStore } from "react";
+import { useTranslations } from "next-intl";
 
 type Tab = { id: string; label: string };
 
@@ -37,6 +38,7 @@ export function ProfileTabs({
   tabs: Tab[];
   children: React.ReactNode;
 }) {
+  const tAria = useTranslations("profile");
   const hash = useSyncExternalStore(subscribeHash, getHash, getServerHash);
   const active = tabs.some((t) => t.id === hash) ? hash : tabs[0]?.id ?? "";
 
@@ -52,7 +54,7 @@ export function ProfileTabs({
   return (
     <div className="mt-10 lg:grid lg:grid-cols-[180px_1fr] lg:gap-12">
       <nav
-        aria-label="Profile sections"
+        aria-label={tAria("profileSectionsAria")}
         className="mb-6 lg:sticky lg:top-8 lg:mb-0 lg:self-start"
       >
         <ul

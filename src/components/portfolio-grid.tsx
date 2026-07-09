@@ -32,6 +32,7 @@ export function PortfolioGrid({ images }: PortfolioGridProps) {
             <img
               src={image.url}
               loading="lazy"
+              decoding="async"
               alt={image.caption ?? ""}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             />

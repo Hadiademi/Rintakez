@@ -21,7 +21,10 @@
     "save": "Save",
     "remove": "Remove",
     "close": "Close",
-    "removeConfirm": "Remove this? This can't be undone."
+    "removeConfirm": "Remove this? This can't be undone.",
+    "languageAria": "Language",
+    "loadingAria": "Loading",
+    "skipToContent": "Skip to main content"
   },
   "nav": {
     "home": "Home",
@@ -153,7 +156,8 @@
     "editTitle": "Edit profile",
     "editSubtitle": "Update your details and portfolio.",
     "save": "Save",
-    "disciplines": "Discipline"
+    "disciplines": "Discipline",
+    "portfolioThumbnailAlt": "Portfolio thumbnail"
   },
   "createShoot": {
     "title": "Post a shoot",
@@ -296,6 +300,7 @@
     }
   },
   "profile": {
+    "profileSectionsAria": "Profile sections",
     "specialties": "Specialties",
     "coverage": "Coverage areas",
     "hourlyRate": "Hourly rate",

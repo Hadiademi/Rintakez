@@ -238,6 +238,10 @@ export default async function ShootDetailPage({
         <img
           src={shootImage(shoot.type, shoot.id, 1200, 675)}
           alt=""
+          width={1200}
+          height={675}
+          // LCP hero for this page — stays eager (no loading="lazy").
+          decoding="async"
           className="h-full w-full object-cover grayscale"
         />
       </div>

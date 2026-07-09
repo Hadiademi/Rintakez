@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppNav } from "@/components/app-nav";
 import { PublicNav } from "@/components/public-nav";
 import { ToasterProvider } from "@/components/ui/toaster";
+import { SkipToContent } from "@/components/skip-to-content";
 
 export default async function AppLayout({
   children,
@@ -20,8 +21,12 @@ export default async function AppLayout({
     return (
       <ToasterProvider>
         <div className="min-h-screen bg-paper">
+          <SkipToContent />
           <PublicNav />
-          <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">
+          <div
+            id="main"
+            className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10"
+          >
             {children}
           </div>
         </div>
@@ -53,6 +58,7 @@ export default async function AppLayout({
   return (
     <ToasterProvider>
       <div className="min-h-screen bg-paper">
+        <SkipToContent />
         <AppNav
           role={profile.role as "client" | "photographer"}
           displayName={profile.display_name ?? ""}
@@ -68,7 +74,12 @@ export default async function AppLayout({
             {suspendedBanner}
           </div>
         ) : null}
-        <div className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10">{children}</div>
+        <div
+          id="main"
+          className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10"
+        >
+          {children}
+        </div>
       </div>
     </ToasterProvider>
   );

@@ -68,7 +68,6 @@ export default function RegisterForm() {
           data-testid="register-displayName"
           type="text"
           autoComplete="name"
-          autoFocus
           {...register("displayName")}
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />

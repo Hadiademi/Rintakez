@@ -31,6 +31,10 @@ export function Avatar({
         <img
           src={src!}
           alt={name}
+          width={size}
+          height={size}
+          loading="lazy"
+          decoding="async"
           onError={() => setFailed(true)}
           className="h-full w-full object-cover grayscale"
         />
