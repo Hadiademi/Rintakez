@@ -52,13 +52,12 @@ export default async function ProfilePage() {
 
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select(
-      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, notify_messages, terms_accepted_at, terms_version"
-    )
-    .eq("id", user.id)
-    .single();
+  // Own-row read of notify_*/terms_* (column-scoped out of the regular
+  // profiles SELECT grant, 20260709000000_profiles_column_privacy) — use
+  // current_profile() (SECURITY DEFINER, scoped to auth.uid()) instead of a
+  // plain table select. No `.single()`: the function already returns one row
+  // (or null) — see src/lib/auth.ts for why chaining it breaks inference.
+  const { data: profile } = await supabase.rpc("current_profile");
 
   if (!profile) {
     redirect({ href: "/login", locale });

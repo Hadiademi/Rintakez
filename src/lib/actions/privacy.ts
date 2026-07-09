@@ -35,7 +35,13 @@ export async function exportMyData(): Promise<
     notifications,
     shootInvitations,
   ] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    // current_profile() (SECURITY DEFINER) returns the caller's own full row,
+    // including the columns the column-scoped profiles SELECT grant excludes
+    // (20260709000000_profiles_column_privacy) — needed here so the nDSG/GDPR
+    // export still includes everything the user is entitled to about themself.
+    // No `.maybeSingle()`: the function returns a single row (or null)
+    // already (see src/lib/auth.ts for why chaining it breaks inference).
+    supabase.rpc("current_profile"),
     supabase
       .from("photographer_details")
       .select("*")

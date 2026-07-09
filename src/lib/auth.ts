@@ -13,13 +13,20 @@ export const getProfile = cache(async () => {
   const user = await getSessionUser();
   if (!user) return null;
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("profiles")
-    .select(
-      "id, role, display_name, avatar_url, city, canton, locale, is_admin, is_suspended, suspension_reason, notify_bids, notify_shoot_updates"
-    )
-    .eq("id", user.id)
-    .single();
+  // The profiles SELECT grant is column-scoped to a safe public-identity
+  // allowlist (20260709000000_profiles_column_privacy) — is_admin,
+  // is_suspended, suspension_reason, notify_bids, notify_shoot_updates etc.
+  // are not selectable via a plain table read, even for your own row.
+  // current_profile() is a SECURITY DEFINER function that returns the
+  // caller's own full row, bypassing that grant safely (scoped to
+  // auth.uid()). It's declared `returns public.profiles` (not `setof`), so
+  // PostgREST/postgrest-js already type `data` as a single row object (or
+  // null) without chaining `.single()`/`.maybeSingle()` — confirmed both by
+  // a live RPC call and by the generated Functions.current_profile type
+  // (SetofOptions.isSetofReturn: false). Do NOT add `.single()` here: in the
+  // installed postgrest-js version it collapses `data`'s inferred type to
+  // `null`-only for this function shape (verified empirically).
+  const { data } = await supabase.rpc("current_profile");
   return data;
 });
 

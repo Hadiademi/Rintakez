@@ -1090,6 +1090,36 @@ export type Database = {
       can_invite_to_shoot: { Args: { p_shoot_id: string }; Returns: boolean }
       can_view_shoot: { Args: { p_shoot_id: string }; Returns: boolean }
       complete_shoot: { Args: { p_shoot_id: string }; Returns: undefined }
+      current_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          bio: string | null
+          canton: Database["public"]["Enums"]["canton"] | null
+          city: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_admin: boolean
+          is_suspended: boolean
+          locale: Database["public"]["Enums"]["locale"]
+          notify_bids: boolean
+          notify_messages: boolean
+          notify_shoot_updates: boolean
+          role: Database["public"]["Enums"]["user_role"]
+          role_confirmed: boolean
+          suspended_at: string | null
+          suspension_reason: string | null
+          terms_accepted_at: string | null
+          terms_version: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       decline_bid: { Args: { p_bid_id: string }; Returns: undefined }
       get_counterparty_email: { Args: { p_shoot_id: string }; Returns: string }
       has_role: {
