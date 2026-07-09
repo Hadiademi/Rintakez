@@ -181,54 +181,18 @@ test.describe("messaging", () => {
     }
   });
 
-  // ── Block/unblock — KNOWN, PRE-EXISTING BUG ────────────────────────────
-  // blockUser()/unblockUser() (src/lib/actions/messages.ts) call
-  // `supabase.from("user_blocks").upsert({...}, { onConflict: "blocker_id,
-  // blocked_id" })`. PostgREST compiles that to `INSERT ... ON CONFLICT (...)
-  // DO UPDATE SET ...`, which requires UPDATE privilege on the table even
-  // when no conflict actually occurs (Postgres checks the privilege needed
-  // to plan the ON CONFLICT DO UPDATE clause, not just the branch taken).
-  // supabase/migrations/20260622030000_blocks.sql:17 only grants
-  //   `select, insert, delete` to `authenticated` — UPDATE was never granted.
-  // Reproduced directly against local Postgres (bypassing the app/PostgREST
-  // entirely):
-  //   set local role authenticated;
-  //   set local request.jwt.claims to '{"sub":"<marko>","role":"authenticated"}';
-  //   insert into public.user_blocks (blocker_id, blocked_id)
-  //     values ('<marko>', '<lena>')
-  //     on conflict (blocker_id, blocked_id) do update set
-  //       blocker_id = excluded.blocker_id, blocked_id = excluded.blocked_id;
-  //   -- ERROR:  permission denied for table user_blocks
-  //   -- HINT:  Grant the required privileges to the current role with:
-  //   --        GRANT UPDATE ON public.user_blocks TO authenticated;
-  // Net effect: clicking "Blockieren" in the UI always fails silently (the
-  // action returns { ok: false }, and onToggleBlock only flips local state
-  // when ok — see message-thread.tsx's onToggleBlock) — the composer never
-  // actually disables. The safety feature is a no-op end to end.
-  //
-  // This is a genuine product bug this new e2e coverage found — exactly the
-  // class of gap WI-5 exists to catch — but WI-5 is scoped to TESTS ONLY, so
-  // it is deliberately not fixed here (that's a one-line migration:
-  // `grant update on public.user_blocks to authenticated;` or the tighter
-  // `grant update (blocker_id, blocked_id) on public.user_blocks to
-  // authenticated;`). test.fail() below encodes "this is expected to fail
-  // right now" so the suite stays green — and the moment someone applies
-  // that grant, this test will start passing, which Playwright reports as an
-  // unexpected pass (a build-breaking signal to remove the test.fail()
-  // annotation and confirm the rest of the flow — unblock, composer
-  // re-enable — for real).
+  // ── Block/unblock ──────────────────────────────────────────────────────
+  // Regression guard for a real bug this e2e coverage first surfaced:
+  // blockUser() used `upsert(..., { onConflict })`, which PostgREST compiles
+  // to `INSERT ... ON CONFLICT DO UPDATE` and requires UPDATE privilege —
+  // but user_blocks only grants select/insert/delete, so every block was
+  // silently permission-denied and the composer never disabled. Fixed by
+  // making the upsert idempotent (`ignoreDuplicates: true` → ON CONFLICT DO
+  // NOTHING, which needs only the existing INSERT grant). This test now
+  // exercises the real end-to-end flow.
   test("block disables the composer for both sides; unblock re-enables it", async ({
     browser,
   }) => {
-    test.fail(
-      true,
-      "blockUser() cannot actually write a block row — user_blocks lacks an " +
-        "UPDATE grant for `authenticated`, required by its upsert's ON " +
-        "CONFLICT DO UPDATE clause (see the comment above this test). Fix: " +
-        "grant update on public.user_blocks to authenticated; — once applied " +
-        "this test starts passing and the test.fail() call must be removed."
-    );
-
     const photographerContext = await browser.newContext();
     const clientContext = await browser.newContext();
     const photographerPage = await photographerContext.newPage();

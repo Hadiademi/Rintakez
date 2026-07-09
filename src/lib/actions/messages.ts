@@ -602,11 +602,16 @@ export async function blockUser(
   if (targetId === user.id) return { ok: false, error: "invalid_input" };
 
   const supabase = await createClient();
+  // Idempotent: a block row either exists or it doesn't — re-blocking changes
+  // nothing. Use ON CONFLICT DO NOTHING (ignoreDuplicates), not DO UPDATE:
+  // user_blocks grants only insert/delete (no UPDATE), so an upsert that
+  // compiled to ON CONFLICT DO UPDATE was permission-denied and the block
+  // silently never persisted.
   const { error } = await supabase
     .from("user_blocks")
     .upsert(
       { blocker_id: user.id, blocked_id: targetId },
-      { onConflict: "blocker_id,blocked_id" }
+      { onConflict: "blocker_id,blocked_id", ignoreDuplicates: true }
     );
   if (error) return { ok: false, error: dbError(error, "messages") };
 

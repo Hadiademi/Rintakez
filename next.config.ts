@@ -41,7 +41,13 @@ function supabaseConnectOrigins(): string[] {
 // rather than report-only.
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // 'unsafe-eval' ONLY in development — React dev mode uses eval() for
+  // debugging (HMR/callstacks); production React never does, so prod ships
+  // without it (stricter). Omitting it in dev breaks `next dev` with CSP
+  // eval violations.
+  `script-src 'self' 'unsafe-inline'${
+    process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"
+  }`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   ["connect-src", "'self'", "https:", "wss:", ...supabaseConnectOrigins()].join(" "),
