@@ -237,8 +237,17 @@
   },
   "myShoots": {
     "title": "Mes missions",
+    "eyebrow": "Ton activité",
+    "subtitle": "Chaque mission que tu as publiée et son statut.",
     "empty": "Tu n'as pas encore créé de mission.",
-    "createCta": "Créer une mission"
+    "createCta": "Créer une mission",
+    "statActive": "Actives",
+    "statOffers": "Offres",
+    "statBooked": "Réservées",
+    "statCompleted": "Terminées",
+    "filterAll": "Toutes",
+    "noneForFilter": "Aucune mission avec ce statut.",
+    "reviewOffers": "{count, plural, one {Voir # offre →} other {Voir # offres →}}"
   },
   "browse": {
     "title": "Missions ouvertes",

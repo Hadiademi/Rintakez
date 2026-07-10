@@ -237,8 +237,17 @@
   },
   "myShoots": {
     "title": "Meine Aufträge",
+    "eyebrow": "Deine Aktivität",
+    "subtitle": "Jeder von dir erstellte Auftrag und sein Status.",
     "empty": "Du hast noch keinen Auftrag erstellt.",
-    "createCta": "Auftrag erstellen"
+    "createCta": "Auftrag erstellen",
+    "statActive": "Aktiv",
+    "statOffers": "Angebote",
+    "statBooked": "Gebucht",
+    "statCompleted": "Abgeschlossen",
+    "filterAll": "Alle",
+    "noneForFilter": "Keine Aufträge mit diesem Status.",
+    "reviewOffers": "{count, plural, one {# Angebot ansehen →} other {# Angebote ansehen →}}"
   },
   "browse": {
     "title": "Offene Aufträge",

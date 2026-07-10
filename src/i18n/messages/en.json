@@ -237,8 +237,17 @@
   },
   "myShoots": {
     "title": "My shoots",
+    "eyebrow": "Your activity",
+    "subtitle": "Every shoot you've posted and its status.",
     "empty": "You haven't posted a shoot yet.",
-    "createCta": "Post a shoot"
+    "createCta": "Post a shoot",
+    "statActive": "Active",
+    "statOffers": "Offers",
+    "statBooked": "Booked",
+    "statCompleted": "Completed",
+    "filterAll": "All",
+    "noneForFilter": "No shoots with this status.",
+    "reviewOffers": "{count, plural, one {Review # offer →} other {Review # offers →}}"
   },
   "browse": {
     "title": "Open shoots",
