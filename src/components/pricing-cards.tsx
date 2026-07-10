@@ -253,7 +253,10 @@ export function PricingCards({
         </div>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-4">
+      {/* Joined cards: one outer border with hairline dividers between columns
+          (no gaps), matching the approved mockup. The Standard card fills its
+          cell edge-to-edge with a terracotta top accent so it still pops. */}
+      <div className="grid grid-cols-1 divide-y divide-line border border-line lg:grid-cols-4 lg:divide-x lg:divide-y-0">
         {PLAN_FEATURE_MATRIX.map((row) => {
           const dark = row.plan === "standard";
           return (
@@ -262,8 +265,8 @@ export function PricingCards({
               data-testid={`pricing-card-${row.plan}`}
               className={`relative flex h-full flex-col p-6 ${
                 dark
-                  ? "border-t-2 border-accent bg-ink text-paper lg:-translate-y-3"
-                  : "border border-line bg-surface"
+                  ? "border-t-2 border-accent bg-ink text-paper"
+                  : "bg-surface"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
