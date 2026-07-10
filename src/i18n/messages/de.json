@@ -415,6 +415,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "Zum Ausprobieren",
         "feature": {
           "quota": "1 Angebot pro Monat",
           "profile": "Öffentliches Fotografen-Profil",
@@ -424,6 +425,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "Für Einzelpersonen",
         "feature": {
           "quota": "5 Angebote pro Monat",
           "digest": "Tägliche Job-Übersicht",
@@ -432,6 +434,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "Für aktive Bieter:innen",
         "feature": {
           "quota": "32 Angebote pro Monat",
           "placement": "Bevorzugte Platzierung im Verzeichnis",
@@ -442,6 +445,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "Für Studios & Teams",
         "feature": {
           "quota": "Unbegrenzte Angebote",
           "placement": "Top-Platzierung + SEO-Priorität",
@@ -473,7 +477,17 @@
       "securedByStripe": "Zahlungen abgesichert durch Stripe",
       "trustNoCommission": "0% Kommission",
       "trustCancel": "Jederzeit kündbar",
-      "eyebrow": "Für Fotografen"
+      "eyebrow": "Für Fotografen",
+      "footerLine": "Erster Monat gratis · Jederzeit kündbar · Preise in CHF, exkl. MwSt.",
+      "faqTitle": "Häufige Fragen",
+      "faqQ1": "Kann ich jederzeit den Plan wechseln?",
+      "faqA1": "Ja. Upgrades und Downgrades gelten sofort über dein Kundenportal, und du kannst jederzeit kündigen.",
+      "faqQ2": "Welche Zahlungsmethoden werden akzeptiert?",
+      "faqA2": "Kredit- und Debitkarten, sicher über Stripe.",
+      "faqQ3": "Gibt es eine Provision pro Auftrag?",
+      "faqA3": "Nein. 0% Provision — du behältst 100% deines Verdiensts; das Abo ist alles, was du zahlst.",
+      "faqQ4": "Ist der erste Monat wirklich gratis?",
+      "faqA4": "Ja — dein erster Monat in jedem bezahlten Plan ist gratis."
     }
   },
   "errors": {

@@ -415,6 +415,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "Pour essayer",
         "feature": {
           "quota": "1 offre par mois",
           "profile": "Profil photographe public",
@@ -424,6 +425,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "Pour les indépendants",
         "feature": {
           "quota": "5 offres par mois",
           "digest": "Récapitulatif quotidien des missions",
@@ -432,6 +434,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "Pour les enchérisseurs assidus",
         "feature": {
           "quota": "32 offres par mois",
           "placement": "Placement prioritaire dans l'annuaire",
@@ -442,6 +445,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "Pour studios & équipes",
         "feature": {
           "quota": "Offres illimitées",
           "placement": "Placement en tête + priorité SEO",
@@ -473,7 +477,17 @@
       "securedByStripe": "Paiements sécurisés par Stripe",
       "trustNoCommission": "0% de commission",
       "trustCancel": "Résiliable à tout moment",
-      "eyebrow": "Pour les photographes"
+      "eyebrow": "Pour les photographes",
+      "footerLine": "Premier mois gratuit · Résiliable à tout moment · Prix en CHF, hors TVA",
+      "faqTitle": "Questions fréquentes",
+      "faqQ1": "Peux-tu changer de formule à tout moment ?",
+      "faqA1": "Oui. Les mises à niveau et rétrogradations s'appliquent immédiatement via ton espace de facturation, et tu peux résilier à tout moment.",
+      "faqQ2": "Quels moyens de paiement puis-je utiliser ?",
+      "faqA2": "Cartes de crédit et de débit, en toute sécurité via Stripe.",
+      "faqQ3": "Y a-t-il une commission par mission ?",
+      "faqA3": "Non. 0% de commission — tu gardes 100% de ce que tu gagnes ; l'abonnement est tout ce que tu payes.",
+      "faqQ4": "Le premier mois est-il vraiment gratuit ?",
+      "faqA4": "Oui — ton premier mois sur n'importe quelle formule payante est gratuit."
     }
   },
   "errors": {

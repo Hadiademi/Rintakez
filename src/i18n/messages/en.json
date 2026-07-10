@@ -415,6 +415,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "To try it out",
         "feature": {
           "quota": "1 offer per month",
           "profile": "Public photographer profile",
@@ -424,6 +425,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "For individuals",
         "feature": {
           "quota": "5 offers per month",
           "digest": "Daily job digest",
@@ -432,6 +434,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "For frequent bidders",
         "feature": {
           "quota": "32 offers per month",
           "placement": "Preferred directory placement",
@@ -442,6 +445,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "For studios & teams",
         "feature": {
           "quota": "Unlimited offers",
           "placement": "Top placement + SEO priority",
@@ -473,7 +477,17 @@
       "securedByStripe": "Payments secured by Stripe",
       "trustNoCommission": "0% commission",
       "trustCancel": "Cancel anytime",
-      "eyebrow": "For photographers"
+      "eyebrow": "For photographers",
+      "footerLine": "First month free · Cancel anytime · Prices in CHF, excl. VAT",
+      "faqTitle": "FAQ",
+      "faqQ1": "Can I switch plans anytime?",
+      "faqA1": "Yes. Upgrades and downgrades apply immediately through your billing portal, and you can cancel anytime.",
+      "faqQ2": "What payment methods do you accept?",
+      "faqA2": "Credit and debit cards, securely via Stripe.",
+      "faqQ3": "Is there a commission per booking?",
+      "faqA3": "No. 0% commission — you keep 100% of what you earn; the subscription is all you pay.",
+      "faqQ4": "Is the first month really free?",
+      "faqA4": "Yes — your first month on any paid plan is free."
     }
   },
   "errors": {
