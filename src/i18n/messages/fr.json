@@ -286,8 +286,19 @@
   },
   "myBids": {
     "title": "Mes offres",
+    "eyebrow": "Ton activité",
+    "subtitle": "Un aperçu de toutes les offres que tu as soumises et de leur statut.",
     "empty": "Tu n'as pas encore soumis d'offre.",
-    "browseCta": "Parcourir les missions"
+    "noneForFilter": "Aucune offre avec ce statut.",
+    "browseCta": "Parcourir les missions",
+    "statActive": "Actives",
+    "statWon": "Gagnées",
+    "statWinRate": "Taux de réussite",
+    "statVolume": "Volume",
+    "filterAll": "Toutes",
+    "budget": "Budget",
+    "yourOffer": "Ton offre",
+    "submittedAgo": "Envoyée {time}"
   },
   "bid": {
     "viewProfile": "Voir le profil",

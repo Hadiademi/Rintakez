@@ -286,8 +286,19 @@
   },
   "myBids": {
     "title": "My bids",
+    "eyebrow": "Your activity",
+    "subtitle": "An overview of every offer you've submitted and its status.",
     "empty": "You haven't placed a bid yet.",
-    "browseCta": "Browse shoots"
+    "noneForFilter": "No offers with this status.",
+    "browseCta": "Browse shoots",
+    "statActive": "Active",
+    "statWon": "Won",
+    "statWinRate": "Win rate",
+    "statVolume": "Volume",
+    "filterAll": "All",
+    "budget": "Budget",
+    "yourOffer": "Your offer",
+    "submittedAgo": "Submitted {time}"
   },
   "bid": {
     "viewProfile": "View profile",
