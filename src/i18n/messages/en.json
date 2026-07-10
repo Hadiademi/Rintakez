@@ -667,7 +667,14 @@
     "verifiedOnly": "Verified only",
     "allDisciplines": "All disciplines",
     "popularSearches": "Popular searches",
-    "topPartner": "Top Partner"
+    "topPartner": "Top Partner",
+    "eyebrow": "Directory",
+    "filterSpecialty": "Specialty",
+    "filterRegion": "Region",
+    "filterDiscipline": "Discipline",
+    "anyRating": "Any",
+    "fromPrice": "from CHF {amount}",
+    "filters": "Filters"
   },
   "messages": {
     "navMessages": "Messages",

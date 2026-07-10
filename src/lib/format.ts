@@ -9,6 +9,12 @@ export function formatCHF(n: number): string {
   return `CHF ${chf(n)}`;
 }
 
+/** Swiss-grouped number only, no currency prefix — for composing with an
+ * i18n string that already supplies its own "CHF"/"ab CHF"/"dès CHF" copy. */
+export function formatChfAmount(n: number): string {
+  return chf(n);
+}
+
 export function formatCHFRange(min: number, max: number): string {
   return `CHF ${chf(min)} – ${chf(max)}`;
 }

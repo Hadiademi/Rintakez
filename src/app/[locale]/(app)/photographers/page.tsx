@@ -237,69 +237,87 @@ export default async function PhotographersDirectoryPage({
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-4xl font-semibold tracking-tight text-ink">
-          {t("title")}
-        </h1>
-        <p className="text-mute">{t("subtitle")}</p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <p className="label text-mute">{t("eyebrow")}</p>
+          <h1 className="text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+            {t("title")}
+          </h1>
+          <p className="text-mute">{t("subtitle")}</p>
+        </div>
+        <p className="label shrink-0 text-mute">{t("count", { count: total })}</p>
       </div>
 
-      <PhotographerFilters />
+      <div className="lg:grid lg:grid-cols-[260px_1fr] lg:items-start lg:gap-12">
+        <PhotographerFilters />
 
-      <p className="label text-mute">{t("count", { count: total })}</p>
+        <div className="mt-6 space-y-8 lg:mt-0">
+          {total === 0 ? (
+            <EmptyState description={t("empty")} />
+          ) : (
+            <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+              {pageItems.map((x) => {
+                const coverPath =
+                  x.cover_path ?? firstPortfolioBy.get(x.profile_id) ?? null;
+                return (
+                  <PhotographerCard
+                    key={x.profile_id}
+                    verifiedLabel={t("verified")}
+                    newLabel={tReview("newBadge")}
+                    topPartnerLabel={t("topPartner")}
+                    data={{
+                      id: x.profile_id,
+                      name: x.profile.display_name,
+                      city: x.profile.city,
+                      canton: x.profile.canton,
+                      avatarUrl: publicUrl("avatars", x.profile.avatar_url),
+                      coverUrl: publicUrl("portfolio", coverPath),
+                      verified: x.verification_status === "verified",
+                      isTopPartner: x.effective_tier === "premium",
+                      disciplineLabels: (x.disciplines ?? []).map((d) =>
+                        tShoot(`disciplines.${d}`)
+                      ),
+                      specialtyLabels: (x.specialties ?? []).map((s) =>
+                        tShoot(`types.${s}`)
+                      ),
+                      rating: x.rating,
+                      hourlyRate: x.hourly_rate_chf,
+                      memberSinceYear: new Date(
+                        x.profile.created_at
+                      ).getFullYear(),
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
 
-      {total === 0 ? (
-        <EmptyState description={t("empty")} />
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {pageItems.map((x) => {
-            const coverPath =
-              x.cover_path ?? firstPortfolioBy.get(x.profile_id) ?? null;
-            return (
-              <PhotographerCard
-                key={x.profile_id}
-                verifiedLabel={t("verified")}
-                newLabel={tReview("newBadge")}
-                topPartnerLabel={t("topPartner")}
-                data={{
-                  id: x.profile_id,
-                  name: x.profile.display_name,
-                  city: x.profile.city,
-                  canton: x.profile.canton,
-                  avatarUrl: publicUrl("avatars", x.profile.avatar_url),
-                  coverUrl: publicUrl("portfolio", coverPath),
-                  verified: x.verification_status === "verified",
-                  isTopPartner: x.effective_tier === "premium",
-                  disciplineLabels: (x.disciplines ?? []).map((d) =>
-                    tShoot(`disciplines.${d}`)
-                  ),
-                  specialtyLabels: (x.specialties ?? []).map((s) =>
-                    tShoot(`types.${s}`)
-                  ),
-                  rating: x.rating,
-                  hourlyRate: x.hourly_rate_chf,
-                  memberSinceYear: new Date(x.profile.created_at).getFullYear(),
-                }}
-              />
-            );
-          })}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            params={{ type, canton, minRating, sort, saved, verified, discipline, q }}
+            basePath="/photographers"
+          />
+
+          {/* Internal links into the canton x shoot-type landing pages, so
+              crawlers (and visitors) can discover them from the directory —
+              only on the unfiltered view, so it reads as a discovery aid
+              rather than clutter once someone's already narrowed their
+              search. */}
+          {!type &&
+          !canton &&
+          !discipline &&
+          !minRating &&
+          !saved &&
+          !verified &&
+          !query ? (
+            <PopularSearches
+              combos={await getActiveCantonTypeCombos()}
+              locale={locale}
+            />
+          ) : null}
         </div>
-      )}
-
-      <Pagination
-        page={page}
-        totalPages={totalPages}
-        params={{ type, canton, minRating, sort, saved, verified, discipline, q }}
-        basePath="/photographers"
-      />
-
-      {/* Internal links into the canton x shoot-type landing pages, so
-          crawlers (and visitors) can discover them from the directory —
-          only on the unfiltered view, so it reads as a discovery aid rather
-          than clutter once someone's already narrowed their search. */}
-      {!type && !canton && !discipline && !minRating && !saved && !verified && !query ? (
-        <PopularSearches combos={await getActiveCantonTypeCombos()} locale={locale} />
-      ) : null}
+      </div>
     </div>
   );
 }
