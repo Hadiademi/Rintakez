@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getRealtimeClient } from "@/lib/supabase/realtime";
@@ -10,6 +10,7 @@ import {
   type NotificationItem,
 } from "@/lib/actions/notifications";
 import { hrefFor } from "@/lib/notifications-href";
+import { NotificationTypeIcon } from "@/components/notification-type-icon";
 import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
 
 function BellIcon() {
@@ -42,9 +43,14 @@ export function NotificationBell({
 }) {
   const t = useTranslations("notifications");
   const tCommon = useTranslations("common");
+  const format = useFormatter();
   const [items, setItems] = useState<NotificationItem[]>(initialItems);
   const [unread, setUnread] = useState(initialUnread);
   const [open, setOpen] = useState(false);
+  // Seed a stable reference time once at mount so relativeTime() never falls
+  // back to the current instant on every render (which crashes next-intl's
+  // ENVIRONMENT_FALLBACK guard when `now` is omitted).
+  const [now] = useState(() => new Date());
   const [toast, setToast] = useState<NotificationItem | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,6 +162,18 @@ export function NotificationBell({
     }
   }
 
+  // Header "Mark all as read" — the same server action as opening the bell,
+  // kept explicit so the affordance is discoverable. Broadcasts the read event
+  // so the persistent /notifications list zeroes without a refetch.
+  async function markAll() {
+    setUnread(0);
+    setItems((prev) =>
+      prev.map((i) => (i.readAt ? i : { ...i, readAt: new Date().toISOString() }))
+    );
+    await markNotificationsRead();
+    window.dispatchEvent(new Event(NOTIFICATIONS_READ_EVENT));
+  }
+
   return (
     <div ref={rootRef} className="relative">
       <button
@@ -180,52 +198,75 @@ export function NotificationBell({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 border border-line bg-paper shadow-lg">
-          <div className="border-b border-line px-4 py-3">
-            <p className="label text-mute">{t("title")}</p>
+        <div className="fixed inset-x-3 top-16 z-50 border border-line bg-paper shadow-lg lg:absolute lg:inset-x-auto lg:right-0 lg:top-full lg:mt-2 lg:w-[360px] lg:max-w-[calc(100vw-1.5rem)]">
+          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
+            <p className="text-base font-semibold text-ink">{t("title")}</p>
+            <button
+              type="button"
+              onClick={markAll}
+              data-testid="notification-mark-all"
+              className="press label text-accent transition-opacity hover:opacity-70"
+            >
+              {t("markAllRead")}
+            </button>
           </div>
           {items.length === 0 ? (
-            <p className="px-4 py-6 text-[14px] text-mute">{t("empty")}</p>
+            <p className="px-4 py-8 text-center text-[14px] text-mute">
+              {t("empty")}
+            </p>
           ) : (
-            <ul className="max-h-96 overflow-auto">
+            <ul className="max-h-96 divide-y divide-line overflow-auto">
               {items.map((item) => (
                 <li key={item.id}>
                   <Link
                     href={hrefFor(item)}
                     onClick={() => setOpen(false)}
-                    className={`block border-b border-line px-4 py-3 transition-colors hover:bg-surface ${
-                      item.readAt ? "" : "bg-surface/60"
-                    }`}
+                    className="flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-surface"
                   >
-                    <span className="flex items-start gap-2">
-                      {!item.readAt && (
-                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                      )}
-                      <span className="flex flex-col gap-0.5">
-                        <span className="text-[14px] text-ink">
-                          {t(item.type)}
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-line text-ink">
+                      <NotificationTypeIcon type={item.type} />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span
+                        className={`text-[14px] leading-snug ${
+                          item.readAt ? "text-ink" : "font-medium text-ink"
+                        }`}
+                      >
+                        {t(item.type)}
+                      </span>
+                      {item.title && (
+                        <span className="truncate text-[13px] text-mute">
+                          {item.title}
                         </span>
-                        {item.title && (
-                          <span className="text-[13px] text-mute">
-                            {item.title}
-                          </span>
-                        )}
+                      )}
+                      <span className="label text-mute-2">
+                        {(() => {
+                          // Clamp to the mount reference: a realtime row's
+                          // server timestamp can edge past `now`, which would
+                          // otherwise render as a nonsensical "in X seconds".
+                          const when = new Date(item.createdAt);
+                          return format.relativeTime(when, when > now ? when : now);
+                        })()}
                       </span>
                     </span>
+                    {!item.readAt && (
+                      <span
+                        className="mt-1 h-2 w-2 shrink-0 bg-accent"
+                        aria-hidden="true"
+                      />
+                    )}
                   </Link>
                 </li>
               ))}
             </ul>
           )}
-          <div className="border-t border-line">
-            <Link
-              href="/notifications"
-              onClick={() => setOpen(false)}
-              className="press flex min-h-11 items-center justify-center px-4 py-3 text-[13px] font-medium text-accent hover:bg-surface"
-            >
-              {t("viewAll")}
-            </Link>
-          </div>
+          <Link
+            href="/notifications"
+            onClick={() => setOpen(false)}
+            className="press label flex min-h-11 items-center justify-center border-t border-line px-4 py-3 text-mute transition-colors hover:bg-surface hover:text-ink"
+          >
+            {t("viewAll")} &rarr;
+          </Link>
         </div>
       )}
 
