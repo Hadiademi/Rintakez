@@ -198,7 +198,7 @@ export function NotificationBell({
 
       {/* Dropdown */}
       {open && (
-        <div className="fixed inset-x-3 top-16 z-50 border border-line bg-paper shadow-lg lg:absolute lg:inset-x-auto lg:right-0 lg:top-full lg:mt-2 lg:w-[360px] lg:max-w-[calc(100vw-1.5rem)]">
+        <div className="fixed right-3 top-16 z-50 w-[calc(100vw-1.5rem)] max-w-sm border border-line bg-paper shadow-lg lg:absolute lg:right-0 lg:top-full lg:mt-2 lg:w-[360px] lg:max-w-[calc(100vw-1.5rem)]">
           <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
             <p className="text-base font-semibold text-ink">{t("title")}</p>
             <button
