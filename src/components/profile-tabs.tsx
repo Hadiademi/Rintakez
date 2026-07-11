@@ -1,6 +1,11 @@
 "use client";
 
-import { createContext, useContext, useSyncExternalStore } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 
 type Tab = { id: string; label: string };
 
@@ -46,7 +51,21 @@ export function ProfileTabs({
   hideBarOnMobile?: boolean;
 }) {
   const hash = useSyncExternalStore(subscribeHash, getHash, getServerHash);
-  const active = tabs.some((t) => t.id === hash) ? hash : tabs[0]?.id ?? "";
+  const hasHash = tabs.some((t) => t.id === hash);
+  const active = hasHash ? hash : tabs[0]?.id ?? "";
+
+  // Mobile "account hub" mode: on a fresh /profile (no hash) show ONLY the hub
+  // menu — don't dangle the default section's panel below it. Once a hub row is
+  // tapped (hash set), reveal that section and scroll it into view so it isn't
+  // hidden below the fold. Desktop is unaffected (the rail always shows a tab).
+  useEffect(() => {
+    if (!hideBarOnMobile || !hasHash) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(max-width: 1023px)").matches) return;
+    document
+      .getElementById(hash)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [hash, hasHash, hideBarOnMobile]);
 
   function select(id: string) {
     if (getHash() === id) return;
@@ -132,7 +151,11 @@ export function ProfileTabs({
         </ul>
       </nav>
 
-      <div className="min-w-0">
+      <div
+        className={`min-w-0 ${
+          hideBarOnMobile && !hasHash ? "hidden lg:block" : ""
+        }`}
+      >
         <ActiveTabContext.Provider value={active}>
           {children}
         </ActiveTabContext.Provider>

@@ -20,6 +20,7 @@ import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
+import { ProfileHubRow } from "@/components/profile-hub-row";
 import { ProfileChecklist } from "@/components/profile-checklist";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { effectivePlan, getBidQuotaUsage } from "@/lib/billing/entitlements";
@@ -92,69 +93,6 @@ function HubIcon({ name }: { name: string }) {
     >
       {paths[name]}
     </svg>
-  );
-}
-
-function Chevron() {
-  return (
-    <svg
-      aria-hidden="true"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="shrink-0 text-mute-2"
-    >
-      <path d="M9 6l6 6-6 6" />
-    </svg>
-  );
-}
-
-/**
- * One tappable hub row. Hash targets (#account …) MUST use a native <a> so the
- * browser fires `hashchange`, which ProfileTabs listens on to switch panels; a
- * soft-navigating i18n <Link> would not. Route targets pass `useLink`.
- */
-function HubRow({
-  href,
-  icon,
-  label,
-  state,
-  useLink,
-}: {
-  href: string;
-  icon: string;
-  label: string;
-  state?: string;
-  useLink?: boolean;
-}) {
-  const className =
-    "press flex min-h-14 items-center gap-4 border-b border-line px-1 py-4 text-ink";
-  const inner = (
-    <>
-      <span className="text-ink">
-        <HubIcon name={icon} />
-      </span>
-      <span className="flex-1 text-[15px] text-ink">{label}</span>
-      {state ? <span className="label text-mute">{state}</span> : null}
-      <Chevron />
-    </>
-  );
-  if (useLink) {
-    return (
-      <Link href={href} className={className}>
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <a href={href} className={className}>
-      {inner}
-    </a>
   );
 }
 
@@ -467,88 +405,46 @@ export default async function ProfilePage() {
           ))}
         </div>
 
-        {/* Primary menu list */}
+        {/* Settings menu — each section row toggles its panel like a dropdown
+            (tap to open/close; the panel opens below, see ProfileTabs). The
+            "My shoots/bids" link and the promo card were intentionally dropped
+            per design; those destinations stay reachable via the main nav. */}
         <div className="mt-8">
-          <HubRow href="#account" icon="person" label={t("account")} />
-          {isPhotographer && (
-            <HubRow href="#billing" icon="card" label={t("billingTitle")} />
-          )}
-          <HubRow
-            href={isPhotographer ? "/my-bids" : "/my-shoots"}
-            icon="calendar"
-            label={isPhotographer ? tNav("myBids") : tNav("myShoots")}
-            useLink
+          <ProfileHubRow
+            targetId="account"
+            icon={<HubIcon name="person" />}
+            label={t("account")}
           />
           {isPhotographer && (
-            <HubRow href="#profile" icon="star" label={tReview("reviews")} />
+            <ProfileHubRow
+              targetId="billing"
+              icon={<HubIcon name="card" />}
+              label={t("billingTitle")}
+            />
           )}
-          <HubRow href="#security" icon="lock" label={t("securityTitle")} />
-        </div>
-
-        {/* Dark promo card — real promo (Abo upsell / post-a-shoot), NOT dual-role */}
-        {isPhotographer
-          ? entitlement &&
-            quota && (
-              <section
-                aria-label={t("billingTitle")}
-                data-testid="profile-hub-promo"
-                className="mt-8 bg-ink p-6 text-paper"
-              >
-                <p className="label text-paper/50">{tNav("subscription")}</p>
-                <p className="mt-2 text-xl font-semibold tracking-tight text-paper">
-                  {entitlement.isActive
-                    ? tBilling(`plan.${entitlement.plan}.name`)
-                    : t("upsellTitle")}
-                </p>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-paper/70">
-                  {t("upsellBody")}
-                </p>
-                <p className="tabular mt-1 text-[13px] text-paper/60">
-                  {quota.limit === Infinity
-                    ? t("billingUsageUnlimited")
-                    : t("billingUsage", { used: quota.used, limit: quota.limit })}
-                </p>
-                {/* Native anchor: a browser fragment nav fires `hashchange`,
-                    which ProfileTabs listens on to switch to the Billing tab. */}
-                <a
-                  href="#billing"
-                  className="press label mt-5 inline-flex min-h-11 items-center justify-center bg-paper px-5 text-ink"
-                >
-                  {entitlement.isActive
-                    ? t("billingManage")
-                    : t("billingViewPlans")}
-                </a>
-              </section>
-            )
-          : (
-            <section
-              aria-label={t("postShootCta")}
-              data-testid="profile-hub-promo"
-              className="mt-8 bg-ink p-6 text-paper"
-            >
-              <p className="label text-paper/50">{t("promoClientEyebrow")}</p>
-              <p className="mt-2 text-xl font-semibold tracking-tight text-paper">
-                {t("postShootCta")}
-              </p>
-              <p className="mt-1.5 text-[14px] leading-relaxed text-paper/70">
-                {t("promoClientBody")}
-              </p>
-              <Link
-                href="/shoots/new"
-                className="press label mt-5 inline-flex min-h-11 items-center justify-center bg-paper px-5 text-ink"
-              >
-                {t("postShootCta")}
-              </Link>
-            </section>
+          {isPhotographer && (
+            <ProfileHubRow
+              targetId="profile"
+              icon={<HubIcon name="star" />}
+              label={tReview("reviews")}
+            />
           )}
-
-        {/* Secondary settings group */}
-        <div className="mt-8">
-          <HubRow
-            href="#notifications"
-            icon="bell"
+          <ProfileHubRow
+            targetId="security"
+            icon={<HubIcon name="lock" />}
+            label={t("securityTitle")}
+          />
+          <ProfileHubRow
+            targetId="notifications"
+            icon={<HubIcon name="bell" />}
             label={tNav("notifications")}
           />
+          <ProfileHubRow
+            targetId="privacy"
+            icon={<HubIcon name="shield" />}
+            label={t("dataPrivacy")}
+          />
+
           {/* Language — surfaces the existing LocaleSwitcher; the current
               language name is shown, and the select stays fully functional. */}
           <div className="flex min-h-14 items-center gap-4 border-b border-line px-1 py-4">
@@ -559,7 +455,7 @@ export default async function ProfilePage() {
             <span className="label text-mute">{currentLanguage}</span>
             <LocaleSwitcher />
           </div>
-          <HubRow href="#privacy" icon="shield" label={t("dataPrivacy")} />
+
           {/* Log out — reuses SignOutButton's real sign-out action. */}
           <div className="flex min-h-14 items-center gap-4 px-1 py-4 text-mute">
             <span className="text-mute">
