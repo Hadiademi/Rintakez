@@ -34,9 +34,11 @@ export default async function LoginPage({
 
   return (
     <AuthShell
+      eyebrow={t("welcomeBack")}
       title={t("loginTitle")}
       subtitle={t("loginSubtitle")}
       tagline={t("tagline")}
+      skipLabel={t("skip")}
       footer={
         <p className="text-[13px] text-mute">
           {t("noAccount")}{" "}

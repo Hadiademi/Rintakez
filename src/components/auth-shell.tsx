@@ -16,6 +16,7 @@ export function AuthShell({
   title,
   subtitle,
   tagline,
+  skipLabel,
   children,
   footer,
 }: {
@@ -23,6 +24,7 @@ export function AuthShell({
   title: string;
   subtitle?: string;
   tagline: string;
+  skipLabel?: string;
   children: React.ReactNode;
   footer: React.ReactNode;
 }) {
@@ -50,14 +52,34 @@ export function AuthShell({
       </aside>
 
       {/* Form column */}
-      <section className="flex min-h-screen flex-col px-6 py-10 sm:px-12 lg:py-14">
-        <div className="lg:hidden">
-          <Link href="/">
-            <Wordmark className="text-lg" />
-          </Link>
+      <section className="flex min-h-screen flex-col lg:px-12 lg:py-14">
+        {/* Mobile photo hero banner — carries the wordmark + SKIP */}
+        <div className="relative h-56 w-full overflow-hidden lg:hidden">
+          <Image
+            src={VISUAL}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover grayscale"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-ink/35" />
+          <div className="relative flex items-start justify-between p-6">
+            <Link href="/">
+              <Wordmark tone="paper" className="text-lg" />
+            </Link>
+            {skipLabel && (
+              <Link
+                href="/"
+                className="label -mr-2 -mt-1 flex min-h-[44px] items-center px-2 text-paper/90 transition-opacity hover:opacity-70"
+              >
+                {skipLabel}
+              </Link>
+            )}
+          </div>
         </div>
 
-        <div className="m-auto flex w-full max-w-sm flex-col gap-8 py-10">
+        <div className="m-auto flex w-full max-w-sm flex-col gap-8 px-6 py-10 sm:px-12 lg:px-0">
           <div className="flex flex-col gap-2">
             {eyebrow && <span className="label text-mute">{eyebrow}</span>}
             <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-ink">
