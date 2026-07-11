@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations, getFormatter } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +14,8 @@ import { ProfileBasicsEditor } from "@/components/profile-basics-editor";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SignOutButton } from "@/components/sign-out-button";
 import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { BillingPortalButton } from "@/components/billing-portal-button";
@@ -24,6 +26,137 @@ import { effectivePlan, getBidQuotaUsage } from "@/lib/billing/entitlements";
 import type { Plan } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
+
+// ── Mobile account-hub primitives ──────────────────────────────────────────
+
+function HubIcon({ name }: { name: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    person: (
+      <>
+        <circle cx="12" cy="8" r="3.5" />
+        <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
+      </>
+    ),
+    card: (
+      <>
+        <rect x="3" y="6" width="18" height="12" rx="1.5" />
+        <path d="M3 10h18" />
+      </>
+    ),
+    calendar: (
+      <>
+        <rect x="4" y="5" width="16" height="15" rx="1.5" />
+        <path d="M4 9h16M8 3v4M16 3v4" />
+      </>
+    ),
+    star: (
+      <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+    ),
+    lock: (
+      <>
+        <rect x="5" y="10" width="14" height="10" rx="1.5" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+      </>
+    ),
+    bell: (
+      <>
+        <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z" />
+        <path d="M10 20a2 2 0 0 0 4 0" />
+      </>
+    ),
+    globe: (
+      <>
+        <circle cx="12" cy="12" r="8.5" />
+        <path d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.4 3.6 8.5S14.4 18.1 12 20.5C9.6 18.1 8.4 15.1 8.4 12S9.6 5.9 12 3.5z" />
+      </>
+    ),
+    shield: <path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6z" />,
+    logout: (
+      <>
+        <path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" />
+        <path d="M10 8l-4 4 4 4M6 12h11" />
+      </>
+    ),
+  };
+  return (
+    <svg
+      aria-hidden="true"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0 text-mute-2"
+    >
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+/**
+ * One tappable hub row. Hash targets (#account …) MUST use a native <a> so the
+ * browser fires `hashchange`, which ProfileTabs listens on to switch panels; a
+ * soft-navigating i18n <Link> would not. Route targets pass `useLink`.
+ */
+function HubRow({
+  href,
+  icon,
+  label,
+  state,
+  useLink,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  state?: string;
+  useLink?: boolean;
+}) {
+  const className =
+    "press flex min-h-14 items-center gap-4 border-b border-line px-1 py-4 text-ink";
+  const inner = (
+    <>
+      <span className="text-ink">
+        <HubIcon name={icon} />
+      </span>
+      <span className="flex-1 text-[15px] text-ink">{label}</span>
+      {state ? <span className="label text-mute">{state}</span> : null}
+      <Chevron />
+    </>
+  );
+  if (useLink) {
+    return (
+      <Link href={href} className={className}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} className={className}>
+      {inner}
+    </a>
+  );
+}
 
 function Section({
   id,
@@ -55,7 +188,7 @@ export default async function ProfilePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, notify_messages, terms_accepted_at, terms_version"
+      "id, display_name, role, city, canton, bio, avatar_url, notify_bids, notify_shoot_updates, notify_messages, terms_accepted_at, terms_version, created_at"
     )
     .eq("id", user.id)
     .single();
@@ -160,6 +293,72 @@ export default async function ProfilePage() {
   const tShoot = await getTranslations("shoot");
   const tReview = await getTranslations("review");
   const tBilling = await getTranslations("billing");
+  const tNav = await getTranslations("nav");
+  const format = await getFormatter();
+
+  // Endonyms (same in every UI locale) — shown as the Language row's state.
+  const languageNames: Record<string, string> = {
+    de: "Deutsch",
+    en: "English",
+    fr: "Français",
+  };
+  const currentLanguage = languageNames[locale] ?? locale.toUpperCase();
+
+  // "Mitglied seit {Month YYYY}" — localized month + year from profile signup.
+  const memberSince = profile.created_at
+    ? format.dateTime(new Date(profile.created_at), {
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
+  // ── Account-hub stat tiles (mobile). Real COUNTS only — we do not process
+  // shoot payments, so there is no spending/earnings figure to show. ──
+  type HubStat = { value: number; label: string };
+  let hubStats: HubStat[] = [];
+  if (isPhotographer) {
+    const [completedRes, bidsRes] = await Promise.all([
+      // Completed jobs: crosses RLS via the SECURITY DEFINER count function
+      // (shoots/bids aren't self-readable across the accepted-photographer edge).
+      supabase.rpc("photographer_completed_shoots_count", {
+        p_photographer_id: profile.id,
+      }),
+      supabase
+        .from("bids")
+        .select("id", { count: "exact", head: true })
+        .eq("photographer_id", profile.id),
+    ]);
+    hubStats = [
+      {
+        value: (completedRes.data as number | null) ?? 0,
+        label: t("statAuftraege"),
+      },
+      // reviews received — already fetched above for the reply UI.
+      { value: reviews.length, label: tReview("reviews") },
+      { value: bidsRes.count ?? 0, label: t("statAngebote") },
+    ];
+  } else {
+    const [allRes, bookedRes, reviewsRes] = await Promise.all([
+      supabase
+        .from("shoots")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", profile.id),
+      supabase
+        .from("shoots")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", profile.id)
+        .in("status", ["assigned", "completed"]),
+      supabase
+        .from("reviews")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", profile.id),
+    ]);
+    hubStats = [
+      { value: bookedRes.count ?? 0, label: t("statBuchungen") },
+      { value: allRes.count ?? 0, label: t("statShoots") },
+      { value: reviewsRes.count ?? 0, label: tReview("reviews") },
+    ];
+  }
 
   const initials = profile.display_name
     .split(/\s+/)
@@ -210,8 +409,171 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-6">
+      {/* ── Mobile account hub (lg:hidden) — replaces the tabbed hero on phones.
+          Real data/counts only; no CHF spending stat, no dual-role card. ── */}
+      <div className="lg:hidden" data-testid="profile-mobile-hub">
+        {/* Hero */}
+        <div className="flex items-center gap-4">
+          <div className="shrink-0">
+            <AvatarUploader initialUrl={avatarUrl} initials={initials} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-semibold tracking-tight text-ink">
+              {profile.display_name}
+            </h1>
+            {memberSince && (
+              <p className="mt-0.5 text-[13px] text-mute">
+                {t("memberSinceDate", { date: memberSince })}
+              </p>
+            )}
+            <a
+              href="#account"
+              className="press label mt-2 inline-flex items-center gap-1.5 text-accent"
+            >
+              <svg
+                aria-hidden="true"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z" />
+                <path d="M13.5 8l2.5 2.5" />
+              </svg>
+              {t("edit")}
+            </a>
+          </div>
+        </div>
+
+        {/* Stats — 3 real KPI tiles */}
+        <div
+          data-testid="profile-hub-stats"
+          className="mt-6 grid grid-cols-3 divide-x divide-line border-y border-line"
+        >
+          {hubStats.map((s) => (
+            <div
+              key={s.label}
+              className="flex flex-col items-center px-2 py-4 text-center"
+            >
+              <span className="tabular text-2xl font-semibold text-ink">
+                {s.value}
+              </span>
+              <span className="label mt-1 text-mute">{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Primary menu list */}
+        <div className="mt-8">
+          <HubRow href="#account" icon="person" label={t("account")} />
+          {isPhotographer && (
+            <HubRow href="#billing" icon="card" label={t("billingTitle")} />
+          )}
+          <HubRow
+            href={isPhotographer ? "/my-bids" : "/my-shoots"}
+            icon="calendar"
+            label={isPhotographer ? tNav("myBids") : tNav("myShoots")}
+            useLink
+          />
+          {isPhotographer && (
+            <HubRow href="#profile" icon="star" label={tReview("reviews")} />
+          )}
+          <HubRow href="#security" icon="lock" label={t("securityTitle")} />
+        </div>
+
+        {/* Dark promo card — real promo (Abo upsell / post-a-shoot), NOT dual-role */}
+        {isPhotographer
+          ? entitlement &&
+            quota && (
+              <section
+                aria-label={t("billingTitle")}
+                data-testid="profile-hub-promo"
+                className="mt-8 bg-ink p-6 text-paper"
+              >
+                <p className="label text-paper/50">{tNav("subscription")}</p>
+                <p className="mt-2 text-xl font-semibold tracking-tight text-paper">
+                  {entitlement.isActive
+                    ? tBilling(`plan.${entitlement.plan}.name`)
+                    : t("upsellTitle")}
+                </p>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-paper/70">
+                  {t("upsellBody")}
+                </p>
+                <p className="tabular mt-1 text-[13px] text-paper/60">
+                  {quota.limit === Infinity
+                    ? t("billingUsageUnlimited")
+                    : t("billingUsage", { used: quota.used, limit: quota.limit })}
+                </p>
+                {/* Native anchor: a browser fragment nav fires `hashchange`,
+                    which ProfileTabs listens on to switch to the Billing tab. */}
+                <a
+                  href="#billing"
+                  className="press label mt-5 inline-flex min-h-11 items-center justify-center bg-paper px-5 text-ink"
+                >
+                  {entitlement.isActive
+                    ? t("billingManage")
+                    : t("billingViewPlans")}
+                </a>
+              </section>
+            )
+          : (
+            <section
+              aria-label={t("postShootCta")}
+              data-testid="profile-hub-promo"
+              className="mt-8 bg-ink p-6 text-paper"
+            >
+              <p className="label text-paper/50">{t("promoClientEyebrow")}</p>
+              <p className="mt-2 text-xl font-semibold tracking-tight text-paper">
+                {t("postShootCta")}
+              </p>
+              <p className="mt-1.5 text-[14px] leading-relaxed text-paper/70">
+                {t("promoClientBody")}
+              </p>
+              <Link
+                href="/shoots/new"
+                className="press label mt-5 inline-flex min-h-11 items-center justify-center bg-paper px-5 text-ink"
+              >
+                {t("postShootCta")}
+              </Link>
+            </section>
+          )}
+
+        {/* Secondary settings group */}
+        <div className="mt-8">
+          <HubRow
+            href="#notifications"
+            icon="bell"
+            label={tNav("notifications")}
+          />
+          {/* Language — surfaces the existing LocaleSwitcher; the current
+              language name is shown, and the select stays fully functional. */}
+          <div className="flex min-h-14 items-center gap-4 border-b border-line px-1 py-4">
+            <span className="text-ink">
+              <HubIcon name="globe" />
+            </span>
+            <span className="flex-1 text-[15px] text-ink">{t("language")}</span>
+            <span className="label text-mute">{currentLanguage}</span>
+            <LocaleSwitcher />
+          </div>
+          <HubRow href="#privacy" icon="shield" label={t("dataPrivacy")} />
+          {/* Log out — reuses SignOutButton's real sign-out action. */}
+          <div className="flex min-h-14 items-center gap-4 px-1 py-4 text-mute">
+            <span className="text-mute">
+              <HubIcon name="logout" />
+            </span>
+            <div className="flex-1">
+              <SignOutButton showTestId={false} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Desktop header (hidden on mobile — the hub replaces it) ── */}
+      <div className="hidden items-start justify-between gap-6 lg:flex">
         <div className="flex items-start gap-5">
           <div className="shrink-0">
             <AvatarUploader initialUrl={avatarUrl} initials={initials} />
@@ -231,57 +593,14 @@ export default async function ProfilePage() {
       </div>
 
       {profile.bio && (
-        <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-mute">
+        <p className="mt-6 hidden whitespace-pre-line text-[15px] leading-relaxed text-mute lg:block">
           {profile.bio}
         </p>
       )}
 
-      {/* Subscription summary (photographer, mobile-only). On desktop the top-bar
-          "Abo" link + the billing tab in the left rail already make billing
-          discoverable; on mobile the nav links collapse and the billing sub-tab
-          scrolls off-screen, so this high-placed card is the entry point to the
-          current plan, this month's bid quota, and the full billing surface. */}
-      {isPhotographer && entitlement && quota && (
-        <section
-          aria-label={t("billingTitle")}
-          data-testid="profile-subscription-card"
-          className="mt-8 border border-line bg-surface p-5 sm:p-6 lg:hidden"
-        >
-          <p className="label text-mute">{t("billingTitle")}</p>
-          <p className="mt-2 text-xl font-semibold tracking-tight text-ink">
-            {entitlement.isActive
-              ? tBilling(`plan.${entitlement.plan}.name`)
-              : t("billingFreePlan")}
-          </p>
-          <p className="tabular mt-1 text-sm text-mute">
-            {quota.limit === Infinity
-              ? t("billingUsageUnlimited")
-              : t("billingUsage", { used: quota.used, limit: quota.limit })}
-          </p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            {/* Native anchor (not the i18n <Link>): this is a same-page
-                fragment, and only a browser-handled fragment navigation fires
-                `hashchange`, which is what ProfileTabs listens on to switch to
-                the Billing tab. A soft-navigating <Link> would update the URL
-                to #billing without a hashchange, leaving the wrong tab shown. */}
-            <a
-              href="#billing"
-              className="press label flex min-h-11 flex-1 items-center justify-center border border-accent px-4 text-accent"
-            >
-              {t("billingManage")}
-            </a>
-            <Link
-              href="/pricing"
-              className="press label flex min-h-11 flex-1 items-center justify-center border border-line px-4 text-ink"
-            >
-              {t("billingViewPlans")}
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Settings — tabbed; only the active section is shown */}
-      <ProfileTabs tabs={tabs}>
+      {/* Settings — tabbed on desktop; on mobile the tab bar is hidden and the
+          hub above drives the panels via hash links. */}
+      <ProfileTabs tabs={tabs} hideBarOnMobile>
         {/* Public profile (photographer) */}
         {isPhotographer && (
           <ProfileTabPanel id="profile" label={t("publicProfileTitle")}>

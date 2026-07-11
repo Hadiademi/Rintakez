@@ -33,9 +33,17 @@ function getServerHash() {
 export function ProfileTabs({
   tabs,
   children,
+  hideBarOnMobile = false,
 }: {
   tabs: Tab[];
   children: React.ReactNode;
+  /**
+   * When true, the mobile section picker is hidden entirely (the desktop rail
+   * is unaffected). Used by the mobile "account hub", which replaces the tab
+   * bar with its own menu list; the panels still render and stay reachable via
+   * the hash links the hub emits. Backward-compatible: defaults to false.
+   */
+  hideBarOnMobile?: boolean;
 }) {
   const hash = useSyncExternalStore(subscribeHash, getHash, getServerHash);
   const active = tabs.some((t) => t.id === hash) ? hash : tabs[0]?.id ?? "";
@@ -57,7 +65,11 @@ export function ProfileTabs({
           gets clipped mid-label with this many settings sections on a narrow
           screen, so every section stays reachable via a dropdown instead.
           Desktop keeps the sticky vertical rail below. */}
-      <div className="relative mb-6 lg:hidden">
+      <div
+        className={
+          hideBarOnMobile ? "hidden" : "relative mb-6 lg:hidden"
+        }
+      >
         <label htmlFor="profile-section" className="sr-only">
           {activeLabel}
         </label>
