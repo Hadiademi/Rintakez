@@ -76,4 +76,21 @@ test.describe("admin console", () => {
     await expect(page.getByTestId("admin-drawer")).toBeHidden();
     await expect(opener).toBeFocused();
   });
+
+  test("non-link click inside the drawer does not close it", async ({ page }) => {
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    // Open the drawer
+    await page.getByTestId("admin-drawer-open").click();
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+
+    // Click a section eyebrow label (non-interactive element inside the panel)
+    // "Moderation" is the label for the third section containing Reports, Verifications, Disputes
+    await page.getByTestId("admin-drawer").getByText("Moderation").click();
+
+    // The drawer should still be visible after clicking the non-link element
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+  });
 });

@@ -101,10 +101,11 @@ export function AdminDrawer() {
             onClick={closeAndRestoreFocus}
             className="absolute inset-0 bg-ink/40"
           />
-          {/* onClick here is event delegation for the nav links inside: it
-              closes the drawer when a link is clicked, including a tap on
+          {/* onClick here checks for nav link clicks via closest("a"): it
+              closes the drawer only when a link is clicked, including a tap on
               the link for the page already open (whose pathname doesn't
-              change, so the render-time guard above never fires). Same
+              change, so the render-time guard above never fires). Clicks on
+              non-link elements (padding, labels, gaps) do not dismiss. Same
               keyboard-equivalents rationale as the backdrop button above. */}
           {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
           <div
@@ -113,8 +114,11 @@ export function AdminDrawer() {
             data-testid="admin-drawer"
             role="dialog"
             aria-modal="true"
+            aria-label={t("sidebarAria")}
             tabIndex={-1}
-            onClick={closeAndRestoreFocus}
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest("a")) closeAndRestoreFocus();
+            }}
             className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] overflow-y-auto border-r border-line bg-paper px-4 py-8"
           >
             <AdminSidebar />
