@@ -53,7 +53,10 @@ export function BidSheet({
   }
 
   return (
-    <section className="border border-line bg-surface p-6">
+    // Bare — the only caller (the shoot detail sidebar) already renders its
+    // own bordered box and places this directly inside it, below the budget
+    // line, so this doesn't repeat the border/background/padding.
+    <div>
       <h2 className="label text-mute">{t("submitTitle")}</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-8">
@@ -127,6 +130,6 @@ export function BidSheet({
 
         {error ? <p className="text-sm text-accent">{error}</p> : null}
       </form>
-    </section>
+    </div>
   );
 }

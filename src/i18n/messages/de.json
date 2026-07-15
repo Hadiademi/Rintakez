@@ -84,6 +84,13 @@
     "registeredSuccess": "Konto erstellt — bitte melde dich an.",
     "continueWithGoogle": "Mit Google fortfahren",
     "orDivider": "oder",
+    "welcomeBack": "WILLKOMMEN ZURÜCK",
+    "createAccountEyebrow": "KONTO ERSTELLEN",
+    "skip": "Überspringen",
+    "emailPlaceholder": "name@example.ch",
+    "passwordPlaceholder": "Mindestens 8 Zeichen",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
     "forgotTitle": "Passwort vergessen",
     "forgotSubtitle": "Wir senden dir einen Link zum Zurücksetzen.",
     "forgotLink": "Passwort vergessen?",
@@ -241,8 +248,17 @@
   },
   "myShoots": {
     "title": "Meine Aufträge",
+    "eyebrow": "Deine Aktivität",
+    "subtitle": "Jeder von dir erstellte Auftrag und sein Status.",
     "empty": "Du hast noch keinen Auftrag erstellt.",
-    "createCta": "Auftrag erstellen"
+    "createCta": "Auftrag erstellen",
+    "statActive": "Aktiv",
+    "statOffers": "Angebote",
+    "statBooked": "Gebucht",
+    "statCompleted": "Abgeschlossen",
+    "filterAll": "Alle",
+    "noneForFilter": "Keine Aufträge mit diesem Status.",
+    "reviewOffers": "{count, plural, one {# Angebot ansehen →} other {# Angebote ansehen →}}"
   },
   "browse": {
     "title": "Offene Aufträge",
@@ -257,6 +273,8 @@
     "filterDiscipline": "Medium"
   },
   "shootDetail": {
+    "back": "Zurück",
+    "client": "Auftraggeber:in",
     "brief": "Briefing",
     "details": "Eckdaten",
     "offers": "Angebote",
@@ -288,10 +306,22 @@
   },
   "myBids": {
     "title": "Meine Angebote",
+    "eyebrow": "Deine Aktivität",
+    "subtitle": "Ein Überblick über alle abgegebenen Angebote und ihren Status.",
     "empty": "Du hast noch kein Angebot abgegeben.",
-    "browseCta": "Aufträge durchsuchen"
+    "noneForFilter": "Keine Angebote mit diesem Status.",
+    "browseCta": "Aufträge durchsuchen",
+    "statActive": "Aktiv",
+    "statWon": "Gewonnen",
+    "statWinRate": "Erfolgsquote",
+    "statVolume": "Volumen",
+    "filterAll": "Alle",
+    "budget": "Budget",
+    "yourOffer": "Dein Angebot",
+    "submittedAgo": "Eingereicht {time}"
   },
   "bid": {
+    "viewProfile": "Profil ansehen",
     "status": {
       "pending": "Ausstehend",
       "accepted": "Angenommen",
@@ -389,6 +419,17 @@
     "inviteError": "Einladung fehlgeschlagen",
     "inviteUnavailableDate": "An diesem Datum nicht verfügbar",
     "memberSince": "Mitglied seit {year}",
+    "memberSinceDate": "Mitglied seit {date}",
+    "statAuftraege": "Aufträge",
+    "statAngebote": "Angebote",
+    "statBuchungen": "Buchungen",
+    "statShoots": "Shoots",
+    "edit": "Bearbeiten",
+    "language": "Sprache",
+    "upsellTitle": "Mehr Angebote freischalten",
+    "upsellBody": "Erweitere deinen Plan, um mehr Angebote zu senden und mehr Aufträge zu gewinnen.",
+    "promoClientEyebrow": "Dein nächstes Shooting",
+    "promoClientBody": "Beschreibe, was du brauchst, und erhalte Angebote von Fotografen in deiner Nähe.",
     "completedShoots": "{count, plural, one {# abgeschlossenes Shooting} other {# abgeschlossene Shootings}}",
     "billingTitle": "Abrechnung",
     "billingCurrentPlan": "Aktueller Plan",
@@ -417,6 +458,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "Zum Ausprobieren",
         "feature": {
           "quota": "1 Angebot pro Monat",
           "profile": "Öffentliches Fotografen-Profil",
@@ -426,6 +468,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "Für Einzelpersonen",
         "feature": {
           "quota": "5 Angebote pro Monat",
           "digest": "Tägliche Job-Übersicht",
@@ -434,6 +477,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "Für aktive Bieter:innen",
         "feature": {
           "quota": "32 Angebote pro Monat",
           "placement": "Bevorzugte Platzierung im Verzeichnis",
@@ -444,6 +488,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "Für Studios & Teams",
         "feature": {
           "quota": "Unbegrenzte Angebote",
           "placement": "Top-Platzierung + SEO-Priorität",
@@ -475,7 +520,17 @@
       "securedByStripe": "Zahlungen abgesichert durch Stripe",
       "trustNoCommission": "0% Kommission",
       "trustCancel": "Jederzeit kündbar",
-      "eyebrow": "Für Fotografen"
+      "eyebrow": "Für Fotografen",
+      "footerLine": "Erster Monat gratis · Jederzeit kündbar · Preise in CHF, exkl. MwSt.",
+      "faqTitle": "Häufige Fragen",
+      "faqQ1": "Kann ich jederzeit den Plan wechseln?",
+      "faqA1": "Ja. Upgrades und Downgrades gelten sofort über dein Kundenportal, und du kannst jederzeit kündigen.",
+      "faqQ2": "Welche Zahlungsmethoden werden akzeptiert?",
+      "faqA2": "Kredit- und Debitkarten, sicher über Stripe.",
+      "faqQ3": "Gibt es eine Provision pro Auftrag?",
+      "faqA3": "Nein. 0% Provision — du behältst 100% deines Verdiensts; das Abo ist alles, was du zahlst.",
+      "faqQ4": "Ist der erste Monat wirklich gratis?",
+      "faqA4": "Ja — dein erster Monat in jedem bezahlten Plan ist gratis."
     }
   },
   "errors": {
@@ -655,7 +710,14 @@
     "verifiedOnly": "Nur verifizierte",
     "allDisciplines": "Alle Disziplinen",
     "popularSearches": "Beliebte Suchen",
-    "topPartner": "Top-Partner"
+    "topPartner": "Top-Partner",
+    "eyebrow": "Verzeichnis",
+    "filterSpecialty": "Fachgebiet",
+    "filterRegion": "Region",
+    "filterDiscipline": "Disziplin",
+    "anyRating": "Beliebig",
+    "fromPrice": "ab CHF {amount}",
+    "filters": "Filter"
   },
   "messages": {
     "navMessages": "Nachrichten",
@@ -688,7 +750,11 @@
     "photoAlt": "Foto",
     "photoPreview": "📷 Foto",
     "imageTooLarge": "Dieses Bild ist zu groß. Bitte wähle eines unter 5 MB.",
-    "imageInvalid": "Bitte wähle eine Bilddatei."
+    "imageInvalid": "Bitte wähle eine Bilddatei.",
+    "filterAll": "Alle",
+    "filterUnread": "Ungelesen",
+    "noUnread": "Keine ungelesenen Nachrichten",
+    "viewShoot": "Auftrag ansehen"
   },
   "report": {
     "report": "Melden",

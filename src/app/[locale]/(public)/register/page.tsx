@@ -14,9 +14,11 @@ export default async function RegisterPage() {
 
   return (
     <AuthShell
+      eyebrow={t("createAccountEyebrow")}
       title={t("registerTitle")}
       subtitle={t("registerSubtitle")}
       tagline={t("tagline")}
+      skipLabel={t("skip")}
       footer={
         <p className="text-[13px] text-mute">
           {t("haveAccount")}{" "}

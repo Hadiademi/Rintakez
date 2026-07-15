@@ -1,12 +1,9 @@
-import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
-import { ShootStatusBadge } from "@/components/shoot-status-badge";
-import { PageHeading } from "@/components/section-label";
+import { MyShootsList, type MyShootRow } from "@/components/my-shoots-list";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +20,6 @@ export default async function MyShootsPage() {
   }
 
   const tMyShoots = await getTranslations("myShoots");
-  const tShoot = await getTranslations("shoot");
   const supabase = await createClient();
 
   const { data: shoots } = await supabase
@@ -52,6 +48,37 @@ export default async function MyShootsPage() {
     bidCountBy.set(b.shoot_id, (bidCountBy.get(b.shoot_id) ?? 0) + 1);
   }
 
+  // Stats — 4 KPI tiles computed over every fetched shoot.
+  const activeCount = shootList.filter((s) => s.status === "open").length;
+  const bookedCount = shootList.filter((s) => s.status === "assigned").length;
+  const completedCount = shootList.filter((s) => s.status === "completed").length;
+  const offersTotal = [...bidCountBy.values()].reduce((sum, n) => sum + n, 0);
+
+  const stats: { key: string; label: string; value: string }[] = [
+    { key: "active", label: tMyShoots("statActive"), value: String(activeCount) },
+    { key: "offers", label: tMyShoots("statOffers"), value: String(offersTotal) },
+    { key: "booked", label: tMyShoots("statBooked"), value: String(bookedCount) },
+    {
+      key: "completed",
+      label: tMyShoots("statCompleted"),
+      value: String(completedCount),
+    },
+  ];
+
+  const rows: MyShootRow[] = shootList.map((shoot) => ({
+    id: shoot.id,
+    imageUrl: shootImage(shoot.type, shoot.id, 160, 120),
+    type: shoot.type,
+    locationCity: shoot.location_city,
+    canton: shoot.canton,
+    shootDate: shoot.shoot_date,
+    title: shoot.title,
+    budgetMin: shoot.budget_min_chf,
+    budgetMax: shoot.budget_max_chf,
+    status: shoot.status,
+    offerCount: bidCountBy.get(shoot.id) ?? 0,
+  }));
+
   const createCtaLink = (
     <Link
       href="/shoots/new"
@@ -65,10 +92,16 @@ export default async function MyShootsPage() {
 
   return (
     <div className="space-y-10">
-      <div className="flex items-end justify-between gap-4">
-        <PageHeading title={tMyShoots("title")} count={shootList.length} />
-        <div className="shrink-0 pb-1">{createCtaLink}</div>
-      </div>
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-3">
+          <p className="label text-mute">{tMyShoots("eyebrow")}</p>
+          <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
+            {tMyShoots("title")}
+          </h1>
+          <p className="max-w-xl text-mute">{tMyShoots("subtitle")}</p>
+        </div>
+        <div className="shrink-0">{createCtaLink}</div>
+      </header>
 
       {shootList.length === 0 ? (
         <div className="flex flex-col items-center gap-5 border border-line bg-surface py-20 text-center">
@@ -76,60 +109,22 @@ export default async function MyShootsPage() {
           {createCtaLink}
         </div>
       ) : (
-        <div
-          data-testid="my-shoots-list"
-          className="divide-y divide-line border-y border-line"
-        >
-          {shootList.map((shoot) => (
-            <div
-              key={shoot.id}
-              className="flex flex-col gap-2 py-5 transition-colors hover:bg-surface sm:gap-1"
-            >
-              <Link
-                href={`/shoots/${shoot.id}`}
-                data-testid={`my-shoot-${shoot.id}`}
-                className="press flex items-center gap-4"
-              >
-                <div className="relative hidden h-16 w-24 shrink-0 overflow-hidden bg-chip sm:block">
-                  <Image
-                    src={shootImage(shoot.type, shoot.id, 240, 160)}
-                    alt=""
-                    fill
-                    sizes="96px"
-                    className="object-cover grayscale"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="label uppercase text-mute">
-                    {tShoot(`types.${shoot.type}`)} · {shoot.location_city},{" "}
-                    {shoot.canton} · {formatSwissDate(shoot.shoot_date)}
-                  </p>
-                  <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-ink">
-                    {shoot.title}
-                  </h2>
-                  <p className="mt-0.5 tabular text-sm text-mute">
-                    {formatCHFRange(shoot.budget_min_chf, shoot.budget_max_chf)}{" "}
-                    ·{" "}
-                    {tShoot("bidsCount", {
-                      count: bidCountBy.get(shoot.id) ?? 0,
-                    })}
-                  </p>
-                </div>
-                <ShootStatusBadge status={shoot.status} />
-              </Link>
-              {shoot.status === "open" &&
-              (bidCountBy.get(shoot.id) ?? 0) === 0 ? (
-                <Link
-                  href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
-                  data-testid={`find-photographers-cta-${shoot.id}`}
-                  className="press inline-block self-start pl-0 text-[13px] text-accent hover:opacity-70 sm:pl-[112px]"
-                >
-                  {tShoot("findPhotographersCta")}
-                </Link>
-              ) : null}
-            </div>
-          ))}
-        </div>
+        <>
+          {/* 4-KPI stats grid — a 1px `bg-line` gap between `bg-paper` cells
+              renders as a seamless hairline divider at any grid shape. */}
+          <div className="grid grid-cols-2 gap-px overflow-hidden border border-line bg-line lg:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.key} className="bg-paper p-5">
+                <p className="label text-mute">{s.label}</p>
+                <p className="tabular mt-1 text-3xl font-semibold text-ink sm:text-4xl">
+                  {s.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <MyShootsList rows={rows} />
+        </>
       )}
     </div>
   );

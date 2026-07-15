@@ -84,6 +84,13 @@
     "registeredSuccess": "Compte créé — connecte-toi.",
     "continueWithGoogle": "Continuer avec Google",
     "orDivider": "ou",
+    "welcomeBack": "BON RETOUR",
+    "createAccountEyebrow": "CRÉER UN COMPTE",
+    "skip": "Passer",
+    "emailPlaceholder": "nom@exemple.ch",
+    "passwordPlaceholder": "Au moins 8 caractères",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "forgotTitle": "Mot de passe oublié",
     "forgotSubtitle": "Nous t'envoyons un lien de réinitialisation.",
     "forgotLink": "Mot de passe oublié ?",
@@ -241,8 +248,17 @@
   },
   "myShoots": {
     "title": "Mes missions",
+    "eyebrow": "Ton activité",
+    "subtitle": "Chaque mission que tu as publiée et son statut.",
     "empty": "Tu n'as pas encore créé de mission.",
-    "createCta": "Créer une mission"
+    "createCta": "Créer une mission",
+    "statActive": "Actives",
+    "statOffers": "Offres",
+    "statBooked": "Réservées",
+    "statCompleted": "Terminées",
+    "filterAll": "Toutes",
+    "noneForFilter": "Aucune mission avec ce statut.",
+    "reviewOffers": "{count, plural, one {Voir # offre →} other {Voir # offres →}}"
   },
   "browse": {
     "title": "Missions ouvertes",
@@ -257,6 +273,8 @@
     "filterDiscipline": "Médium"
   },
   "shootDetail": {
+    "back": "Retour",
+    "client": "Client·e",
     "brief": "Brief",
     "details": "Détails",
     "offers": "Offres",
@@ -288,10 +306,22 @@
   },
   "myBids": {
     "title": "Mes offres",
+    "eyebrow": "Ton activité",
+    "subtitle": "Un aperçu de toutes les offres que tu as soumises et de leur statut.",
     "empty": "Tu n'as pas encore soumis d'offre.",
-    "browseCta": "Parcourir les missions"
+    "noneForFilter": "Aucune offre avec ce statut.",
+    "browseCta": "Parcourir les missions",
+    "statActive": "Actives",
+    "statWon": "Gagnées",
+    "statWinRate": "Taux de réussite",
+    "statVolume": "Volume",
+    "filterAll": "Toutes",
+    "budget": "Budget",
+    "yourOffer": "Ton offre",
+    "submittedAgo": "Envoyée {time}"
   },
   "bid": {
+    "viewProfile": "Voir le profil",
     "status": {
       "pending": "En attente",
       "accepted": "Acceptée",
@@ -389,6 +419,17 @@
     "inviteError": "Échec de l'invitation",
     "inviteUnavailableDate": "Indisponible à cette date",
     "memberSince": "Membre depuis {year}",
+    "memberSinceDate": "Membre depuis {date}",
+    "statAuftraege": "Missions",
+    "statAngebote": "Offres",
+    "statBuchungen": "Réservations",
+    "statShoots": "Séances",
+    "edit": "Modifier",
+    "language": "Langue",
+    "upsellTitle": "Débloque plus d'offres",
+    "upsellBody": "Passe à un forfait supérieur pour envoyer plus d'offres et décrocher plus de séances.",
+    "promoClientEyebrow": "Ta prochaine séance",
+    "promoClientBody": "Décris ce dont tu as besoin et reçois des offres de photographes près de chez toi.",
     "completedShoots": "{count, plural, one {# séance réalisée} other {# séances réalisées}}",
     "billingTitle": "Facturation",
     "billingCurrentPlan": "Formule actuelle",
@@ -417,6 +458,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "Pour essayer",
         "feature": {
           "quota": "1 offre par mois",
           "profile": "Profil photographe public",
@@ -426,6 +468,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "Pour les indépendants",
         "feature": {
           "quota": "5 offres par mois",
           "digest": "Récapitulatif quotidien des missions",
@@ -434,6 +477,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "Pour les enchérisseurs assidus",
         "feature": {
           "quota": "32 offres par mois",
           "placement": "Placement prioritaire dans l'annuaire",
@@ -444,6 +488,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "Pour studios & équipes",
         "feature": {
           "quota": "Offres illimitées",
           "placement": "Placement en tête + priorité SEO",
@@ -475,7 +520,17 @@
       "securedByStripe": "Paiements sécurisés par Stripe",
       "trustNoCommission": "0% de commission",
       "trustCancel": "Résiliable à tout moment",
-      "eyebrow": "Pour les photographes"
+      "eyebrow": "Pour les photographes",
+      "footerLine": "Premier mois gratuit · Résiliable à tout moment · Prix en CHF, hors TVA",
+      "faqTitle": "Questions fréquentes",
+      "faqQ1": "Peux-tu changer de formule à tout moment ?",
+      "faqA1": "Oui. Les mises à niveau et rétrogradations s'appliquent immédiatement via ton espace de facturation, et tu peux résilier à tout moment.",
+      "faqQ2": "Quels moyens de paiement puis-je utiliser ?",
+      "faqA2": "Cartes de crédit et de débit, en toute sécurité via Stripe.",
+      "faqQ3": "Y a-t-il une commission par mission ?",
+      "faqA3": "Non. 0% de commission — tu gardes 100% de ce que tu gagnes ; l'abonnement est tout ce que tu payes.",
+      "faqQ4": "Le premier mois est-il vraiment gratuit ?",
+      "faqA4": "Oui — ton premier mois sur n'importe quelle formule payante est gratuit."
     }
   },
   "errors": {
@@ -655,7 +710,14 @@
     "verifiedOnly": "Vérifiés uniquement",
     "allDisciplines": "Toutes disciplines",
     "popularSearches": "Recherches populaires",
-    "topPartner": "Top Partner"
+    "topPartner": "Top Partner",
+    "eyebrow": "Annuaire",
+    "filterSpecialty": "Spécialité",
+    "filterRegion": "Région",
+    "filterDiscipline": "Discipline",
+    "anyRating": "Peu importe",
+    "fromPrice": "dès CHF {amount}",
+    "filters": "Filtres"
   },
   "messages": {
     "navMessages": "Messages",
@@ -688,7 +750,11 @@
     "photoAlt": "Photo",
     "photoPreview": "📷 Photo",
     "imageTooLarge": "Cette image est trop lourde. Choisis-en une de moins de 5 Mo.",
-    "imageInvalid": "Choisis un fichier image."
+    "imageInvalid": "Choisis un fichier image.",
+    "filterAll": "Tous",
+    "filterUnread": "Non lus",
+    "noUnread": "Aucun message non lu",
+    "viewShoot": "Voir la mission"
   },
   "report": {
     "report": "Signaler",

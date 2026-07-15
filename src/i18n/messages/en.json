@@ -84,6 +84,13 @@
     "registeredSuccess": "Account created — please sign in.",
     "continueWithGoogle": "Continue with Google",
     "orDivider": "or",
+    "welcomeBack": "WELCOME BACK",
+    "createAccountEyebrow": "CREATE ACCOUNT",
+    "skip": "Skip",
+    "emailPlaceholder": "name@example.ch",
+    "passwordPlaceholder": "At least 8 characters",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "forgotTitle": "Forgot password",
     "forgotSubtitle": "We'll send you a reset link.",
     "forgotLink": "Forgot password?",
@@ -241,8 +248,17 @@
   },
   "myShoots": {
     "title": "My shoots",
+    "eyebrow": "Your activity",
+    "subtitle": "Every shoot you've posted and its status.",
     "empty": "You haven't posted a shoot yet.",
-    "createCta": "Post a shoot"
+    "createCta": "Post a shoot",
+    "statActive": "Active",
+    "statOffers": "Offers",
+    "statBooked": "Booked",
+    "statCompleted": "Completed",
+    "filterAll": "All",
+    "noneForFilter": "No shoots with this status.",
+    "reviewOffers": "{count, plural, one {Review # offer →} other {Review # offers →}}"
   },
   "browse": {
     "title": "Open shoots",
@@ -257,6 +273,8 @@
     "filterDiscipline": "Medium"
   },
   "shootDetail": {
+    "back": "Back",
+    "client": "Client",
     "brief": "Brief",
     "details": "Details",
     "offers": "Offers",
@@ -288,10 +306,22 @@
   },
   "myBids": {
     "title": "My bids",
+    "eyebrow": "Your activity",
+    "subtitle": "An overview of every offer you've submitted and its status.",
     "empty": "You haven't placed a bid yet.",
-    "browseCta": "Browse shoots"
+    "noneForFilter": "No offers with this status.",
+    "browseCta": "Browse shoots",
+    "statActive": "Active",
+    "statWon": "Won",
+    "statWinRate": "Win rate",
+    "statVolume": "Volume",
+    "filterAll": "All",
+    "budget": "Budget",
+    "yourOffer": "Your offer",
+    "submittedAgo": "Submitted {time}"
   },
   "bid": {
+    "viewProfile": "View profile",
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
@@ -389,6 +419,17 @@
     "inviteError": "Could not send invitation",
     "inviteUnavailableDate": "Unavailable on this date",
     "memberSince": "Member since {year}",
+    "memberSinceDate": "Member since {date}",
+    "statAuftraege": "Jobs",
+    "statAngebote": "Offers",
+    "statBuchungen": "Bookings",
+    "statShoots": "Shoots",
+    "edit": "Edit",
+    "language": "Language",
+    "upsellTitle": "Unlock more offers",
+    "upsellBody": "Upgrade your plan to send more offers and win more shoots.",
+    "promoClientEyebrow": "Your next shoot",
+    "promoClientBody": "Describe what you need and get offers from photographers near you.",
     "completedShoots": "{count, plural, one {# shoot completed} other {# shoots completed}}",
     "billingTitle": "Billing",
     "billingCurrentPlan": "Current plan",
@@ -417,6 +458,7 @@
     "plan": {
       "free": {
         "name": "Free",
+        "tagline": "To try it out",
         "feature": {
           "quota": "1 offer per month",
           "profile": "Public photographer profile",
@@ -426,6 +468,7 @@
       },
       "basic": {
         "name": "Basic",
+        "tagline": "For individuals",
         "feature": {
           "quota": "5 offers per month",
           "digest": "Daily job digest",
@@ -434,6 +477,7 @@
       },
       "standard": {
         "name": "Standard",
+        "tagline": "For frequent bidders",
         "feature": {
           "quota": "32 offers per month",
           "placement": "Preferred directory placement",
@@ -444,6 +488,7 @@
       },
       "premium": {
         "name": "Premium",
+        "tagline": "For studios & teams",
         "feature": {
           "quota": "Unlimited offers",
           "placement": "Top placement + SEO priority",
@@ -475,7 +520,17 @@
       "securedByStripe": "Payments secured by Stripe",
       "trustNoCommission": "0% commission",
       "trustCancel": "Cancel anytime",
-      "eyebrow": "For photographers"
+      "eyebrow": "For photographers",
+      "footerLine": "First month free · Cancel anytime · Prices in CHF, excl. VAT",
+      "faqTitle": "FAQ",
+      "faqQ1": "Can I switch plans anytime?",
+      "faqA1": "Yes. Upgrades and downgrades apply immediately through your billing portal, and you can cancel anytime.",
+      "faqQ2": "What payment methods do you accept?",
+      "faqA2": "Credit and debit cards, securely via Stripe.",
+      "faqQ3": "Is there a commission per booking?",
+      "faqA3": "No. 0% commission — you keep 100% of what you earn; the subscription is all you pay.",
+      "faqQ4": "Is the first month really free?",
+      "faqA4": "Yes — your first month on any paid plan is free."
     }
   },
   "errors": {
@@ -655,7 +710,14 @@
     "verifiedOnly": "Verified only",
     "allDisciplines": "All disciplines",
     "popularSearches": "Popular searches",
-    "topPartner": "Top Partner"
+    "topPartner": "Top Partner",
+    "eyebrow": "Directory",
+    "filterSpecialty": "Specialty",
+    "filterRegion": "Region",
+    "filterDiscipline": "Discipline",
+    "anyRating": "Any",
+    "fromPrice": "from CHF {amount}",
+    "filters": "Filters"
   },
   "messages": {
     "navMessages": "Messages",
@@ -688,7 +750,11 @@
     "photoAlt": "Photo",
     "photoPreview": "📷 Photo",
     "imageTooLarge": "This image is too large. Please pick one under 5 MB.",
-    "imageInvalid": "Please choose an image file."
+    "imageInvalid": "Please choose an image file.",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "noUnread": "No unread messages",
+    "viewShoot": "View shoot"
   },
   "report": {
     "report": "Report",

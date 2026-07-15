@@ -94,38 +94,46 @@ export function PricingCards({
     });
   }
 
-  function renderPrice(row: PlanFeatureRow) {
-    if (row.plan === "free") {
-      return (
-        <p className="text-4xl font-semibold tracking-tight text-ink">
-          {t("pricing.freePrice")}
-        </p>
-      );
-    }
+  function renderPrice(row: PlanFeatureRow, dark: boolean) {
+    // Free renders as "CHF 0 / month" — same layout as the paid cards, just
+    // the literal number 0 (not the word "Free") per the approved mockup.
     const useYearly =
       interval === "yearly" && yearlyAvailable && row.priceChfYearly != null;
-    const amount = useYearly ? row.priceChfYearly : row.priceChfMonthly;
+    const amount = row.plan === "free" ? 0 : useYearly ? row.priceChfYearly : row.priceChfMonthly;
     const suffix = useYearly ? t("pricing.perYear") : t("pricing.perMonth");
+    const muted = dark ? "text-paper/60" : "text-mute";
     return (
       <p className="flex items-baseline gap-1.5">
-        <span className="text-sm font-medium text-mute">CHF</span>
-        <span className="tabular text-4xl font-semibold tracking-tight text-ink">
+        <span className={`text-sm font-medium ${muted}`}>CHF</span>
+        <span
+          className={`tabular text-5xl font-semibold tracking-tight ${dark ? "text-paper" : "text-ink"}`}
+        >
           {amount}
         </span>
-        <span className="text-sm text-mute">{suffix}</span>
+        <span className={`text-sm ${muted}`}>{suffix}</span>
       </p>
     );
   }
 
-  function renderCta(row: PlanFeatureRow) {
+  function renderCta(row: PlanFeatureRow, dark: boolean) {
     const planName = label(row.nameI18nKey);
     const isFree = row.plan === "free";
+
+    // Primary buttons: terracotta on the dark/highlighted card, ink (black)
+    // elsewhere. Outlined "current plan" buttons flip their border/text so
+    // they stay legible against the dark card's ink background.
+    const primaryClass = dark
+      ? "bg-accent text-paper"
+      : "bg-ink text-paper";
+    const outlineClass = dark
+      ? "border border-white/25 text-paper"
+      : "border border-line text-ink";
 
     if (viewer.kind === "anon") {
       return (
         <Link
           href="/register"
-          className="press block w-full bg-ink px-4 py-3 text-center label text-paper"
+          className={`press block w-full px-4 py-3 text-center label ${primaryClass}`}
         >
           {t("pricing.ctaRegister")}
         </Link>
@@ -133,19 +141,27 @@ export function PricingCards({
     }
 
     if (viewer.kind === "client") {
-      return <p className="text-[15px] text-mute">{t("pricing.clientNote")}</p>;
+      return (
+        <p className={`text-[15px] ${dark ? "text-paper/70" : "text-mute"}`}>
+          {t("pricing.clientNote")}
+        </p>
+      );
     }
 
     if (viewer.kind === "photographerFree") {
       if (isFree) {
-        return <p className="label text-mute">{t("pricing.ctaCurrent")}</p>;
+        return (
+          <p className={`label ${dark ? "text-paper/70" : "text-mute"}`}>
+            {t("pricing.ctaCurrent")}
+          </p>
+        );
       }
       return (
         <button
           type="button"
           onClick={() => handleChoose(row.plan as PaidPlan)}
           disabled={isPending}
-          className="press w-full bg-ink px-4 py-3 label text-paper disabled:opacity-50"
+          className={`press w-full px-4 py-3 label disabled:opacity-50 ${primaryClass}`}
         >
           {t("pricing.ctaChoose", { plan: planName })}
         </button>
@@ -163,12 +179,14 @@ export function PricingCards({
       if (isCurrentPlan) {
         return (
           <div className="space-y-2">
-            <p className="label text-mute">{t("pricing.ctaCurrent")}</p>
+            <p className={`label ${dark ? "text-paper/70" : "text-mute"}`}>
+              {t("pricing.ctaCurrent")}
+            </p>
             <button
               type="button"
               onClick={handleManage}
               disabled={isPending}
-              className="press w-full border border-line px-4 py-3 label text-ink disabled:opacity-50"
+              className={`press w-full px-4 py-3 label disabled:opacity-50 ${outlineClass}`}
             >
               {t("pricing.ctaManage")}
             </button>
@@ -180,7 +198,7 @@ export function PricingCards({
           type="button"
           onClick={handleManage}
           disabled={isPending}
-          className="press w-full border border-line px-4 py-3 label text-ink disabled:opacity-50"
+          className={`press w-full px-4 py-3 label disabled:opacity-50 ${outlineClass}`}
         >
           {t("pricing.ctaManage")}
         </button>
@@ -235,48 +253,58 @@ export function PricingCards({
         </div>
       )}
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Joined cards: one outer border with hairline dividers between columns
+          (no gaps), matching the approved mockup. The Standard card fills its
+          cell edge-to-edge with a terracotta top accent so it still pops. */}
+      <div className="grid grid-cols-1 divide-y divide-line border border-line lg:grid-cols-4 lg:divide-x lg:divide-y-0">
         {PLAN_FEATURE_MATRIX.map((row) => {
-          const highlight = row.plan === "standard";
+          const dark = row.plan === "standard";
           return (
             <section
               key={row.plan}
               data-testid={`pricing-card-${row.plan}`}
-              className={`relative flex h-full flex-col bg-surface p-6 ${
-                highlight
-                  ? "border border-accent lg:-translate-y-2"
-                  : "border border-line"
+              className={`relative flex h-full flex-col p-6 ${
+                dark
+                  ? "border-t-2 border-accent bg-ink text-paper"
+                  : "bg-surface"
               }`}
-              // The recommended plan sits "in the light": a soft warm glow lifts
-              // it off the page (theme-aware via the accent token).
-              style={
-                highlight
-                  ? {
-                      boxShadow:
-                        "0 18px 50px -20px rgb(var(--accent-rgb) / 0.45)",
-                    }
-                  : undefined
-              }
             >
-              {highlight && (
-                <span className="label absolute -top-3 left-6 bg-accent px-2.5 py-1 text-paper">
-                  {t("pricing.mostPopular")}
-                </span>
-              )}
-              <p className="label text-mute">{label(row.nameI18nKey)}</p>
-              <div className="mt-4">{renderPrice(row)}</div>
-              <ul className="mt-6 flex-1 space-y-3 border-t border-line pt-6">
+              <div className="flex items-start justify-between gap-3">
+                <p className={`text-xl font-bold ${dark ? "text-paper" : "text-ink"}`}>
+                  {label(row.nameI18nKey)}
+                </p>
+                {dark && (
+                  <span className="label shrink-0 bg-accent px-2.5 py-1 text-paper">
+                    {t("pricing.mostPopular")}
+                  </span>
+                )}
+              </div>
+
+              <p className={`mt-1.5 text-[13px] ${dark ? "text-paper/60" : "text-mute"}`}>
+                {label(`billing.plan.${row.plan}.tagline`)}
+              </p>
+
+              <div className="mt-6">{renderPrice(row, dark)}</div>
+
+              <div className="mt-6">{renderCta(row, dark)}</div>
+
+              <ul
+                className={`mt-6 flex-1 space-y-3 border-t pt-6 ${
+                  dark ? "border-white/15" : "border-line"
+                }`}
+              >
                 {row.featureI18nKeys.map((key) => (
                   <li
                     key={key}
-                    className="flex items-start gap-2.5 text-[15px] leading-snug text-ink"
+                    className={`flex items-start gap-2.5 text-[14px] leading-snug ${
+                      dark ? "text-paper" : "text-ink"
+                    }`}
                   >
                     <Check />
                     <span>{label(key)}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-8">{renderCta(row)}</div>
             </section>
           );
         })}

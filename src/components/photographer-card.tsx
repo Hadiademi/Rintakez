@@ -1,10 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { Avatar } from "@/components/ui/avatar";
 import { CoverImage } from "@/components/ui/cover-image";
-import { Stars } from "@/components/stars";
-import { initials } from "@/lib/name";
-import { formatCHF } from "@/lib/format";
+import { formatChfAmount } from "@/lib/format";
 
 export type PhotographerCardData = {
   id: string;
@@ -22,10 +19,35 @@ export type PhotographerCardData = {
   isTopPartner?: boolean;
 };
 
+/** Neutral placeholder for photographers without a cover or portfolio image
+ * yet — a tinted band with a quiet camera mark, not raw initials-on-gray. */
+function CoverFallback() {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface via-chip to-surface">
+      <svg
+        width="34"
+        height="34"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.25"
+        className="text-mute-2"
+        aria-hidden="true"
+      >
+        <rect x="3" y="7" width="18" height="13" rx="1.5" />
+        <path d="M8 7l1.6-2.5h4.8L16 7" />
+        <circle cx="12" cy="13.5" r="3.5" />
+      </svg>
+    </div>
+  );
+}
+
 /**
- * Image-led photographer card for the directory and dashboard recommendations.
- * Leads with the photographer's work (cover, else first portfolio image, else a
- * tinted monogram band) so a photography marketplace actually shows photography.
+ * Portfolio-first photographer card for the directory and dashboard
+ * recommendations. Leads with the photographer's work (cover, else first
+ * portfolio image, else a quiet placeholder) so a photography marketplace
+ * actually shows photography; the info below stays minimal — name, rating,
+ * location/specialties, review count and starting rate.
  */
 export async function PhotographerCard({
   data,
@@ -38,96 +60,62 @@ export async function PhotographerCard({
   newLabel: string;
   topPartnerLabel: string;
 }) {
-  const tShoot = await getTranslations("shoot");
-  const tProfile = await getTranslations("profile");
+  const tDir = await getTranslations("directory");
+  const tReview = await getTranslations("review");
   const location = [data.city, data.canton].filter(Boolean).join(", ");
-  const rated = data.rating && data.rating.count > 0;
-  const disciplines = data.disciplineLabels ?? [];
-  const specialties = data.specialtyLabels ?? [];
-  const memberSince = data.memberSinceYear
-    ? tProfile("memberSince", { year: data.memberSinceYear })
-    : null;
+  const rated = !!data.rating && data.rating.count > 0;
+  const tags = [
+    ...(data.disciplineLabels ?? []),
+    ...(data.specialtyLabels ?? []),
+  ].slice(0, 4);
+  const meta = [location, tags.join(", ")].filter(Boolean).join(" · ");
 
   return (
     <Link
       href={`/photographers/${data.id}`}
       data-testid="photographer-card"
-      className="group flex flex-col overflow-hidden border border-line transition-colors hover:border-mute-2"
+      className="group flex flex-col"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-chip">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-chip">
         <CoverImage
           src={data.coverUrl}
           alt={data.name}
-          fallback={
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-surface via-chip to-surface">
-              <span className="text-4xl font-semibold text-mute-2">
-                {initials(data.name)}
-              </span>
-            </div>
-          }
+          fallback={<CoverFallback />}
           className="h-full w-full object-cover grayscale transition-[filter,transform] duration-500 group-hover:grayscale-0 group-hover:scale-[1.02]"
         />
-        {data.verified && (
-          <span className="label absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-1 text-accent backdrop-blur">
-            ✓ {verifiedLabel}
+        {data.isTopPartner && (
+          <span className="label absolute left-3 top-3 bg-paper/85 px-2 py-1 text-ink backdrop-blur">
+            ★ {topPartnerLabel}
           </span>
         )}
-        {data.isTopPartner && (
-          <span className="label absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-1 text-ink backdrop-blur">
-            ★ {topPartnerLabel}
+        {data.verified && (
+          <span className="label absolute right-3 top-3 bg-paper/85 px-2 py-1 text-accent backdrop-blur">
+            ✓ {verifiedLabel}
           </span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="flex items-center gap-3">
-          <Avatar name={data.name} src={data.avatarUrl} size={36} />
-          <div className="min-w-0">
-            <p className="truncate font-medium text-ink">{data.name}</p>
-            {(location || memberSince) && (
-              <p className="truncate text-[13px] text-mute">
-                {[location, memberSince].filter(Boolean).join(" · ")}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {(disciplines.length > 0 || specialties.length > 0) && (
-          <div className="flex flex-wrap gap-1.5">
-            {disciplines.map((d) => (
-              <span
-                key={d}
-                className="rounded-full border border-line px-2.5 py-0.5 text-[12px] text-mute"
-              >
-                {d}
-              </span>
-            ))}
-            {specialties.slice(0, 3).map((s) => (
-              <span
-                key={s}
-                className="rounded-full bg-chip px-2.5 py-0.5 text-[12px] text-ink"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto flex items-center justify-between pt-1">
+      <div className="flex flex-col gap-1.5 border-t border-line pt-3 transition-colors group-hover:border-mute-2">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="truncate font-medium text-ink">{data.name}</p>
           {rated ? (
-            <span className="flex items-center gap-1.5">
-              <Stars value={data.rating!.avg} size={12} />
-              <span className="tabular text-[12px] text-mute">
-                {data.rating!.avg.toFixed(1)}
-              </span>
+            <span className="tabular shrink-0 text-[13px] text-ink">
+              ★ {data.rating!.avg.toFixed(1)}
             </span>
           ) : (
-            <span className="label text-mute-2">{newLabel}</span>
+            <span className="label shrink-0 text-mute-2">{newLabel}</span>
           )}
+        </div>
+
+        {meta && <p className="truncate text-[13px] text-mute">{meta}</p>}
+
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <span className="label text-mute-2">
+            {tReview("count", { count: data.rating?.count ?? 0 })}
+          </span>
           {data.hourlyRate != null && (
             <span className="tabular text-[13px] text-mute">
-              {formatCHF(data.hourlyRate)}
-              {tShoot("perHour")}
+              {tDir("fromPrice", { amount: formatChfAmount(data.hourlyRate) })}
             </span>
           )}
         </div>

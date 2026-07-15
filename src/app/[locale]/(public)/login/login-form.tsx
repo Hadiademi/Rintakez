@@ -14,6 +14,7 @@ export default function LoginForm() {
   const tErr = useTranslations("errors");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -50,8 +51,9 @@ export default function LoginForm() {
           data-testid="login-email"
           type="email"
           autoComplete="email"
+          placeholder={t("emailPlaceholder")}
           {...register("email")}
-          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          className="w-full border border-line bg-surface px-4 py-3 text-[16px] text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.email && (
           <p className="text-[12px] text-accent">{errors.email.message}</p>
@@ -60,25 +62,35 @@ export default function LoginForm() {
 
       {/* Password */}
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <label htmlFor="login-password" className="label text-mute">
-            {t("password")}
-          </label>
-          <Link
-            href="/forgot-password"
-            className="text-[12px] text-mute hover:text-ink"
+        <label htmlFor="login-password" className="label text-mute">
+          {t("password")}
+        </label>
+        <div className="relative">
+          <input
+            id="login-password"
+            data-testid="login-password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            placeholder={t("passwordPlaceholder")}
+            {...register("password")}
+            className="w-full border border-line bg-surface px-4 py-3 pr-12 text-[16px] text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          />
+          <button
+            type="button"
+            data-testid="login-password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+            className="absolute inset-y-0 right-0 flex min-h-[44px] w-11 items-center justify-center text-mute hover:text-ink transition-colors"
           >
-            {t("forgotLink")}
-          </Link>
+            <EyeIcon off={showPassword} />
+          </button>
         </div>
-        <input
-          id="login-password"
-          data-testid="login-password"
-          type="password"
-          autoComplete="current-password"
-          {...register("password")}
-          className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
-        />
+        <Link
+          href="/forgot-password"
+          className="self-end text-[12px] text-accent hover:opacity-70 transition-opacity"
+        >
+          {t("forgotLink")}
+        </Link>
         {errors.password && (
           <p className="text-[12px] text-accent">{errors.password.message}</p>
         )}
@@ -94,10 +106,45 @@ export default function LoginForm() {
         type="submit"
         data-testid="login-submit"
         disabled={isSubmitting}
-        className="press w-full bg-ink text-paper py-3.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
+        className="press flex w-full items-center justify-center gap-2 bg-ink text-paper py-3.5 text-[14px] font-medium disabled:opacity-50 transition-opacity"
       >
         {t("submitLogin")}
+        <span aria-hidden="true">→</span>
       </button>
     </form>
+  );
+}
+
+function EyeIcon({ off }: { off: boolean }) {
+  return off ? (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  ) : (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
   );
 }
