@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-10">
+      <AdminPageHeader eyebrow={t("eyebrowOverview")} title={t("title")} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Metric value={users.count ?? 0} label={t("metricUsers")} />
         <Metric

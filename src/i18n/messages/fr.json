@@ -868,7 +868,11 @@
     "sectionSystem": "Système",
     "sidebarAria": "Navigation admin",
     "toApp": "Vers l'app",
-    "openNav": "Ouvrir la navigation"
+    "openNav": "Ouvrir la navigation",
+    "eyebrowOverview": "Aperçu",
+    "eyebrowManagement": "Gestion",
+    "eyebrowModeration": "Modération",
+    "eyebrowSystem": "Système"
   },
   "pagination": {
     "label": "Pagination",

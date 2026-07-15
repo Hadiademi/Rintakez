@@ -868,7 +868,11 @@
     "sectionSystem": "System",
     "sidebarAria": "Admin navigation",
     "toApp": "To app",
-    "openNav": "Open navigation"
+    "openNav": "Open navigation",
+    "eyebrowOverview": "Overview",
+    "eyebrowManagement": "Management",
+    "eyebrowModeration": "Moderation",
+    "eyebrowSystem": "System"
   },
   "pagination": {
     "label": "Pagination",

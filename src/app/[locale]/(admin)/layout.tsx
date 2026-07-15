@@ -1,4 +1,4 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { SkipToContent } from "@/components/skip-to-content";
@@ -26,10 +26,7 @@ export default async function AdminLayout({
     return null;
   }
 
-  const [t, counts] = await Promise.all([
-    getTranslations("admin"),
-    fetchAdminCounts(),
-  ]);
+  const counts = await fetchAdminCounts();
 
   return (
     <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
@@ -47,9 +44,6 @@ export default async function AdminLayout({
           leading={<AdminDrawer counts={counts} />}
         />
         <main id="main" className="min-w-0 px-5 py-8 sm:px-8">
-          <h1 className="mb-8 text-4xl font-semibold tracking-tight text-ink">
-            {t("title")}
-          </h1>
           {children}
         </main>
       </div>

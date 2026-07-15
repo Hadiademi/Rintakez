@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminEmailRetry } from "@/components/admin-email-retry";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -35,9 +36,7 @@ export default async function AdminEmailPage() {
 
   return (
     <section className="space-y-6">
-      <h2 className="text-2xl font-semibold tracking-tight text-ink">
-        {t("emailHealth")}
-      </h2>
+      <AdminPageHeader eyebrow={t("eyebrowSystem")} title={t("tabEmail")} />
 
       <div className="grid grid-cols-3 gap-3">
         <Metric value={pending.count ?? 0} label={t("emailPending")} />
