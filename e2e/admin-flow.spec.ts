@@ -34,4 +34,26 @@ test.describe("admin console", () => {
     // The admin layout redirects non-admins to /home.
     await expect(page).toHaveURL(/\/de\/home/, { timeout: 20_000 });
   });
+
+  test("admin navigation is reachable on a 390px viewport", async ({ page }) => {
+    // login() asserts the desktop sign-out testid, which is CSS-hidden below
+    // the `lg` breakpoint (the mobile nav's sign-out deliberately omits the
+    // testid to keep Playwright strict-mode happy — see app-nav.tsx). So log
+    // in at the default desktop viewport, then resize before exercising the
+    // mobile admin nav.
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    // The desktop rail is hidden on mobile; the drawer is the only way through.
+    await page.getByTestId("admin-drawer-open").click();
+    await page.getByTestId("admin-nav-users").click();
+
+    await expect(page).toHaveURL(/\/admin\/users$/);
+    // The page must not scroll sideways at 390.
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
 });

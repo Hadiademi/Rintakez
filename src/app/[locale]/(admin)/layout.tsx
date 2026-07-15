@@ -4,6 +4,7 @@ import { getProfile } from "@/lib/auth";
 import { SkipToContent } from "@/components/skip-to-content";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
+import { AdminDrawer } from "@/components/admin-drawer";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +31,16 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
       <SkipToContent />
       <aside className="hidden border-r border-line px-4 py-8 lg:block">
-        <AdminSidebar />
+        {/* Stays CSS-hidden (not unmounted) below lg, so it can coexist with
+            the drawer's own AdminSidebar while the drawer is open — opt out
+            of testids here to avoid a duplicate with the drawer's copy. */}
+        <AdminSidebar showTestIds={false} />
       </aside>
       <div className="flex min-w-0 flex-col">
-        <AdminTopbar displayName={profile.display_name ?? ""} />
+        <AdminTopbar
+          displayName={profile.display_name ?? ""}
+          leading={<AdminDrawer />}
+        />
         <main id="main" className="min-w-0 px-5 py-8 sm:px-8">
           <h1 className="mb-8 text-4xl font-semibold tracking-tight text-ink">
             {t("title")}

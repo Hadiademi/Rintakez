@@ -53,6 +53,7 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
+  --color-backdrop: var(--backdrop);
   --font-sans: var(--font-inter-tight), system-ui, sans-serif;
 }
 

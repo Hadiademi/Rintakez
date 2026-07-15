@@ -867,7 +867,8 @@
     "sectionModeration": "Modération",
     "sectionSystem": "Système",
     "sidebarAria": "Navigation admin",
-    "toApp": "Vers l'app"
+    "toApp": "Vers l'app",
+    "close": "Fermer"
   },
   "pagination": {
     "label": "Pagination",
