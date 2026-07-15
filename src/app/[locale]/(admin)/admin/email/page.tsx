@@ -38,7 +38,7 @@ export default async function AdminEmailPage() {
     <section className="space-y-6">
       <AdminPageHeader eyebrow={t("eyebrowSystem")} title={t("tabEmail")} />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Metric value={pending.count ?? 0} label={t("emailPending")} />
         <Metric value={sent.count ?? 0} label={t("emailSent")} />
         <Metric value={failed.count ?? 0} label={t("emailFailed")} />

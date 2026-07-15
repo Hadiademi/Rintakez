@@ -14,7 +14,7 @@ const ADMIN_NAV = [
     items: [{ href: "/admin", labelKey: "tabDashboard" }],
   },
   {
-    sectionKey: "sectionMarketplace",
+    sectionKey: "sectionManagement",
     items: [{ href: "/admin/users", labelKey: "tabUsers" }],
   },
   {
