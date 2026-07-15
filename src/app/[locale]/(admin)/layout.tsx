@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { SkipToContent } from "@/components/skip-to-content";
-import { AdminTabs } from "@/components/admin-tabs";
+import { AdminSidebar } from "@/components/admin-sidebar";
 
 export const dynamic = "force-dynamic";
 
@@ -26,18 +26,17 @@ export default async function AdminLayout({
   const t = await getTranslations("admin");
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
       <SkipToContent />
-      <div
-        id="main"
-        className="mx-auto max-w-5xl space-y-8 px-5 py-10 sm:px-8"
-      >
+      <aside className="hidden border-r border-line px-4 py-8 lg:block">
+        <AdminSidebar />
+      </aside>
+      <main id="main" className="min-w-0 space-y-8 px-5 py-8 sm:px-8">
         <h1 className="text-4xl font-semibold tracking-tight text-ink">
           {t("title")}
         </h1>
-        <AdminTabs />
         {children}
-      </div>
+      </main>
     </div>
   );
 }

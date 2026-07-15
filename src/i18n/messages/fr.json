@@ -860,7 +860,14 @@
     "confirmRevokeComp": "Retirer la période gratuite de {name} ?",
     "tierBasic": "Basic",
     "tierStandard": "Standard",
-    "tierPremium": "Premium"
+    "tierPremium": "Premium",
+    "sectionOverview": "Aperçu",
+    "sectionMarketplace": "Marché",
+    "sectionMonetization": "Monétisation",
+    "sectionModeration": "Modération",
+    "sectionSystem": "Système",
+    "sidebarAria": "Navigation admin",
+    "toApp": "Vers l'app"
   },
   "pagination": {
     "label": "Pagination",

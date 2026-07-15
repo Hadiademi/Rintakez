@@ -860,7 +860,14 @@
     "confirmRevokeComp": "Gratiszeitraum von {name} entziehen?",
     "tierBasic": "Basic",
     "tierStandard": "Standard",
-    "tierPremium": "Premium"
+    "tierPremium": "Premium",
+    "sectionOverview": "Übersicht",
+    "sectionMarketplace": "Marktplatz",
+    "sectionMonetization": "Monetarisierung",
+    "sectionModeration": "Moderation",
+    "sectionSystem": "System",
+    "sidebarAria": "Admin-Navigation",
+    "toApp": "Zur App"
   },
   "pagination": {
     "label": "Seitennavigation",

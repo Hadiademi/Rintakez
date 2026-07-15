@@ -860,7 +860,14 @@
     "confirmRevokeComp": "Revoke {name}'s free period?",
     "tierBasic": "Basic",
     "tierStandard": "Standard",
-    "tierPremium": "Premium"
+    "tierPremium": "Premium",
+    "sectionOverview": "Overview",
+    "sectionMarketplace": "Marketplace",
+    "sectionMonetization": "Monetization",
+    "sectionModeration": "Moderation",
+    "sectionSystem": "System",
+    "sidebarAria": "Admin navigation",
+    "toApp": "To app"
   },
   "pagination": {
     "label": "Pagination",
