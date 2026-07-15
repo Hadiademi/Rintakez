@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
 
+const PANEL_ID = "admin-drawer";
+
 export function AdminDrawer() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on navigation — the drawer would otherwise stay over the new page.
   // Adjusted during render (React's recommended pattern) rather than in an
@@ -19,23 +24,54 @@ export function AdminDrawer() {
     setOpen(false);
   }
 
+  // Close and hand focus back to the hamburger. Without this the focused
+  // element (a nav link, or nothing) unmounts and focus falls to <body>, so
+  // the next Tab restarts from the top of the document instead of resuming
+  // at the control that opened the drawer.
+  const closeAndRestoreFocus = useCallback(() => {
+    setOpen(false);
+    buttonRef.current?.focus();
+  }, []);
+
   // Close on Escape, the expected affordance for a slide-over.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") closeAndRestoreFocus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [open, closeAndRestoreFocus]);
+
+  // Lock body scroll while open, same approach as ImageLightbox. Scoped to
+  // `open` rather than mount/unmount of AdminDrawer (which never unmounts,
+  // since it lives in the admin layout) so the cleanup below — which reverts
+  // the lock — runs on every path that closes the drawer, not only the
+  // explicit close handlers.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  // Move focus into the panel when it opens, as a real dialog should.
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current?.focus();
   }, [open]);
 
   return (
     <div className="lg:hidden">
       <button
+        ref={buttonRef}
         type="button"
         data-testid="admin-drawer-open"
         aria-expanded={open}
-        aria-label={t("sidebarAria")}
+        aria-controls={PANEL_ID}
+        aria-label={t("openNav")}
         onClick={() => setOpen(true)}
         className="press flex h-11 w-11 items-center justify-center border border-line text-ink"
       >
@@ -55,13 +91,32 @@ export function AdminDrawer() {
 
       {open && (
         <div className="fixed inset-0 z-50">
+          {/* Backdrop click-to-dismiss is a supplementary convenience; full
+              keyboard equivalents already exist (Escape via the document
+              listener above, and the focusable nav links inside the panel),
+              so no keyboard user loses functionality. */}
           <button
             type="button"
-            aria-label={t("close")}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-backdrop"
+            aria-label={tCommon("close")}
+            onClick={closeAndRestoreFocus}
+            className="absolute inset-0 bg-ink/40"
           />
-          <div className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] overflow-y-auto border-r border-line bg-paper px-4 py-8">
+          {/* onClick here is event delegation for the nav links inside: it
+              closes the drawer when a link is clicked, including a tap on
+              the link for the page already open (whose pathname doesn't
+              change, so the render-time guard above never fires). Same
+              keyboard-equivalents rationale as the backdrop button above. */}
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+          <div
+            ref={panelRef}
+            id={PANEL_ID}
+            data-testid="admin-drawer"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            onClick={closeAndRestoreFocus}
+            className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] overflow-y-auto border-r border-line bg-paper px-4 py-8"
+          >
             <AdminSidebar />
           </div>
         </div>

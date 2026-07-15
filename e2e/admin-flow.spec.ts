@@ -47,13 +47,33 @@ test.describe("admin console", () => {
 
     // The desktop rail is hidden on mobile; the drawer is the only way through.
     await page.getByTestId("admin-drawer-open").click();
-    await page.getByTestId("admin-nav-users").click();
+    await page
+      .getByTestId("admin-drawer")
+      .getByTestId("admin-nav-users")
+      .click();
 
     await expect(page).toHaveURL(/\/admin\/users$/);
+    await expect(page.getByTestId("admin-drawer")).toBeHidden();
     // The page must not scroll sideways at 390.
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     );
     expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("admin drawer closes on Escape and returns focus to the hamburger", async ({
+    page,
+  }) => {
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    const opener = page.getByTestId("admin-drawer-open");
+    await opener.click();
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("admin-drawer")).toBeHidden();
+    await expect(opener).toBeFocused();
   });
 });

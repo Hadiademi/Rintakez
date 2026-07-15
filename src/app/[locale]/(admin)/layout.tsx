@@ -32,9 +32,10 @@ export default async function AdminLayout({
       <SkipToContent />
       <aside className="hidden border-r border-line px-4 py-8 lg:block">
         {/* Stays CSS-hidden (not unmounted) below lg, so it can coexist with
-            the drawer's own AdminSidebar while the drawer is open — opt out
-            of testids here to avoid a duplicate with the drawer's copy. */}
-        <AdminSidebar showTestIds={false} />
+            the drawer's own AdminSidebar while the drawer is open. Tests scope
+            their queries to the drawer's testid to disambiguate the two
+            copies of the nav testids that exist while the drawer is open. */}
+        <AdminSidebar />
       </aside>
       <div className="flex min-w-0 flex-col">
         <AdminTopbar

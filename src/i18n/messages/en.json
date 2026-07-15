@@ -868,7 +868,7 @@
     "sectionSystem": "System",
     "sidebarAria": "Admin navigation",
     "toApp": "To app",
-    "close": "Close"
+    "openNav": "Open navigation"
   },
   "pagination": {
     "label": "Pagination",

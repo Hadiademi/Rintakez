@@ -39,7 +39,6 @@
   --line: rgb(var(--line-rgb));
   --line-strong: rgb(var(--line-strong-rgb));
   --accent: rgb(var(--accent-rgb));
-  --backdrop: rgb(var(--ink-rgb) / 0.42);
 }
 
 /* Expose tokens as Tailwind utilities: bg-paper, text-ink, border-line, … */
@@ -53,7 +52,6 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
-  --color-backdrop: var(--backdrop);
   --font-sans: var(--font-inter-tight), system-ui, sans-serif;
 }
 
