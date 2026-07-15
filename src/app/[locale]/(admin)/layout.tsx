@@ -25,12 +25,14 @@ export default async function AdminLayout({
   const t = await getTranslations("admin");
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <h1 className="text-4xl font-semibold tracking-tight text-ink">
-        {t("title")}
-      </h1>
-      <AdminTabs />
-      {children}
+    <div className="min-h-screen bg-paper">
+      <div className="mx-auto max-w-5xl space-y-8 px-5 py-10 sm:px-8">
+        <h1 className="text-4xl font-semibold tracking-tight text-ink">
+          {t("title")}
+        </h1>
+        <AdminTabs />
+        {children}
+      </div>
     </div>
   );
 }
