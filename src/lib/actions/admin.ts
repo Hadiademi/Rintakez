@@ -60,7 +60,7 @@ export async function updateReportStatus(
     note: trimmedNote,
   });
 
-  revalidatePath("/[locale]/(app)/admin", "page");
+  revalidatePath("/[locale]/(admin)/admin", "page");
   return { ok: true };
 }
 
@@ -106,7 +106,7 @@ export async function setUserSuspension(
     { reason: trimmedReason }
   );
 
-  revalidatePath("/[locale]/(app)/admin", "page");
+  revalidatePath("/[locale]/(admin)/admin", "page");
   return { ok: true };
 }
 
@@ -138,7 +138,7 @@ export async function setShootSuspension(
     { reason: trimmedReason }
   );
 
-  revalidatePath("/[locale]/(app)/admin", "page");
+  revalidatePath("/[locale]/(admin)/admin", "page");
   return { ok: true };
 }
 
@@ -171,7 +171,7 @@ export async function setPhotographerVerification(
   // The public profile is cached per-photographer; refresh it so the badge
   // updates immediately.
   revalidateTag(`photographer:${photographerId}`, "max");
-  revalidatePath("/[locale]/(app)/admin", "page");
+  revalidatePath("/[locale]/(admin)/admin", "page");
   return { ok: true };
 }
 
@@ -202,7 +202,7 @@ export async function setUserAdmin(
     userId
   );
 
-  revalidatePath("/[locale]/(app)/admin/users", "page");
+  revalidatePath("/[locale]/(admin)/admin/users", "page");
   return { ok: true };
 }
 
@@ -233,7 +233,7 @@ export async function resolveDispute(
     note: trimmedNote,
   });
 
-  revalidatePath("/[locale]/(app)/admin/disputes", "page");
+  revalidatePath("/[locale]/(admin)/admin/disputes", "page");
   return { ok: true };
 }
 
@@ -319,7 +319,7 @@ export async function grantComp(
     previous_until: existing?.comp_until ?? null,
   });
 
-  revalidatePath("/[locale]/(app)/admin/users", "page");
+  revalidatePath("/[locale]/(admin)/admin/users", "page");
   revalidateTag("photographers-directory", "max");
   revalidateTag(`photographer:${userId}`, "max");
   return { ok: true };
@@ -358,7 +358,7 @@ export async function revokeComp(userId: string): Promise<Ok | ErrResult> {
 
   await writeAudit(supabase, admin.id, "comp_revoked", "profile", userId);
 
-  revalidatePath("/[locale]/(app)/admin/users", "page");
+  revalidatePath("/[locale]/(admin)/admin/users", "page");
   revalidateTag("photographers-directory", "max");
   revalidateTag(`photographer:${userId}`, "max");
   return { ok: true };
@@ -379,6 +379,6 @@ export async function retryFailedEmail(id: number): Promise<Ok | ErrResult> {
     .eq("status", "failed");
   if (error) return { ok: false, error: dbError(error, "admin") };
 
-  revalidatePath("/[locale]/(app)/admin/email", "page");
+  revalidatePath("/[locale]/(admin)/admin/email", "page");
   return { ok: true };
 }

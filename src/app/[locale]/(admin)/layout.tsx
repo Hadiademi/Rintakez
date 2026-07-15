@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
+import { SkipToContent } from "@/components/skip-to-content";
 import { AdminTabs } from "@/components/admin-tabs";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,11 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-paper">
-      <div className="mx-auto max-w-5xl space-y-8 px-5 py-10 sm:px-8">
+      <SkipToContent />
+      <div
+        id="main"
+        className="mx-auto max-w-5xl space-y-8 px-5 py-10 sm:px-8"
+      >
         <h1 className="text-4xl font-semibold tracking-tight text-ink">
           {t("title")}
         </h1>
