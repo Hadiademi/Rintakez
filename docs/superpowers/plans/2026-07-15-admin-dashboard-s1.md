@@ -132,7 +132,7 @@ app nav and mobile tab bar, making room for a dedicated shell."
 
 **Interfaces:**
 - Consumes: `usePathname`, `Link` from `@/i18n/navigation`; `useTranslations` from `next-intl`
-- Produces: `<AdminSidebar />` (client component, no props in this task — Task 5 adds `counts`). `ADMIN_NAV` is exported for reuse by Task 4's drawer.
+- Produces: `<AdminSidebar />` (client component, no props in this task — Task 5 adds a required `counts` prop). `ADMIN_NAV` stays module-local: Task 4's drawer reuses the tree by rendering `<AdminSidebar />` itself, so nothing outside this file needs the constant.
 
 - [ ] **Step 1: Add the i18n keys**
 
@@ -194,10 +194,9 @@ import { usePathname, Link } from "@/i18n/navigation";
 
 /**
  * Admin navigation, grouped the way the design's own eyebrow labels imply.
- * Exported so the mobile drawer renders the same tree without duplicating it.
  * Entries are added only when their page exists — a nav link to a 404 is a bug.
  */
-export const ADMIN_NAV = [
+const ADMIN_NAV = [
   {
     sectionKey: "sectionOverview",
     items: [{ href: "/admin", labelKey: "tabDashboard" }],
@@ -402,7 +401,7 @@ The sidebar is `hidden lg:block` after Task 2, so on a phone the admin currently
 - Test: `e2e/admin-flow.spec.ts` (add a 390px nav case)
 
 **Interfaces:**
-- Consumes: `ADMIN_NAV` + `AdminSidebar` from `@/components/admin-sidebar`
+- Consumes: `AdminSidebar` from `@/components/admin-sidebar`
 - Produces: `<AdminDrawer />` — a client component rendering a hamburger + slide-over containing `<AdminSidebar />`.
 
 - [ ] **Step 1: Write the failing e2e test**
