@@ -1,12 +1,22 @@
-/** Inline loading spinner. Inherits color via currentColor. */
+import { useTranslations } from "next-intl";
+
+/**
+ * Inline loading spinner. Inherits color via currentColor.
+ *
+ * No "use client" here: `useTranslations` resolves to next-intl's
+ * React-Server-Components translator when this renders on the server, and to
+ * the normal client hook when it renders inside a client boundary (e.g.
+ * ui/button.tsx) — so this component works unmodified in both.
+ */
 export function Spinner({ className = "h-4 w-4" }: { className?: string }) {
+  const t = useTranslations("common");
   return (
     <svg
       className={`animate-spin ${className}`}
       viewBox="0 0 24 24"
       fill="none"
       role="status"
-      aria-label="Loading"
+      aria-label={t("loadingAria")}
     >
       <circle
         className="opacity-25"

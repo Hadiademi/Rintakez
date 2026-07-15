@@ -251,6 +251,11 @@ export default function NewShootForm({ userId }: { userId: string }) {
         </div>
       )}
 
+      {/* <form> is not in the rule's interactive-elements list, but the onKeyDown
+          below only customizes the Enter key's already-native form behaviour
+          (advance instead of submit) and doesn't add or remove any keyboard
+          functionality. */}
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         onKeyDown={(e) => {
@@ -419,6 +424,10 @@ export default function NewShootForm({ userId }: { userId: string }) {
                     <img
                       src={img.url}
                       alt=""
+                      width={96}
+                      height={96}
+                      loading="lazy"
+                      decoding="async"
                       className="h-24 w-24 border border-line object-cover grayscale"
                     />
                     <button

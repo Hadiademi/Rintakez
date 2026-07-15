@@ -27,6 +27,10 @@ export function ShootRefGallery({
         <img
           src={images[0].url}
           alt=""
+          // This lead image is the shoot-detail page's hero (it replaces the
+          // fallback hero in shoots/[id]/page.tsx when reference images
+          // exist), so it stays eager to avoid delaying the LCP paint.
+          decoding="async"
           className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
         />
       </button>
@@ -44,6 +48,8 @@ export function ShootRefGallery({
               <img
                 src={img.url}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
               />
             </button>

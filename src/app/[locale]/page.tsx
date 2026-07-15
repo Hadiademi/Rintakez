@@ -11,6 +11,7 @@ import { shootImage } from "@/lib/shoot-image";
 import { Link, getPathname } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
 import { buildAlternates } from "@/lib/seo";
+import { SkipToContent } from "@/components/skip-to-content";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -107,6 +108,7 @@ export default async function Home({
 
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col">
+      <SkipToContent />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -150,7 +152,7 @@ export default async function Home({
       </header>
       <div className="h-px bg-line" />
 
-      <section className="mx-auto w-full max-w-6xl px-6 py-16 lg:py-24">
+      <section id="main" className="mx-auto w-full max-w-6xl px-6 py-16 lg:py-24">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <h1 className="text-4xl font-medium tracking-tight md:text-5xl lg:text-6xl">

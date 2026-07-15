@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { notifyEmail } from "@/lib/email";
+import { isConversationUnread } from "@/lib/conversation-unread";
 
 type ErrResult = { ok: false; error: string };
 
@@ -137,7 +138,10 @@ export async function getConversations(): Promise<ConversationSummary[]> {
     .select(
       "id, shoot_id, client_id, photographer_id, last_message_at, last_message_body, last_sender_id, client_last_read_at, photographer_last_read_at"
     )
-    .order("last_message_at", { ascending: false });
+    .order("last_message_at", { ascending: false })
+    // A user's inbox sidebar never needs more than the most-recent ~100
+    // conversations; pagination beyond that is a separate future concern.
+    .limit(100);
 
   if (!convs || convs.length === 0) return [];
 
@@ -168,10 +172,7 @@ export async function getConversations(): Promise<ConversationSummary[]> {
   return convs.map((c) => {
     const isClient = c.client_id === user.id;
     const otherId = isClient ? c.photographer_id : c.client_id;
-    const myReadAt = isClient
-      ? c.client_last_read_at
-      : c.photographer_last_read_at;
-    const unread = !myReadAt || c.last_message_at > myReadAt;
+    const unread = isConversationUnread(c, user.id);
     const other = profileBy.get(otherId);
     return {
       id: c.id,
@@ -192,10 +193,31 @@ export async function getConversations(): Promise<ConversationSummary[]> {
   });
 }
 
-/** Count of conversations with unread messages (for the nav badge). */
+/**
+ * Count of conversations with unread messages (for the nav badge). Runs on
+ * EVERY authenticated page render (AppNav), so this is intentionally a lean,
+ * standalone query — it must NOT call getConversations(), which fetches
+ * every column, joins profiles + shoots, and builds full ConversationSummary
+ * objects (all unneeded just to produce a count). RLS already scopes
+ * `conversations` to rows where the caller is a participant, so no explicit
+ * filter is needed here. Shares its unread predicate with getConversations
+ * via isConversationUnread (src/lib/conversation-unread.ts) — see there for
+ * the exact definition (including null-handling); the two must never drift
+ * apart, or the badge and inbox would disagree.
+ */
 export async function getUnreadConversationCount(): Promise<number> {
-  const convs = await getConversations();
-  return convs.filter((c) => c.unread).length;
+  const user = await getSessionUser();
+  if (!user) return 0;
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("conversations")
+    .select(
+      "client_id, photographer_id, last_message_at, client_last_read_at, photographer_last_read_at"
+    );
+  if (!data) return 0;
+
+  return data.filter((c) => isConversationUnread(c, user.id)).length;
 }
 
 /** Full thread + participant context. Returns null if not a participant. */
@@ -580,11 +602,16 @@ export async function blockUser(
   if (targetId === user.id) return { ok: false, error: "invalid_input" };
 
   const supabase = await createClient();
+  // Idempotent: a block row either exists or it doesn't — re-blocking changes
+  // nothing. Use ON CONFLICT DO NOTHING (ignoreDuplicates), not DO UPDATE:
+  // user_blocks grants only insert/delete (no UPDATE), so an upsert that
+  // compiled to ON CONFLICT DO UPDATE was permission-denied and the block
+  // silently never persisted.
   const { error } = await supabase
     .from("user_blocks")
     .upsert(
       { blocker_id: user.id, blocked_id: targetId },
-      { onConflict: "blocker_id,blocked_id" }
+      { onConflict: "blocker_id,blocked_id", ignoreDuplicates: true }
     );
   if (error) return { ok: false, error: dbError(error, "messages") };
 

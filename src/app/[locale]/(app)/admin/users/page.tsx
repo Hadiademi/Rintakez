@@ -37,18 +37,18 @@ export default async function AdminUsersPage({
   if (q?.trim()) query = query.ilike("display_name", `%${q.trim()}%`);
 
   const { data: rows } = await query;
-
-  // Resolve emails (admin-only). For this scale a single listUsers call is fine;
-  // at large scale replace with a server-side join/RPC.
-  const { data: authList } = await admin.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  });
-  const emailBy = new Map(
-    (authList?.users ?? []).map((u) => [u.id, u.email ?? ""])
-  );
-
   const list = rows ?? [];
+
+  // Resolve emails (admin-only) for exactly the displayed page of users
+  // (≤ LIMIT rows) via per-id lookups rather than scanning listUsers, whose
+  // 1000-row cap would silently blank emails for any displayed user beyond
+  // the first 1000 auth rows once the platform grows past that.
+  const emailResults = await Promise.all(
+    list.map((u) => admin.auth.admin.getUserById(u.id))
+  );
+  const emailBy = new Map(
+    list.map((u, i) => [u.id, emailResults[i]?.data.user?.email ?? ""])
+  );
 
   // Batch-fetch active admin comps for the rendered page of users in one
   // query rather than N+1 per row.

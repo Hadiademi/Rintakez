@@ -9,6 +9,7 @@ import { errorKey } from "@/lib/error-messages";
 export function CancelShootButton({ shootId }: { shootId: string }) {
   const t = useTranslations("shootDetail");
   const tErr = useTranslations("errors");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -68,7 +69,7 @@ export function CancelShootButton({ shootId }: { shootId: string }) {
           type="button"
           onClick={() => setOpen(false)}
           disabled={isPending}
-          aria-label="close"
+          aria-label={tCommon("close")}
           className="press label text-mute hover:text-ink"
         >
           ✕

@@ -21,7 +21,10 @@
     "save": "Enregistrer",
     "remove": "Supprimer",
     "close": "Fermer",
-    "removeConfirm": "Supprimer ceci ? Cette action est irréversible."
+    "removeConfirm": "Supprimer ceci ? Cette action est irréversible.",
+    "languageAria": "Langue",
+    "loadingAria": "Chargement",
+    "skipToContent": "Aller au contenu principal"
   },
   "nav": {
     "home": "Accueil",
@@ -153,7 +156,8 @@
     "editTitle": "Modifier le profil",
     "editSubtitle": "Mets à jour tes informations et ton portfolio.",
     "save": "Enregistrer",
-    "disciplines": "Discipline"
+    "disciplines": "Discipline",
+    "portfolioThumbnailAlt": "Miniature du portfolio"
   },
   "createShoot": {
     "title": "Créer une mission",
@@ -296,6 +300,7 @@
     }
   },
   "profile": {
+    "profileSectionsAria": "Sections du profil",
     "specialties": "Spécialités",
     "coverage": "Régions",
     "hourlyRate": "Tarif horaire",

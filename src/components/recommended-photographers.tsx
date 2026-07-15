@@ -1,5 +1,7 @@
+import { unstable_cache } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { PhotographerCard } from "@/components/photographer-card";
 import type { Database } from "@/lib/supabase/database.types";
 import type { Plan } from "@/lib/billing/plans";
@@ -11,6 +13,28 @@ type Canton = Database["public"]["Enums"]["canton"];
 // among otherwise-similar candidates.
 const CANTON_BOOST = 0.5;
 const SPECIALTY_BOOST = 0.15;
+
+/**
+ * Full photographer_ratings scan, cached. This aggregate is world-readable
+ * and NOT viewer-specific (same rows for every visitor), so it's safe to
+ * share one cache entry across all requests/users — repeated /home loads no
+ * longer re-scan the ratings view. Uses createPublicClient() (cookieless
+ * anon client) rather than the request-scoped client: unstable_cache-wrapped
+ * functions can't rely on request-specific data (cookies), and none is
+ * needed here since RLS grants anon SELECT on this view (backed by
+ * reviews_select_all USING (true)).
+ */
+const getCachedPhotographerRatings = unstable_cache(
+  async () => {
+    const publicSupabase = createPublicClient();
+    const { data } = await publicSupabase
+      .from("photographer_ratings")
+      .select("photographer_id, avg_rating, review_count");
+    return data ?? [];
+  },
+  ["photographer-ratings"],
+  { revalidate: 120, tags: ["photographer-ratings"] }
+);
 
 /**
  * "Recommended photographers" — top photographers by average rating (rated ones
@@ -30,7 +54,7 @@ export async function RecommendedPhotographers({
 } = {}) {
   const supabase = await createClient();
 
-  const [{ data: photogs }, { data: ratings }] = await Promise.all([
+  const [{ data: photogs }, ratings] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, display_name, city, canton, avatar_url, created_at")
@@ -40,9 +64,7 @@ export async function RecommendedPhotographers({
       // an arbitrary slice; the best by rating then surface to the top 3.
       .order("created_at", { ascending: false })
       .limit(60),
-    supabase
-      .from("photographer_ratings")
-      .select("photographer_id, avg_rating, review_count"),
+    getCachedPhotographerRatings(),
   ]);
 
   if (!photogs || photogs.length === 0) return null;

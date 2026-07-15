@@ -21,7 +21,10 @@
     "save": "Speichern",
     "remove": "Entfernen",
     "close": "Schliessen",
-    "removeConfirm": "Wirklich entfernen? Das kann nicht rückgängig gemacht werden."
+    "removeConfirm": "Wirklich entfernen? Das kann nicht rückgängig gemacht werden.",
+    "languageAria": "Sprache",
+    "loadingAria": "Wird geladen",
+    "skipToContent": "Zum Inhalt springen"
   },
   "nav": {
     "home": "Home",
@@ -153,7 +156,8 @@
     "editTitle": "Profil bearbeiten",
     "editSubtitle": "Aktualisiere deine Angaben und dein Portfolio.",
     "save": "Speichern",
-    "disciplines": "Disziplin"
+    "disciplines": "Disziplin",
+    "portfolioThumbnailAlt": "Portfolio-Miniaturbild"
   },
   "createShoot": {
     "title": "Auftrag erstellen",
@@ -296,6 +300,7 @@
     }
   },
   "profile": {
+    "profileSectionsAria": "Profilbereiche",
     "specialties": "Spezialgebiete",
     "coverage": "Einsatzgebiete",
     "hourlyRate": "Stundensatz",

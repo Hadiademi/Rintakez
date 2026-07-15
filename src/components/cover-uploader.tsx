@@ -62,6 +62,8 @@ export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
           <img
             src={url}
             alt=""
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover grayscale transition-[filter] duration-500 hover:grayscale-0"
           />
         </button>

@@ -61,7 +61,6 @@ export default function ForgotPasswordForm() {
           data-testid="forgot-email"
           type="email"
           autoComplete="email"
-          autoFocus
           {...register("email")}
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />

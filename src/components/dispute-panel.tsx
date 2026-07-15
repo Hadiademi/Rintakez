@@ -60,6 +60,10 @@ export function DisputePanel({
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={3}
+        // Panel is revealed by the user's own click (not on page load); moving
+        // focus to the primary field is the standard disclosure-pattern UX,
+        // not a disorienting page-load autofocus.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         placeholder={t("placeholder")}
         className="w-full resize-none border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"

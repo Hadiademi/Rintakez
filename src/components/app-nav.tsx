@@ -105,6 +105,10 @@ export async function AppNav({
                 <img
                   src={avatarUrl}
                   alt=""
+                  width={36}
+                  height={36}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover grayscale"
                 />
               ) : (

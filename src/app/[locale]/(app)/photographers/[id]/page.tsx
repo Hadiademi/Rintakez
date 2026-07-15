@@ -323,6 +323,8 @@ export default async function PhotographerProfilePage({
           <img
             src={coverUrl}
             alt=""
+            // Cover band is this page's LCP hero — stays eager.
+            decoding="async"
             className="h-full w-full object-cover grayscale"
           />
         ) : (
@@ -349,6 +351,10 @@ export default async function PhotographerProfilePage({
                 <img
                   src={avatarUrl}
                   alt={profile.display_name}
+                  width={112}
+                  height={112}
+                  loading="lazy"
+                  decoding="async"
                   className="h-28 w-28 rounded-full border-4 border-paper object-cover shadow-sm"
                 />
               ) : (

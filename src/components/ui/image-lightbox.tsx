@@ -35,12 +35,21 @@ export function ImageLightbox({
   }, [onClose]);
 
   return (
+    // Backdrop click-to-dismiss is a supplementary convenience; full keyboard
+    // equivalents already exist (Escape closes via the document listener
+    // above, and the labelled close button below), so no keyboard user
+    // loses functionality.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <div
       role="dialog"
       aria-modal="true"
       onClick={onClose}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/85 p-4 backdrop-blur-sm sm:p-8"
     >
+      {/* This only stops click-bubbling to the backdrop above so clicking the
+          image itself doesn't dismiss the dialog; it triggers no action a
+          keyboard user would need (Tab never lands here, nothing to activate). */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
       <figure
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[88vh] max-w-full flex-col items-center gap-3 sm:max-w-[88vw]"
@@ -49,6 +58,11 @@ export function ImageLightbox({
         <img
           src={src}
           alt={alt ?? ""}
+          // No width/height: the natural size varies per photo and this is
+          // shown full-screen after an explicit user action, so it stays
+          // eager (loading="lazy" would only delay what the user just asked
+          // to see, and there's no surrounding page layout to shift).
+          decoding="async"
           className="min-h-0 max-w-full flex-1 rounded object-contain shadow-2xl"
         />
         {caption && (

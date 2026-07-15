@@ -50,7 +50,6 @@ export default function LoginForm() {
           data-testid="login-email"
           type="email"
           autoComplete="email"
-          autoFocus
           {...register("email")}
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />

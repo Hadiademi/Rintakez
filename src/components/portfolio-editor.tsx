@@ -186,6 +186,8 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
                     <img
                       src={item.url}
                       alt={item.caption ?? ""}
+                      loading="lazy"
+                      decoding="async"
                       onLoad={() => markLoaded(item.id)}
                       className={`aspect-square w-full border border-line object-cover grayscale transition-[filter,opacity] duration-500 group-hover:grayscale-0 ${
                         isLoaded ? "opacity-100" : "opacity-0"
