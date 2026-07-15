@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { usePathname, Link } from "@/i18n/navigation";
+import type { AdminCounts } from "@/lib/admin/counts";
 
 /**
  * Admin navigation, grouped the way the design's own eyebrow labels imply.
@@ -19,21 +20,29 @@ const ADMIN_NAV = [
   {
     sectionKey: "sectionModeration",
     items: [
-      { href: "/admin/reports", labelKey: "tabReports" },
-      { href: "/admin/verifications", labelKey: "tabVerifications" },
-      { href: "/admin/disputes", labelKey: "tabDisputes" },
+      { href: "/admin/reports", labelKey: "tabReports", countKey: "reports" },
+      {
+        href: "/admin/verifications",
+        labelKey: "tabVerifications",
+        countKey: "verifications",
+      },
+      {
+        href: "/admin/disputes",
+        labelKey: "tabDisputes",
+        countKey: "disputes",
+      },
     ],
   },
   {
     sectionKey: "sectionSystem",
     items: [
       { href: "/admin/audit", labelKey: "tabAudit" },
-      { href: "/admin/email", labelKey: "tabEmail" },
+      { href: "/admin/email", labelKey: "tabEmail", countKey: "email" },
     ],
   },
 ] as const;
 
-export function AdminSidebar() {
+export function AdminSidebar({ counts }: { counts: AdminCounts }) {
   const t = useTranslations("admin");
   const pathname = usePathname(); // locale-stripped, e.g. "/admin/users"
 
@@ -59,6 +68,13 @@ export function AdminSidebar() {
                     }`}
                   >
                     {t(item.labelKey)}
+                    {"countKey" in item && counts[item.countKey] > 0 && (
+                      <span
+                        data-testid={`admin-nav-dot-${item.countKey}`}
+                        aria-label={String(counts[item.countKey])}
+                        className="ml-auto h-1.5 w-1.5 shrink-0 bg-accent"
+                      />
+                    )}
                   </Link>
                 </li>
               );

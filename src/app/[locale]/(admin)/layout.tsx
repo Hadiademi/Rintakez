@@ -5,6 +5,7 @@ import { SkipToContent } from "@/components/skip-to-content";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
 import { AdminDrawer } from "@/components/admin-drawer";
+import { fetchAdminCounts } from "@/lib/admin/counts";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,10 @@ export default async function AdminLayout({
     return null;
   }
 
-  const t = await getTranslations("admin");
+  const [t, counts] = await Promise.all([
+    getTranslations("admin"),
+    fetchAdminCounts(),
+  ]);
 
   return (
     <div className="min-h-screen bg-paper lg:grid lg:grid-cols-[260px_1fr]">
@@ -35,12 +39,12 @@ export default async function AdminLayout({
             the drawer's own AdminSidebar while the drawer is open. Tests scope
             their queries to the drawer's testid to disambiguate the two
             copies of the nav testids that exist while the drawer is open. */}
-        <AdminSidebar />
+        <AdminSidebar counts={counts} />
       </aside>
       <div className="flex min-w-0 flex-col">
         <AdminTopbar
           displayName={profile.display_name ?? ""}
-          leading={<AdminDrawer />}
+          leading={<AdminDrawer counts={counts} />}
         />
         <main id="main" className="min-w-0 px-5 py-8 sm:px-8">
           <h1 className="mb-8 text-4xl font-semibold tracking-tight text-ink">

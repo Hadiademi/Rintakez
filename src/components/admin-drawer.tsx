@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
+import type { AdminCounts } from "@/lib/admin/counts";
 
 const PANEL_ID = "admin-drawer";
 
-export function AdminDrawer() {
+export function AdminDrawer({ counts }: { counts: AdminCounts }) {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
@@ -121,7 +122,7 @@ export function AdminDrawer() {
             }}
             className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] overflow-y-auto border-r border-line bg-paper px-4 py-8"
           >
-            <AdminSidebar />
+            <AdminSidebar counts={counts} />
           </div>
         </div>
       )}
