@@ -1,5 +1,5 @@
 // Pure Zurich-timezone helpers (uses Intl.DateTimeFormat, no dependency).
-// Rintakez's monthly bid quota resets on the Zurich-local calendar month, and
+// Framly's monthly bid quota resets on the Zurich-local calendar month, and
 // scheduled/notification jobs key off the Zurich-local hour/date — Switzerland
 // observes CET/CEST DST, so naive UTC math would drift by an hour twice a year.
 

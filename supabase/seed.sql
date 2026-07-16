@@ -36,7 +36,7 @@ values
   -- Dedicated platform admin for oversight (is_admin set below). Strong initial
   -- password; change it after first login (a `db reset` reverts it to this).
   ('a0000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000000',
-   'authenticated', 'authenticated', 'admin@rintakez.ch',
+   'authenticated', 'authenticated', 'admin@framly.ch',
    extensions.crypt('gzOuYKoDplFbJWNqtdJyAa1!', extensions.gen_salt('bf')), now(),
    '{"role":"client","display_name":"Platform Admin","locale":"en"}', now(), now(),
    '', '', '', '', '');

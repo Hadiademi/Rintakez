@@ -52,7 +52,7 @@ export async function GET(
   return new NextResponse(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `attachment; filename="rintakez-shoot.ics"`,
+      "Content-Disposition": `attachment; filename="framly-shoot.ics"`,
     },
   });
 }

@@ -25,7 +25,7 @@ export function DataExportButton() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "rintakez-data.json";
+      a.download = "framly-data.json";
       a.click();
       URL.revokeObjectURL(url);
     } catch {

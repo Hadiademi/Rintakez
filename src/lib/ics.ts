@@ -27,7 +27,7 @@ export function buildShootIcs(opts: {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Rintakez//Shoot//EN",
+    "PRODID:-//Framly//Shoot//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

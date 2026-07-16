@@ -6,7 +6,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 // card (same visual language as the root [locale] opengraph-image) when the
 // photographer can't be found — a missing/unpublished profile should never
 // produce a broken share preview.
-export const alt = "Rintakez photographer profile";
+export const alt = "Framly photographer profile";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -83,7 +83,7 @@ export default async function Image({
               textTransform: "uppercase",
             }}
           >
-            Rintakez
+            Framly
           </span>
         </div>
 

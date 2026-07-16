@@ -10,7 +10,7 @@ import { captureError } from "@/lib/observability";
 // role configured, enqueue is a no-op (same graceful degradation as before).
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM ?? "Rintakez <onboarding@resend.dev>";
+const EMAIL_FROM = process.env.EMAIL_FROM ?? "Framly <onboarding@resend.dev>";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 const MAX_ATTEMPTS = 5;
@@ -192,9 +192,9 @@ const COPY: Record<
     en: { subject: "A shoot was cancelled", lead: "A shoot assigned to you was cancelled", cta: "View shoot" },
   },
   message_received: {
-    de: { subject: "Neue Nachricht auf Rintakez", lead: "Du hast eine neue Nachricht erhalten", cta: "Nachricht öffnen" },
-    fr: { subject: "Nouveau message sur Rintakez", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
-    en: { subject: "New message on Rintakez", lead: "You received a new message", cta: "Open message" },
+    de: { subject: "Neue Nachricht auf Framly", lead: "Du hast eine neue Nachricht erhalten", cta: "Nachricht öffnen" },
+    fr: { subject: "Nouveau message sur Framly", lead: "Tu as reçu un nouveau message", cta: "Ouvrir le message" },
+    en: { subject: "New message on Framly", lead: "You received a new message", cta: "Open message" },
   },
   shoot_invitation: {
     de: { subject: "Ein Kunde hat dich zu seinem Shooting eingeladen", lead: "Du wurdest eingeladen, ein Angebot abzugeben", cta: "Shooting ansehen" },
@@ -207,9 +207,9 @@ const COPY: Record<
     en: { subject: "New shoot in your area", lead: "A new shoot matches your coverage", cta: "View shoot" },
   },
   welcome: {
-    de: { subject: "Willkommen bei Rintakez", lead: "Willkommen bei Rintakez — schön, dass du da bist", cta: "Los geht’s" },
-    fr: { subject: "Bienvenue sur Rintakez", lead: "Bienvenue sur Rintakez — ravis de t’avoir avec nous", cta: "C’est parti" },
-    en: { subject: "Welcome to Rintakez", lead: "Welcome to Rintakez — glad to have you here", cta: "Get started" },
+    de: { subject: "Willkommen bei Framly", lead: "Willkommen bei Framly — schön, dass du da bist", cta: "Los geht’s" },
+    fr: { subject: "Bienvenue sur Framly", lead: "Bienvenue sur Framly — ravis de t’avoir avec nous", cta: "C’est parti" },
+    en: { subject: "Welcome to Framly", lead: "Welcome to Framly — glad to have you here", cta: "Get started" },
   },
   onboarding_reminder: {
     de: { subject: "Vervollständige dein Fotografen-Profil", lead: "Dein Profil ist fast fertig — ergänze deine Angaben, um Aufträge zu erhalten", cta: "Profil vervollständigen" },
@@ -263,7 +263,7 @@ function render(
   const prefsUrl = `${SITE_URL}/${locale}/profile#notifications`;
   const html = `
   <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
-    <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Rintakez</p>
+    <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Framly</p>
     <p style="margin:0 0 8px;font-size:15px">${greeting}</p>
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.01em">${c.lead}</h1>
     ${titleLine}
