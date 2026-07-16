@@ -608,6 +608,7 @@
     "agbS10T": "10. Résiliation, modifications & droit",
     "agbS10B": "Tu peux supprimer ton compte à tout moment. Nous pouvons adapter ces conditions et t'informons à temps. Le droit suisse s'applique ; le for est au siège de l'exploitant.",
     "footerAgb": "CGU",
+    "footerInstagram": "Instagram",
     "dsSubprocessorsTitle": "Sous-traitants en détail",
     "dsSubprocessors": "Nous transmettons des données à des prestataires soigneusement sélectionnés qui nous aident à exploiter la plateforme : Supabase (base de données, authentification, stockage de fichiers), Vercel (hébergement), Resend (envoi des e-mails de notification) ainsi que Plausible Analytics (statistiques d’usage anonymes et sans cookies), si activé. Ces prestataires traitent les données uniquement pour notre compte.",
     "dsRetentionTitle": "Conservation & suppression",

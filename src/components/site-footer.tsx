@@ -30,6 +30,16 @@ export async function SiteFooter() {
           >
             {t("footerAgb")}
           </Link>
+          {/* Official brand account. External, so a plain anchor (not the
+              locale-aware Link) with the usual new-tab safety rel. */}
+          <a
+            href="https://www.instagram.com/framly.ch"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="label text-mute hover:text-ink transition-colors"
+          >
+            {t("footerInstagram")}
+          </a>
         </nav>
       </div>
     </footer>

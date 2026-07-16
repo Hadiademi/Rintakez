@@ -89,6 +89,9 @@ export default async function Home({
         "@type": "Organization",
         name: "Framly",
         url: SITE_URL,
+        // Ties the official site to the official Instagram as one entity for
+        // search engines (canonical handle URL, utm stripped).
+        sameAs: ["https://www.instagram.com/framly.ch"],
       },
       {
         "@type": "WebSite",
@@ -118,7 +121,7 @@ export default async function Home({
           href="/"
           className="text-base font-medium tracking-tight sm:text-lg"
         >
-          Framly
+          Framly<span className="text-accent">.</span>
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/pricing" className="text-sm hover:underline">

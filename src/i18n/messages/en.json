@@ -608,6 +608,7 @@
     "agbS10T": "10. Termination, changes & law",
     "agbS10B": "You may delete your account at any time. We may amend these terms and will inform you in good time. Swiss law applies; place of jurisdiction is the operator's seat.",
     "footerAgb": "Terms",
+    "footerInstagram": "Instagram",
     "dsSubprocessorsTitle": "Sub-processors in detail",
     "dsSubprocessors": "We share data with carefully selected providers that help us run the platform: Supabase (database, authentication, file storage), Vercel (hosting), Resend (sending notification emails), and Plausible Analytics (anonymous, cookieless usage statistics) where enabled. These providers process data solely on our behalf.",
     "dsRetentionTitle": "Retention & deletion",
