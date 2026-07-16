@@ -42,7 +42,7 @@ export async function PublicNav() {
             href="/"
             className="shrink-0 text-base font-medium tracking-tight text-ink sm:text-lg"
           >
-            Rintakez
+            Framly<span className="text-accent">.</span>
           </Link>
           <nav className="hidden items-center gap-5 text-sm sm:flex">
             {browseLinks}

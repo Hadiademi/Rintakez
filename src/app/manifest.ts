@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Rintakez",
-    short_name: "Rintakez",
+    name: "Framly",
+    short_name: "Framly",
     description: "Fotografie-Marktplatz Schweiz",
     start_url: "/",
     scope: "/",

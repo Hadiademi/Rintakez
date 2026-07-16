@@ -77,7 +77,7 @@ export default async function Home({
 
   // Structured data — Organization identity + a WebSite SearchAction pointing
   // search engines at the photographers directory's own `q` filter, so a
-  // sitelinks searchbox can query Rintakez directly.
+  // sitelinks searchbox can query Framly directly.
   const photographersSearchUrl = `${SITE_URL}${getPathname({
     locale,
     href: "/photographers",
@@ -87,12 +87,15 @@ export default async function Home({
     "@graph": [
       {
         "@type": "Organization",
-        name: "Rintakez",
+        name: "Framly",
         url: SITE_URL,
+        // Ties the official site to the official Instagram as one entity for
+        // search engines (canonical handle URL, utm stripped).
+        sameAs: ["https://www.instagram.com/framly.ch"],
       },
       {
         "@type": "WebSite",
-        name: "Rintakez",
+        name: "Framly",
         url: SITE_URL,
         potentialAction: {
           "@type": "SearchAction",
@@ -118,7 +121,7 @@ export default async function Home({
           href="/"
           className="text-base font-medium tracking-tight sm:text-lg"
         >
-          Rintakez
+          Framly<span className="text-accent">.</span>
         </Link>
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/pricing" className="text-sm hover:underline">

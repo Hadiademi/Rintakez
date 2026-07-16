@@ -6,7 +6,7 @@ import { expect, type Page } from "@playwright/test";
 export const SEED = {
   client: { email: "lena@example.ch", password: "password123" },
   photographer: { email: "marko@example.ch", password: "password123" },
-  admin: { email: "admin@rintakez.ch", password: "gzOuYKoDplFbJWNqtdJyAa1!" },
+  admin: { email: "admin@framly.ch", password: "gzOuYKoDplFbJWNqtdJyAa1!" },
 };
 
 export async function login(

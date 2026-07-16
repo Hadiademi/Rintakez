@@ -20,8 +20,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
   return {
-    // pricingTitle is a full standalone title (already includes "— Rintakez",
-    // per the brief's verbatim copy) — bypass the root layout's "%s — Rintakez"
+    // pricingTitle is a full standalone title (already includes "— Framly",
+    // per the brief's verbatim copy) — bypass the root layout's "%s — Framly"
     // template the same way the homepage does, or the suffix would double up.
     title: { absolute: t("pricingTitle") },
     description: t("pricingDescription"),

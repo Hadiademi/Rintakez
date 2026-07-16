@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Static brand Open Graph card, used as the default social preview for any
 // page under a locale that doesn't define its own opengraph-image (e.g. the
 // photographer profile route overrides this with a per-photographer card).
-export const alt = "Rintakez — Photo & Video Marketplace Switzerland";
+export const alt = "Framly — Photo & Video Marketplace Switzerland";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -55,7 +55,7 @@ export default async function Image() {
               textTransform: "uppercase",
             }}
           >
-            Rintakez
+            Framly
           </span>
         </div>
         <div

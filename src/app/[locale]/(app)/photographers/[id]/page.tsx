@@ -34,7 +34,7 @@ export async function generateMetadata({
 
   if (!data || data.role !== "photographer") {
     return {
-      title: "Rintakez",
+      title: "Framly",
       alternates: buildAlternates(locale, `/photographers/${id}`),
     };
   }

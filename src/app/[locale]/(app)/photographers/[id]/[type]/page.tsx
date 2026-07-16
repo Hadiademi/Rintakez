@@ -176,7 +176,7 @@ export async function generateMetadata({
   const { locale, id: canton, type } = await params;
 
   if (!isCanton(canton) || !isShootType(type)) {
-    return { title: "Rintakez" };
+    return { title: "Framly" };
   }
 
   const t = await getTranslations({ locale, namespace: "meta" });
