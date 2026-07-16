@@ -31,14 +31,31 @@ export async function SiteFooter() {
             {t("footerAgb")}
           </Link>
           {/* Official brand account. External, so a plain anchor (not the
-              locale-aware Link) with the usual new-tab safety rel. */}
+              locale-aware Link) with the usual new-tab safety rel. Icon-only,
+              so the label lives in aria-label. The -m/p pair grows the tap
+              target without shifting the row. */}
           <a
             href="https://www.instagram.com/framly.ch"
             target="_blank"
             rel="noopener noreferrer"
-            className="label text-mute hover:text-ink transition-colors"
+            aria-label={t("footerInstagram")}
+            className="-m-1.5 inline-flex items-center p-1.5 text-mute transition-colors hover:text-ink"
           >
-            {t("footerInstagram")}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+              <circle cx="12" cy="12" r="4" />
+              <circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none" />
+            </svg>
           </a>
         </nav>
       </div>
