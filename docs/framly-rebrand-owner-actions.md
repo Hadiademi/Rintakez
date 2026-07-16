@@ -24,6 +24,18 @@ block a clean public launch under the new brand.
 - Optional: redirect the old rintakez.ch (if you still hold it) → framly.ch 301,
   so existing links and SEO transfer.
 
+## Email addresses (client created these)
+
+| Address | Role in the product | Status |
+|---|---|---|
+| `info@framly.ch` | Impressum + Datenschutz (revDSG) contact | **Wired in code** — replaced a personal Hotmail |
+| `noreply@framly.ch` | `EMAIL_FROM` transactional sender | Set the Vercel env after Resend verifies framly.ch |
+| `admin@framly.ch` | Platform admin login (seeded) + future `admin_alert` recipient | Login ready; the alert template exists but isn't wired to a trigger yet |
+| `itsupport@framly.ch` | Technical support | No home in code yet — candidate for a support link / error-boundary contact later |
+
+The `admin_alert` email template (`src/lib/email.ts`) is built but never dispatched
+— when that gets wired, `admin@framly.ch` is the natural recipient.
+
 ## Email (Resend)
 
 - Verify the **framly.ch** sending domain in Resend: add its SPF + DKIM DNS
