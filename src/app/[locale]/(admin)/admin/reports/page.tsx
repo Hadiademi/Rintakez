@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminReportRow } from "@/components/admin-report-row";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -106,25 +107,21 @@ export default async function AdminReportsPage({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">
-          {t("reports")}
-        </h2>
-        <nav className="flex gap-3 text-sm">
-          {STATUSES.map((s) => (
-            <Link
-              key={s}
-              href={`/admin/reports?status=${s}`}
-              aria-current={s === status ? "page" : undefined}
-              className={
-                s === status ? "font-medium text-ink" : "text-mute hover:text-ink"
-              }
-            >
-              {t(`reportStatus.${s}`)}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      <AdminPageHeader eyebrow={t("eyebrowModeration")} title={t("tabReports")} />
+      <nav className="flex flex-wrap gap-3 text-sm">
+        {STATUSES.map((s) => (
+          <Link
+            key={s}
+            href={`/admin/reports?status=${s}`}
+            aria-current={s === status ? "page" : undefined}
+            className={
+              s === status ? "font-medium text-ink" : "text-mute hover:text-ink"
+            }
+          >
+            {t(`reportStatus.${s}`)}
+          </Link>
+        ))}
+      </nav>
 
       {list.length === 0 ? (
         <p className="text-mute">{t("noReports")}</p>

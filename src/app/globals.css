@@ -39,7 +39,6 @@
   --line: rgb(var(--line-rgb));
   --line-strong: rgb(var(--line-strong-rgb));
   --accent: rgb(var(--accent-rgb));
-  --backdrop: rgb(var(--ink-rgb) / 0.42);
 }
 
 /* Expose tokens as Tailwind utilities: bg-paper, text-ink, border-line, … */

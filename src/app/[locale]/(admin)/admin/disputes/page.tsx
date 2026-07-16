@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminDisputeRow } from "@/components/admin-dispute-row";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +35,7 @@ export default async function AdminDisputesPage() {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight text-ink">
-        {t("disputes")}
-      </h2>
+      <AdminPageHeader eyebrow={t("eyebrowModeration")} title={t("tabDisputes")} />
       {list.length === 0 ? (
         <p className="text-mute">{t("noDisputes")}</p>
       ) : (

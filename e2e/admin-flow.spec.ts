@@ -34,4 +34,63 @@ test.describe("admin console", () => {
     // The admin layout redirects non-admins to /home.
     await expect(page).toHaveURL(/\/de\/home/, { timeout: 20_000 });
   });
+
+  test("admin navigation is reachable on a 390px viewport", async ({ page }) => {
+    // login() asserts the desktop sign-out testid, which is CSS-hidden below
+    // the `lg` breakpoint (the mobile nav's sign-out deliberately omits the
+    // testid to keep Playwright strict-mode happy — see app-nav.tsx). So log
+    // in at the default desktop viewport, then resize before exercising the
+    // mobile admin nav.
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    // The desktop rail is hidden on mobile; the drawer is the only way through.
+    await page.getByTestId("admin-drawer-open").click();
+    await page
+      .getByTestId("admin-drawer")
+      .getByTestId("admin-nav-users")
+      .click();
+
+    await expect(page).toHaveURL(/\/admin\/users$/);
+    await expect(page.getByTestId("admin-drawer")).toBeHidden();
+    // The page must not scroll sideways at 390.
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test("admin drawer closes on Escape and returns focus to the hamburger", async ({
+    page,
+  }) => {
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    const opener = page.getByTestId("admin-drawer-open");
+    await opener.click();
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("admin-drawer")).toBeHidden();
+    await expect(opener).toBeFocused();
+  });
+
+  test("non-link click inside the drawer does not close it", async ({ page }) => {
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/de/admin");
+
+    // Open the drawer
+    await page.getByTestId("admin-drawer-open").click();
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+
+    // Click a section eyebrow label (non-interactive element inside the panel)
+    // "Moderation" is the label for the third section containing Reports, Verifications, Disputes
+    await page.getByTestId("admin-drawer").getByText("Moderation").click();
+
+    // The drawer should still be visible after clicking the non-link element
+    await expect(page.getByTestId("admin-drawer")).toBeVisible();
+  });
 });

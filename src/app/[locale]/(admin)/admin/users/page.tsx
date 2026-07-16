@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminUserRow } from "@/components/admin-user-row";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -70,25 +71,21 @@ export default async function AdminUsersPage({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-semibold tracking-tight text-ink">
-          {t("tabUsers")}
-        </h2>
-        <nav className="flex gap-3 text-sm">
-          {STATUSES.map((s) => (
-            <Link
-              key={s}
-              href={`/admin/users?status=${s}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-              aria-current={s === status ? "page" : undefined}
-              className={
-                s === status ? "font-medium text-ink" : "text-mute hover:text-ink"
-              }
-            >
-              {t(`userFilter.${s}`)}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      <AdminPageHeader eyebrow={t("eyebrowManagement")} title={t("tabUsers")} />
+      <nav className="flex flex-wrap gap-3 text-sm">
+        {STATUSES.map((s) => (
+          <Link
+            key={s}
+            href={`/admin/users?status=${s}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+            aria-current={s === status ? "page" : undefined}
+            className={
+              s === status ? "font-medium text-ink" : "text-mute hover:text-ink"
+            }
+          >
+            {t(`userFilter.${s}`)}
+          </Link>
+        ))}
+      </nav>
 
       <form method="get" className="flex gap-2">
         <input type="hidden" name="status" value={status} />

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminVerifyRow } from "@/components/admin-verify-row";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,10 @@ export default async function AdminVerificationsPage() {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-2xl font-semibold tracking-tight text-ink">
-        {t("verifications")}
-      </h2>
+      <AdminPageHeader
+        eyebrow={t("eyebrowModeration")}
+        title={t("tabVerifications")}
+      />
       {(profiles ?? []).length === 0 ? (
         <p className="text-mute">{t("noVerifications")}</p>
       ) : (
