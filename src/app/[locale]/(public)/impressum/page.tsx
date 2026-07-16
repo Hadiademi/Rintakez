@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
-const EMAIL = "Rinormustafi@hotmail.com";
+const EMAIL = "info@framly.ch";
 const PHONE_DISPLAY = "079 338 75 33";
 const PHONE_TEL = "+41793387533";
 
