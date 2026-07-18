@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { captureError } from "@/lib/observability";
 import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
 
@@ -37,9 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   }
-  // Public photographer profiles
+  // Public photographer profiles. Uses the anon public client (no cookies) —
+  // the sitemap is anonymous public data, and reading cookies would force the
+  // route to render dynamically on every crawl and log a spurious
+  // dynamic-server-usage error through captureError.
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data } = await supabase
       .from("profiles")
       .select("id")
@@ -59,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   // Open shoot detail pages — not suspended, still open for bids.
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data } = await supabase
       .from("shoots")
       .select("id, created_at")
