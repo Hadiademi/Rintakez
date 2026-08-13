@@ -3,6 +3,7 @@ import { redirect, Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { shootImage } from "@/lib/shoot-image";
+import { getShootCoverUrls } from "@/lib/shoot-cover";
 import { MyShootsList, type MyShootRow } from "@/components/my-shoots-list";
 
 export const dynamic = "force-dynamic";
@@ -65,9 +66,13 @@ export default async function MyShootsPage() {
     },
   ];
 
+  // The owner's own shoots — always show THEIR uploaded photo when present.
+  const covers = await getShootCoverUrls(supabase, shootIds);
+
   const rows: MyShootRow[] = shootList.map((shoot) => ({
     id: shoot.id,
-    imageUrl: shootImage(shoot.type, shoot.id, 160, 120),
+    imageUrl:
+      covers.get(shoot.id) ?? shootImage(shoot.type, shoot.id, 160, 120),
     type: shoot.type,
     locationCity: shoot.location_city,
     canton: shoot.canton,

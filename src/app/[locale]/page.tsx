@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getProfile } from "@/lib/auth";
 import { shootImage } from "@/lib/shoot-image";
+import { getShootCoverUrls } from "@/lib/shoot-cover";
 import { Link, getPathname } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
 import { buildAlternates } from "@/lib/seo";
@@ -74,6 +75,15 @@ export default async function Home({
         : "/shoots";
 
   const featured = shoots[0] ?? null;
+
+  // Real uploaded photos for the latest-shoots cards (open shoots are
+  // anon-readable under the M1 policy, so the public landing may sign them).
+  // Signed per-request — deliberately OUTSIDE any unstable_cache, so a cached
+  // page can never embed an expired URL.
+  const covers = await getShootCoverUrls(
+    createPublicClient(),
+    shoots.map((s) => s.id)
+  );
 
   // Structured data — Organization identity + a WebSite SearchAction pointing
   // search engines at the photographers directory's own `q` filter, so a
@@ -186,7 +196,10 @@ export default async function Home({
               className="press group relative hidden aspect-[4/5] overflow-hidden bg-chip lg:block"
             >
               <Image
-                src={shootImage(featured.type, featured.id, 900, 1125)}
+                src={
+                  covers.get(featured.id) ??
+                  shootImage(featured.type, featured.id, 900, 1125)
+                }
                 alt={featured.title}
                 fill
                 sizes="(min-width: 1024px) 40vw, 0px"
@@ -256,7 +269,7 @@ export default async function Home({
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {shoots.map((s) => (
               <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
-                <ShootCard shoot={s} />
+                <ShootCard shoot={s} coverUrl={covers.get(s.id)} />
               </Link>
             ))}
           </div>

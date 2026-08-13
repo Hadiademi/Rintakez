@@ -4,6 +4,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatCHF } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { getShootCoverUrls } from "@/lib/shoot-cover";
 import { acceptanceRate } from "@/lib/bid-stats";
 import { MyBidsList, type MyBidRow } from "@/components/my-bids-list";
 import type { Database } from "@/lib/supabase/database.types";
@@ -84,6 +85,14 @@ export default async function MyBidsPage() {
     { key: "volume", label: tMyBids("statVolume"), value: formatCHF(volume) },
   ];
 
+  // Real uploaded photos for the bid rows' shoots (open ones are readable by
+  // any authenticated viewer; others fall back to stock).
+  const coverIds = list.flatMap((bid) => {
+    const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;
+    return shoot ? [shoot.id] : [];
+  });
+  const covers = await getShootCoverUrls(supabase, coverIds);
+
   const rows: MyBidRow[] = list.flatMap((bid) => {
     const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;
     if (!shoot) return [];
@@ -91,7 +100,8 @@ export default async function MyBidsPage() {
       {
         id: bid.id,
         shootId: shoot.id,
-        imageUrl: shootImage(shoot.type, shoot.id, 160, 120),
+        imageUrl:
+          covers.get(shoot.id) ?? shootImage(shoot.type, shoot.id, 160, 120),
         locationCity: shoot.location_city,
         canton: shoot.canton,
         shootDate: shoot.shoot_date,
