@@ -58,6 +58,15 @@ const cspDirectives = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      // File uploads (portfolio, cover, avatar, shoot refs) travel through
+      // server actions as FormData. The framework default is 1MB, which
+      // silently rejected any normal phone photo BEFORE our own validation
+      // (5MB, clean "invalid_file" error) could run. 6MB = app cap + headroom.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
