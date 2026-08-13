@@ -13,6 +13,7 @@ import { ProfileChecklist } from "@/components/profile-checklist";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { getShootCoverUrls } from "@/lib/shoot-cover";
 import { acceptanceRate } from "@/lib/bid-stats";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ function Hero({
   featured,
   featuredLabel,
   featuredMeta,
+  featuredCoverUrl,
 }: {
   label: string;
   greeting: string;
@@ -48,6 +50,8 @@ function Hero({
   featured?: FeaturedData;
   featuredLabel: string;
   featuredMeta?: string;
+  /** The shoot's own uploaded photo (signed); stock art when absent. */
+  featuredCoverUrl?: string | null;
 }) {
   return (
     <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
@@ -91,7 +95,7 @@ function Hero({
         >
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-chip">
             <Image
-              src={shootImage(featured.type, featured.id, 900, 1100)}
+              src={featuredCoverUrl ?? shootImage(featured.type, featured.id, 900, 1100)}
               alt={featured.title}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -200,6 +204,11 @@ export default async function HomePage() {
     const assigned = all.filter((s) => s.status === "assigned").length;
     const recent = all.slice(0, 5);
     const featured = all.find((s) => s.status !== "cancelled") ?? all[0];
+    // The client's own shoot — show THEIR uploaded photo, not the stock art.
+    const covers = await getShootCoverUrls(
+      supabase,
+      featured ? [featured.id] : []
+    );
     // Recent shoot types (newest few, already loaded above) — a cheap signal
     // to nudge "Recommended photographers" toward the client's specialties.
     const recentTypes = [...new Set(all.slice(0, 5).map((s) => s.type))];
@@ -219,6 +228,7 @@ export default async function HomePage() {
           primary={{ href: "/shoots/new", text: t("ctaClientTitle") }}
           secondary={{ href: "/my-shoots", text: t("yourShoots") }}
           featured={featured}
+          featuredCoverUrl={featured ? covers.get(featured.id) : undefined}
           featuredLabel={
             featured ? tShoot(`status.${featured.status}`) : t("ctaClientLabel")
           }
@@ -377,6 +387,11 @@ export default async function HomePage() {
   const featured = open[0];
   const rest = open.slice(1, 7);
   const rate = acceptanceRate(bids);
+  // Open shoots' own uploaded photos (readable by anyone for open shoots).
+  const covers = await getShootCoverUrls(supabase, [
+    ...(featured ? [featured.id] : []),
+    ...rest.map((s) => s.id),
+  ]);
 
   // Only call the entitled RPCs for tiers that need them — free/basic never
   // fetch views30d or the premium benchmark.
@@ -435,6 +450,7 @@ export default async function HomePage() {
         primary={{ href: "/shoots", text: t("ctaPhotographerTitle") }}
         secondary={{ href: "/my-bids", text: t("statBids") }}
         featured={featured}
+        featuredCoverUrl={featured ? covers.get(featured.id) : undefined}
         featuredLabel={t("ctaPhotographerLabel")}
         featuredMeta={
           featured
@@ -509,7 +525,7 @@ export default async function HomePage() {
           <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((s) => (
               <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
-                <ShootCard shoot={s} />
+                <ShootCard shoot={s} coverUrl={covers.get(s.id)} />
               </Link>
             ))}
           </div>

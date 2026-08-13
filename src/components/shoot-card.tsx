@@ -21,9 +21,12 @@ export type ShootCardData = {
 export async function ShootCard({
   shoot,
   offersCount,
+  coverUrl,
 }: {
   shoot: ShootCardData;
   offersCount?: number;
+  /** Signed URL of the shoot's own uploaded image; stock art when absent. */
+  coverUrl?: string | null;
 }) {
   const tShoot = await getTranslations("shoot");
 
@@ -43,7 +46,7 @@ export async function ShootCard({
       {/* Grayscale editorial cover */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-chip">
         <Image
-          src={shootImage(shoot.type, shoot.id, 900, 600)}
+          src={coverUrl ?? shootImage(shoot.type, shoot.id, 900, 600)}
           alt={shoot.title}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
