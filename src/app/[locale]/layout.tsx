@@ -43,7 +43,7 @@ export async function generateMetadata({
     description: t("description"),
     // iOS ignores the web manifest for home-screen install: it needs an
     // apple-touch-icon and the apple-mobile-web-app meta tags to run standalone.
-    icons: { apple: [{ url: "/icon-192.png" }] },
+    icons: { apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }] },
     appleWebApp: { capable: true, title: "Framly", statusBarStyle: "default" },
     // No path-aware `alternates` here: this layout applies to every route,
     // and next-intl's `getPathname` needs to know the *current* path per
