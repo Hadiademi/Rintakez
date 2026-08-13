@@ -5,7 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
 import { ShootCard } from "@/components/shoot-card";
-import { getShootCoverUrls } from "@/lib/shoot-cover";
+import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
 import { Pagination } from "@/components/pagination";
@@ -100,10 +100,7 @@ export default async function BrowseShootsPage({
   const { data: shoots, count } = await query;
   const list = shoots ?? [];
   // Each card prefers the shoot's own uploaded photo over the stock art.
-  const covers = await getShootCoverUrls(
-    supabase,
-    list.map((s) => s.id)
-  );
+  const covers = await getPublicShootCoverUrlsCached(list.map((s) => s.id));
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 

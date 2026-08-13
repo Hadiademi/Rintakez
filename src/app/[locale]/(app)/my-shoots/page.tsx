@@ -4,6 +4,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { shootImage } from "@/lib/shoot-image";
 import { getShootCoverUrls } from "@/lib/shoot-cover";
+import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { MyShootsList, type MyShootRow } from "@/components/my-shoots-list";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +68,14 @@ export default async function MyShootsPage() {
   ];
 
   // The owner's own shoots — always show THEIR uploaded photo when present.
-  const covers = await getShootCoverUrls(supabase, shootIds);
+  // Open ones come from the cached public signer (stable, browser-cacheable
+  // URLs); non-open statuses fall back to per-request authenticated signing.
+  const covers = await getPublicShootCoverUrlsCached(shootIds);
+  const missingCoverIds = shootIds.filter((id) => !covers.has(id));
+  if (missingCoverIds.length > 0) {
+    const own = await getShootCoverUrls(supabase, missingCoverIds);
+    own.forEach((v, k) => covers.set(k, v));
+  }
 
   const rows: MyShootRow[] = shootList.map((shoot) => ({
     id: shoot.id,
