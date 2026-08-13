@@ -102,9 +102,10 @@ test.describe("photographer flow", () => {
       timeout: 20_000,
     });
 
-    // withdrawBidAction sets status='withdrawn'; the bid row still exists, so
-    // MyBidPanel keeps rendering and the status flips to "Zurückgezogen".
-    // window.confirm is used — auto-accept the dialog before clicking.
+    // withdrawBidAction sets status='withdrawn'. The redesigned shoot detail
+    // then swaps MyBidPanel for the BidSheet form again — a withdrawn bidder
+    // may re-bid on a still-open shoot — so the panel disappears and the bid
+    // form returns. window.confirm is used — auto-accept before clicking.
     page.on("dialog", (d) => d.accept());
 
     await expect(page.getByTestId("mybid-withdraw")).toBeVisible({
@@ -112,9 +113,11 @@ test.describe("photographer flow", () => {
     });
     await page.getByTestId("mybid-withdraw").click();
 
-    await expect(page.getByTestId("mybid-status")).toContainText(
-      "Zurückgezogen",
-      { timeout: 20_000 }
-    );
+    await expect(page.getByTestId("mybid-status")).toBeHidden({
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("bid-amount")).toBeVisible({
+      timeout: 20_000,
+    });
   });
 });

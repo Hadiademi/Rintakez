@@ -50,8 +50,10 @@ test.describe("auth journey", () => {
     // zodResolver blocks submission: still on /register, no navigation away.
     await expect(page).toHaveURL(/\/de\/register/);
     // A field-level validation message must appear next to the password input.
+    // The input now sits inside a relative wrapper (show/hide-password toggle),
+    // so the error <p> is a sibling of that wrapper, not of the input itself.
     await expect(
-      page.locator("#register-password ~ p.text-accent")
+      page.locator("div:has(> #register-password) ~ p.text-accent")
     ).toBeVisible();
   });
 

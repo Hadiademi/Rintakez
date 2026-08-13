@@ -98,35 +98,35 @@ values
    'a0000000-0000-0000-0000-000000000001',
    'Hochzeit in Zermatt', 'wedding',
    'Trauung um 14:30 in der Bergkapelle, anschliessend Apéro auf der Terrasse mit Matterhorn-Blick. Dokumentarischer Stil — ehrlich, ruhig.',
-   'Zermatt', '3920', 'VS', '2026-08-14', 10, 3200, 4500),
+   'Zermatt', '3920', 'VS', (current_date + 10), 10, 3200, 4500),
 
   -- Open: Editorial Vitra Sommerkollektion
   ('a0000000-0000-0000-0001-000000000002',
    'a0000000-0000-0000-0000-000000000002',
    'Editorial — Vitra Sommerkollektion', 'commercial',
    'Indoor-Studio, klares Tageslicht, 12 Stühle, ein Sofa. Aesthetik wie der gedruckte Katalog 2024.',
-   'Basel', '4051', 'BS', '2026-07-03', 6, 4800, 6200),
+   'Basel', '4051', 'BS', (current_date + 20), 6, 4800, 6200),
 
   -- Open: Porträtserie EPFL Forschungsteam
   ('a0000000-0000-0000-0001-000000000003',
    'a0000000-0000-0000-0000-000000000001',
    'Porträtserie für Forschungsteam', 'portrait',
    'EPFL Labor. 18 Personen, je 5–7 Minuten. Schwarzweiss bevorzugt.',
-   'Lausanne', '1015', 'VD', '2026-07-21', 4, 1800, 2400),
+   'Lausanne', '1015', 'VD', (current_date + 30), 4, 1800, 2400),
 
   -- Will be assigned below (open first, then bid accepted)
   ('a0000000-0000-0000-0001-000000000004',
    'a0000000-0000-0000-0000-000000000002',
    'Produktfotografie Bürostuhl EVO', 'commercial',
    'Drei Farbvarianten des Stuhls, Weisshintergrund und Lifestyle-Setting im Showroom.',
-   'Basel', '4058', 'BS', '2026-09-10', 5, 3500, 5000),
+   'Basel', '4058', 'BS', (current_date + 50), 5, 3500, 5000),
 
   -- Will be cancelled below
   ('a0000000-0000-0000-0001-000000000005',
    'a0000000-0000-0000-0000-000000000001',
    'Familienportrait Weihnachten', 'portrait',
    'Abgesagt — Termin nicht mehr aktuell.',
-   'Bern', '3011', 'BE', '2026-12-22', 2, 800, 1200);
+   'Bern', '3011', 'BE', (current_date + 120), 2, 800, 1200);
 
 -- ── Bids on the open shoots ───────────────────────────────────────────────────
 insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
@@ -174,12 +174,12 @@ values
    'a0000000-0000-0000-0000-000000000001',
    'Standesamtliche Trauung Zürich', 'wedding',
    'Kleine Zeremonie im Stadthaus, danach Apéro am Wasser. Reportage-Stil.',
-   'Zürich', '8001', 'ZH', '2026-05-10', 5, 1800, 2600),
+   'Zürich', '8001', 'ZH', (current_date - 60), 5, 1800, 2600),
   ('a0000000-0000-0000-0001-000000000007',
    'a0000000-0000-0000-0000-000000000002',
    'Markenshooting Designstudio', 'commercial',
    'Porträts des Teams und Produktdetails fürs Rebranding. Helle Bildsprache.',
-   'Genève', '1201', 'GE', '2026-05-28', 6, 3200, 4200);
+   'Genève', '1201', 'GE', (current_date - 45), 6, 3200, 4200);
 
 insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
 values

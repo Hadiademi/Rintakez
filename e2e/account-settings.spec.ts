@@ -10,15 +10,21 @@ test.describe("account settings", () => {
     await login(page, SEED.client.email, SEED.client.password);
     await page.goto("/de/profile");
 
-    // Security section (change password / email) is present.
-    await expect(page.getByText("Sicherheit")).toBeVisible({ timeout: 20_000 });
+    // Settings became tabbed panels in the profile redesign: only the active
+    // section renders, so select each tab before asserting its content.
+    await page.getByTestId("profile-tab-security").click();
     // "Aktuelles Passwort" is unique to the change-password form.
-    await expect(page.getByText("Aktuelles Passwort")).toBeVisible();
-
-    // Toggle a notification preference; it persists (server action).
-    await page.getByRole("switch").first().click();
-    await expect(page.getByText("Gespeichert.")).toBeVisible({
+    await expect(page.getByText("Aktuelles Passwort")).toBeVisible({
       timeout: 20_000,
     });
+
+    // Toggle a notification preference; it persists (server action).
+    await page.getByTestId("profile-tab-notifications").click();
+    await page.getByRole("switch").first().click();
+    // The unified toast (role=status) is the save confirmation; an inline
+    // "Gespeichert." paragraph also exists, so target the toast specifically.
+    await expect(
+      page.getByRole("status").getByText("Gespeichert.")
+    ).toBeVisible({ timeout: 20_000 });
   });
 });
