@@ -202,7 +202,7 @@ export default async function Home({
           ) : (
             <div className="hidden aspect-[4/5] items-center justify-center bg-gradient-to-br from-chip to-surface lg:flex">
               <span className="text-[120px] font-semibold leading-none text-mute-2/30">
-                R
+                F
               </span>
             </div>
           )}
