@@ -14,6 +14,7 @@ import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
 import { getShootCoverUrls } from "@/lib/shoot-cover";
+import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { acceptanceRate } from "@/lib/bid-stats";
 
 export const dynamic = "force-dynamic";
@@ -205,10 +206,16 @@ export default async function HomePage() {
     const recent = all.slice(0, 5);
     const featured = all.find((s) => s.status !== "cancelled") ?? all[0];
     // The client's own shoot — show THEIR uploaded photo, not the stock art.
-    const covers = await getShootCoverUrls(
-      supabase,
+    // Cached public signer covers it while the shoot is open (the common
+    // case, and a stable URL keeps the hero browser-cached between visits);
+    // the authenticated per-request fallback handles non-open statuses.
+    const covers = await getPublicShootCoverUrlsCached(
       featured ? [featured.id] : []
     );
+    if (featured && !covers.has(featured.id)) {
+      const own = await getShootCoverUrls(supabase, [featured.id]);
+      own.forEach((v, k) => covers.set(k, v));
+    }
     // Recent shoot types (newest few, already loaded above) — a cheap signal
     // to nudge "Recommended photographers" toward the client's specialties.
     const recentTypes = [...new Set(all.slice(0, 5).map((s) => s.type))];
@@ -387,8 +394,8 @@ export default async function HomePage() {
   const featured = open[0];
   const rest = open.slice(1, 7);
   const rate = acceptanceRate(bids);
-  // Open shoots' own uploaded photos (readable by anyone for open shoots).
-  const covers = await getShootCoverUrls(supabase, [
+  // Open shoots' own uploaded photos — cached public signer (stable URLs).
+  const covers = await getPublicShootCoverUrlsCached([
     ...(featured ? [featured.id] : []),
     ...rest.map((s) => s.id),
   ]);

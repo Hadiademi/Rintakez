@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatCHF } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
 import { getShootCoverUrls } from "@/lib/shoot-cover";
+import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { acceptanceRate } from "@/lib/bid-stats";
 import { MyBidsList, type MyBidRow } from "@/components/my-bids-list";
 import type { Database } from "@/lib/supabase/database.types";
@@ -91,7 +92,12 @@ export default async function MyBidsPage() {
     const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;
     return shoot ? [shoot.id] : [];
   });
-  const covers = await getShootCoverUrls(supabase, coverIds);
+  const covers = await getPublicShootCoverUrlsCached(coverIds);
+  const missingCoverIds = coverIds.filter((id) => !covers.has(id));
+  if (missingCoverIds.length > 0) {
+    const own = await getShootCoverUrls(supabase, missingCoverIds);
+    own.forEach((v, k) => covers.set(k, v));
+  }
 
   const rows: MyBidRow[] = list.flatMap((bid) => {
     const shoot = Array.isArray(bid.shoot) ? bid.shoot[0] : bid.shoot;

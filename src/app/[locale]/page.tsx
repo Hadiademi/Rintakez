@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { createPublicClient } from "@/lib/supabase/public";
 import { getProfile } from "@/lib/auth";
 import { shootImage } from "@/lib/shoot-image";
-import { getShootCoverUrls } from "@/lib/shoot-cover";
+import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { Link, getPathname } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
 import { buildAlternates } from "@/lib/seo";
@@ -80,10 +80,7 @@ export default async function Home({
   // anon-readable under the M1 policy, so the public landing may sign them).
   // Signed per-request — deliberately OUTSIDE any unstable_cache, so a cached
   // page can never embed an expired URL.
-  const covers = await getShootCoverUrls(
-    createPublicClient(),
-    shoots.map((s) => s.id)
-  );
+  const covers = await getPublicShootCoverUrlsCached(shoots.map((s) => s.id));
 
   // Structured data — Organization identity + a WebSite SearchAction pointing
   // search engines at the photographers directory's own `q` filter, so a
