@@ -441,7 +441,13 @@
     "billingUsage": "{used}/{limit} diesen Monat",
     "billingUsageUnlimited": "Unbegrenzt",
     "billingManage": "Abo verwalten",
-    "billingViewPlans": "Pläne ansehen"
+    "billingViewPlans": "Pläne ansehen",
+    "publicProfileDesc": "So erscheinst du für Auftraggeber:innen auf Framly.",
+    "billingDesc": "Dein Abo, deine monatliche Nutzung und die Verwaltung der Zahlung.",
+    "accountDesc": "Deine Kontodaten im Überblick.",
+    "securityDesc": "Passwort und E-Mail-Adresse für die Anmeldung.",
+    "notificationsDesc": "Welche E-Mails du von Framly erhältst.",
+    "privacyDesc": "Exportiere deine Daten oder lösche dein Konto endgültig."
   },
   "profileBasics": {
     "edit": "Name & Ort bearbeiten",
