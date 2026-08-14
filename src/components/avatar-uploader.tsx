@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { uploadAvatar } from "@/lib/actions/profile";
+import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
@@ -34,7 +35,9 @@ export function AvatarUploader({
     setError(null);
     setBusy(true);
     const fd = new FormData();
-    fd.append("file", file);
+    // Avatars render at ≤200px — 512px longest edge is plenty, and turns a
+    // multi-MB phone photo into a ~50KB upload.
+    fd.append("file", await downscaleImage(file, 512, 0.85), "avatar.jpg");
     const result = await uploadAvatar(fd);
     setBusy(false);
     if (result.ok) {

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { setCoverImage, removeCover } from "@/lib/actions/photographer";
+import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
@@ -23,7 +24,9 @@ export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
     setError(null);
     setBusy(true);
     const fd = new FormData();
-    fd.append("file", file);
+    // Same pre-upload downscale the chat uses: 2000px is larger than any
+    // rendering of the cover, and ~10× smaller than a phone original.
+    fd.append("file", await downscaleImage(file), "cover.jpg");
     const res = await setCoverImage(fd);
     if (res.ok) {
       setUrl(res.url);

@@ -5,6 +5,7 @@ import { useTranslations, useFormatter } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getRealtimeClient } from "@/lib/supabase/realtime";
+import { downscaleImage } from "@/lib/image-downscale";
 import { Avatar } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Spinner } from "@/components/ui/spinner";
@@ -46,35 +47,6 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
  *  keeps uploads fast on mobile data without visibly degrading a chat photo. */
 const MAX_IMAGE_DIM = 2000;
 const IMAGE_QUALITY = 0.85;
-
-/** Downscale an image File to a JPEG Blob no larger than MAX_IMAGE_DIM on its
- *  longest edge, via an offscreen canvas. Falls back to the original file if
- *  the browser can't decode/encode it (the server still guards size + MIME). */
-async function downscaleImage(file: File): Promise<Blob> {
-  try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-    const longest = Math.max(bitmap.width, bitmap.height);
-    const scale = Math.min(1, MAX_IMAGE_DIM / longest);
-    const w = Math.round(bitmap.width * scale);
-    const h = Math.round(bitmap.height * scale);
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      bitmap.close();
-      return file;
-    }
-    ctx.drawImage(bitmap, 0, 0, w, h);
-    bitmap.close();
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", IMAGE_QUALITY)
-    );
-    return blob ?? file;
-  } catch {
-    return file;
-  }
-}
 
 function hhmm(iso: string): string {
   const d = new Date(iso);
@@ -499,7 +471,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     }
 
     setSending(true);
-    const blob = await downscaleImage(file);
+    const blob = await downscaleImage(file, MAX_IMAGE_DIM, IMAGE_QUALITY);
     if (blob.size > MAX_IMAGE_BYTES) {
       setImageError(t("imageTooLarge"));
       setSending(false);
