@@ -9,6 +9,7 @@ import {
   setPortfolioCaption,
 } from "@/lib/actions/photographer";
 import { errorKey } from "@/lib/error-messages";
+import { downscaleImage } from "@/lib/image-downscale";
 import { moveItem } from "@/lib/reorder";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
 
@@ -53,7 +54,9 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
     setUploading(true);
     for (const file of files) {
       const fd = new FormData();
-      fd.append("file", file);
+      // Downscale in the browser before upload (same as chat photos): phone
+      // originals are 3–8MB; 2000px JPEG is ~300KB and uploads in a blink.
+      fd.append("file", await downscaleImage(file), "photo.jpg");
       const result = await addPortfolioImage(fd);
       if (result.ok) {
         setItems((prev) => [
