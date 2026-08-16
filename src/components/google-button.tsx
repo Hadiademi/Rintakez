@@ -28,6 +28,16 @@ function GoogleGlyph() {
 }
 
 /**
+ * Whether Google sign-in is configured. NEXT_PUBLIC_ so both server pages and
+ * client forms can gate on it (inlined at build time). Until the OAuth client
+ * exists in Google Cloud AND the Supabase provider is enabled, the button must
+ * not render at all — a visible button whose click dies silently (provider
+ * returns 400, `busy` just resets) reads as "the site is broken".
+ */
+export const GOOGLE_AUTH_ENABLED =
+  process.env.NEXT_PUBLIC_GOOGLE_AUTH === "1";
+
+/**
  * "Continue with Google". On the register page a `role` is passed so a brand
  * new OAuth user is created with the role they chose; on the login page no role
  * is needed (existing users keep theirs).

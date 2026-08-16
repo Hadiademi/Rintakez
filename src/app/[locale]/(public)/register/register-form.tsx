@@ -7,7 +7,10 @@ import { useRouter, Link } from "@/i18n/navigation";
 import { registerAction } from "@/lib/actions/auth";
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
 import { errorKey } from "@/lib/error-messages";
-import { GoogleButton } from "@/components/google-button";
+import {
+  GoogleButton,
+  GOOGLE_AUTH_ENABLED,
+} from "@/components/google-button";
 import { track } from "@/lib/track";
 import { useState } from "react";
 
@@ -229,15 +232,19 @@ export default function RegisterForm() {
       </button>
 
       {/* OAuth — uses the role selected above */}
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-line" />
-        <span className="label text-mute-2">{t("orDivider")}</span>
-        <span className="h-px flex-1 bg-line" />
-      </div>
-      <GoogleButton role={selectedRole} />
-      <p className="text-center text-[12px] text-mute-2">
-        {t("googleConsent")}
-      </p>
+      {GOOGLE_AUTH_ENABLED && (
+        <>
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-line" />
+            <span className="label text-mute-2">{t("orDivider")}</span>
+            <span className="h-px flex-1 bg-line" />
+          </div>
+          <GoogleButton role={selectedRole} />
+          <p className="text-center text-[12px] text-mute-2">
+            {t("googleConsent")}
+          </p>
+        </>
+      )}
     </form>
   );
 }

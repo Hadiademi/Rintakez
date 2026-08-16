@@ -3,7 +3,10 @@ import { redirect } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { AuthShell } from "@/components/auth-shell";
-import { GoogleButton } from "@/components/google-button";
+import {
+  GoogleButton,
+  GOOGLE_AUTH_ENABLED,
+} from "@/components/google-button";
 import LoginForm from "./login-form";
 
 export default async function LoginPage({
@@ -70,13 +73,17 @@ export default async function LoginPage({
         </p>
       )}
 
-      <GoogleButton />
+      {GOOGLE_AUTH_ENABLED && (
+        <>
+          <GoogleButton />
 
-      <div className="flex items-center gap-3">
-        <span className="h-px flex-1 bg-line" />
-        <span className="label text-mute-2">{t("orDivider")}</span>
-        <span className="h-px flex-1 bg-line" />
-      </div>
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-line" />
+            <span className="label text-mute-2">{t("orDivider")}</span>
+            <span className="h-px flex-1 bg-line" />
+          </div>
+        </>
+      )}
 
       <LoginForm />
     </AuthShell>
