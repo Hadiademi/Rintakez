@@ -30,7 +30,12 @@ export default async function LoginPage({
       : reset
         ? t("passwordUpdated")
         : null;
-  const errorNotice = error ? t("genericError") : null;
+  const errorNotice =
+    error === "expired"
+      ? t("linkExpired")
+      : error
+        ? t("genericError")
+        : null;
 
   return (
     <AuthShell
