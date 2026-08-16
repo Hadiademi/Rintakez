@@ -118,7 +118,12 @@ export async function notifyEmail(opts: {
   }
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(
+  to: string,
+  subject: string,
+  html: string,
+  text?: string
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
   try {
@@ -128,7 +133,9 @@ async function sendEmail(to: string, subject: string, html: string) {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: EMAIL_FROM, to, subject, html }),
+      // The plain-text alternative improves spam scoring and covers clients
+      // that refuse HTML.
+      body: JSON.stringify({ from: EMAIL_FROM, to, subject, html, text }),
       signal: controller.signal,
     });
     if (!res.ok) {
@@ -167,7 +174,8 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
   return `${SITE_URL}${path}`;
 }
 
-const COPY: Record<
+// Exported for unit tests and the email-preview tooling.
+export const COPY: Record<
   EmailKind,
   Record<Locale, { subject: string; lead: string; cta: string }>
 > = {
@@ -248,31 +256,130 @@ const FOOTER: Record<Locale, string> = {
   en: "Manage your notification preferences",
 };
 
-function render(
+const TAGLINE: Record<Locale, string> = {
+  de: "Foto & Video in der Schweiz",
+  fr: "Photo & vidéo en Suisse",
+  en: "Photo & video in Switzerland",
+};
+
+const IMPRESSUM: Record<Locale, string> = {
+  de: "Impressum",
+  fr: "Mentions légales",
+  en: "Legal notice",
+};
+
+// Brand terracotta (the wordmark's period) — mirrors --accent-rgb in
+// globals.css light theme.
+const ACCENT = "#C8462C";
+
+/**
+ * Branded transactional template. Email-client constraints shape everything
+ * here: table layout + inline styles (Outlook ignores <style>), the wordmark
+ * as styled TEXT (remote images are blocked by default in Gmail/Outlook — a
+ * text wordmark always renders), and a hidden preheader span so inbox list
+ * views show the lead instead of random body text.
+ */
+export function renderBrandedEmail(opts: {
+  locale: Locale;
+  lead: string;
+  cta: string;
+  url: string;
+  greeting?: string;
+  detail?: string | null;
+  /** Extra body paragraph between the lead and the CTA (already localized). */
+  body?: string | null;
+  /** Overrides the footer's manage-notifications link (e.g. auth emails). */
+  footerLink?: { href: string; label: string } | null;
+}): string {
+  const {
+    locale,
+    lead,
+    cta,
+    url,
+    greeting = "",
+    detail = null,
+    body = null,
+  } = opts;
+  const footerLink =
+    opts.footerLink === undefined
+      ? {
+          href: `${SITE_URL}/${locale}/profile#notifications`,
+          label: FOOTER[locale],
+        }
+      : opts.footerLink;
+
+  return `<!DOCTYPE html>
+<html lang="${locale}">
+<body style="margin:0;padding:0;background:#f4f2ee">
+  <span style="display:none;max-height:0;overflow:hidden;mso-hide:all">${lead}</span>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2ee">
+    <tr><td align="center" style="padding:40px 16px">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px">
+        <tr><td style="padding:0 4px 18px">
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;letter-spacing:-.02em;color:#141414">Framly<span style="color:${ACCENT}">.</span></span>
+        </td></tr>
+        <tr><td style="background:#ffffff;border:1px solid #e6e2da;padding:36px 32px">
+          ${greeting ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:15px;color:#141414">${greeting}</p>` : ""}
+          <h1 style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:#141414">${lead}</h1>
+          ${detail ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 6px;font-size:14px;color:#6b6b6b">${detail}</p>` : ""}
+          ${body ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:14px 0 0;font-size:15px;line-height:1.6;color:#3d3d3d">${body}</p>` : ""}
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 0">
+            <tr><td style="background:#141414">
+              <a href="${url}" style="font-family:Inter,Helvetica,Arial,sans-serif;display:inline-block;padding:13px 26px;font-size:14px;font-weight:500;color:#ffffff;text-decoration:none">${cta}</a>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:20px 4px 0">
+          <p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0;font-size:12px;line-height:1.7;color:#9a958c">
+            <span style="color:#6b6b6b">Framly</span> — ${TAGLINE[locale]}<br>
+            <a href="${SITE_URL}/${locale}" style="color:#9a958c;text-decoration:underline">framly.ch</a>
+            &nbsp;·&nbsp;
+            <a href="${SITE_URL}/${locale}/impressum" style="color:#9a958c;text-decoration:underline">${IMPRESSUM[locale]}</a>${
+              footerLink
+                ? `
+            &nbsp;·&nbsp;
+            <a href="${footerLink.href}" style="color:#9a958c;text-decoration:underline">${footerLink.label}</a>`
+                : ""
+            }
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function render(
   kind: EmailKind,
   locale: Locale,
   name: string,
   shootTitle: string | null,
   url: string
-): { subject: string; html: string } {
+): { subject: string; html: string; text: string } {
   const c = COPY[kind][locale];
   const greeting = name ? `${name},` : "";
-  const titleLine = shootTitle
-    ? `<p style="margin:0 0 16px;color:#666;font-size:14px">${shootTitle}</p>`
-    : "";
-  const prefsUrl = `${SITE_URL}/${locale}/profile#notifications`;
-  const html = `
-  <div style="font-family:Inter,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
-    <p style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin:0 0 24px">Framly</p>
-    <p style="margin:0 0 8px;font-size:15px">${greeting}</p>
-    <h1 style="margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.01em">${c.lead}</h1>
-    ${titleLine}
-    <a href="${url}" style="display:inline-block;margin-top:16px;background:#111;color:#fff;text-decoration:none;padding:12px 22px;font-size:14px">${c.cta}</a>
-    <p style="margin:32px 0 0;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#999">
-      <a href="${prefsUrl}" style="color:#999;text-decoration:underline">${FOOTER[locale]}</a>
-    </p>
-  </div>`;
-  return { subject: c.subject, html };
+  const html = renderBrandedEmail({
+    locale,
+    lead: c.lead,
+    cta: c.cta,
+    url,
+    greeting,
+    detail: shootTitle,
+  });
+  const text = [
+    greeting,
+    c.lead,
+    shootTitle ?? "",
+    "",
+    `${c.cta}: ${url}`,
+    "",
+    `Framly — ${TAGLINE[locale]}`,
+    `${FOOTER[locale]}: ${SITE_URL}/${locale}/profile#notifications`,
+  ]
+    .filter((l, i, arr) => l !== "" || arr[i - 1] !== "")
+    .join("\n");
+  return { subject: c.subject, html, text };
 }
 
 /**
@@ -316,7 +423,7 @@ export async function drainEmailOutbox(
 
       const locale = (profile?.locale ?? "de") as Locale;
       const kind = row.kind as EmailKind;
-      const { subject, html } = render(
+      const { subject, html, text } = render(
         kind,
         locale,
         profile?.display_name ?? "",
@@ -324,7 +431,7 @@ export async function drainEmailOutbox(
         link(kind, locale, row.shoot_id)
       );
 
-      await sendEmail(email, subject, html);
+      await sendEmail(email, subject, html, text);
 
       await admin
         .from("email_outbox")

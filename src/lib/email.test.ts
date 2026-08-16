@@ -96,3 +96,32 @@ describe("notifyEmail dedupe", () => {
     expect(admin.insert).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("render (branded template)", () => {
+  it("renders every kind in every locale with the brand invariants intact", async () => {
+    const { render, COPY } = await import("@/lib/email");
+    const kinds = Object.keys(COPY) as (keyof typeof COPY)[];
+    for (const kind of kinds) {
+      for (const locale of ["de", "fr", "en"] as const) {
+        const { subject, html, text } = render(
+          kind,
+          locale,
+          "Marko",
+          kind === "welcome" ? null : "Hochzeit in Chur",
+          "https://framly.ch/x"
+        );
+        expect(subject).toBe(COPY[kind][locale].subject);
+        // Wordmark with the terracotta period, as text (never an image).
+        expect(html).toContain('Framly<span style="color:#C8462C">.</span>');
+        expect(html).not.toContain("<img");
+        // Preheader, CTA link, legal footer.
+        expect(html).toContain("mso-hide:all");
+        expect(html).toContain('href="https://framly.ch/x"');
+        expect(html).toContain("/impressum");
+        expect(html).toContain(COPY[kind][locale].cta);
+        // Plain-text alternative carries the CTA URL too.
+        expect(text).toContain("https://framly.ch/x");
+      }
+    }
+  });
+});
