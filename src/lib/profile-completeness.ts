@@ -71,9 +71,9 @@ const HREF = {
   bio: "/profile#profile.basics-bio",
   portfolio: "/profile#profile.profile-portfolio",
   verification: "/profile#profile.profile-verification",
-  rate: "/onboarding",
-  cantons: "/onboarding",
-  specialties: "/onboarding",
+  rate: "/profile#profile.pro-rate",
+  cantons: "/profile#profile.pro-cantons",
+  specialties: "/profile#profile.pro-specialties",
 } as const;
 
 export function scoreProfileCompleteness(
