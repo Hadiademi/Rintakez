@@ -98,7 +98,11 @@ export async function forgotPasswordAction(
 
   const locale = await getLocale();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const redirectTo = `${siteUrl}/auth/callback?next=/${locale}/reset-password&locale=${locale}`;
+  // Becomes {{ .RedirectTo }} in the email template. Prod templates link to
+  // /auth/confirm (token_hash + verifyOtp — works from any device/webview)
+  // and forward this as `next`; the local default template still routes via
+  // the PKCE callback, which this URL also survives as a plain destination.
+  const redirectTo = `${siteUrl}/${locale}/reset-password`;
   const supabase = await createClient();
   // Ignore the result to avoid leaking whether an account exists.
   await supabase.auth.resetPasswordForEmail(email, { redirectTo });
