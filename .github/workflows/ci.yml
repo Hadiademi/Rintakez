@@ -27,10 +27,11 @@ jobs:
   gates:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # No NEXT_PUBLIC_SITE_URL here on purpose: unit tests assert against the
+    # localhost default, and the build doesn't need the real value.
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
-      NEXT_PUBLIC_SITE_URL: https://framly.ch
     steps:
       - uses: actions/checkout@v4
 
