@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { createPublicClient } from "@/lib/supabase/public";
 import { getSessionUser } from "@/lib/auth";
+import {
+  getDirectoryBaseList,
+  applyDirectoryOverlay,
+} from "@/lib/photographer-directory";
 import { PhotographerFilters } from "@/components/photographer-filters";
 import { PhotographerCard } from "@/components/photographer-card";
 import { Pagination } from "@/components/pagination";
@@ -11,7 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
 import { PopularSearches } from "@/components/popular-searches";
 import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
-import { TIER_RANK, type Plan } from "@/lib/billing/plans";
+import { TIER_RANK } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -82,101 +84,21 @@ export default async function PhotographersDirectoryPage({
     }
   }
 
-  // Shared, viewer-independent base dataset (details + profiles + ratings,
-  // filtered to the query's type/canton/verified/discipline and enriched up to
-  // and including the is_suspended exclusion). This is PUBLIC and identical
-  // across users, so it's cached at the data layer (revalidate 120s + a
-  // directory tag) via the cookieless public client — repeat directory hits
-  // don't re-run the RLS PostgREST queries. The per-viewer "saved" overlay and
-  // the in-memory minRating/query/saved filtering + sort stay per-request below.
-  // Cache key = the array passed as the 2nd arg; it MUST include the filters
-  // that shape the base fetch so each filter combination caches separately.
-  const baseList = await unstable_cache(
-    async () => {
-      const publicClient = createPublicClient();
+  // Base dataset + per-request overlay both live in photographer-directory.ts,
+  // shared verbatim with /api/directory/count (the mobile filter sheet's live
+  // result count) so the promised count always matches what renders here.
+  const baseList = await getDirectoryBaseList({
+    type,
+    canton,
+    verified,
+    discipline,
+  });
 
-      let detailsQuery = publicClient
-        .from("photographer_details")
-        .select(
-          "profile_id, specialties, coverage_cantons, hourly_rate_chf, verification_status, disciplines, cover_path"
-        );
-      if (type) detailsQuery = detailsQuery.contains("specialties", [type]);
-      if (canton)
-        detailsQuery = detailsQuery.contains("coverage_cantons", [canton]);
-      if (verified)
-        detailsQuery = detailsQuery.eq("verification_status", "verified");
-      if (discipline === "photo" || discipline === "video")
-        detailsQuery = detailsQuery.contains("disciplines", [discipline]);
-      const { data: details } = await detailsQuery;
-
-      const ids = (details ?? []).map((d) => d.profile_id);
-
-      const [{ data: profiles }, { data: ratings }, { data: tiers }] =
-        await Promise.all([
-          ids.length
-            ? publicClient
-                .from("profiles")
-                .select(
-                  "id, display_name, city, canton, avatar_url, is_suspended, created_at"
-                )
-                .in("id", ids)
-            : Promise.resolve({ data: [] as never[] }),
-          ids.length
-            ? publicClient
-                .from("photographer_ratings")
-                .select("photographer_id, avg_rating, review_count")
-                .in("photographer_id", ids)
-            : Promise.resolve({ data: [] as never[] }),
-          ids.length
-            ? publicClient
-                .from("photographer_effective_tier")
-                .select("profile_id, effective_tier")
-                .in("profile_id", ids)
-            : Promise.resolve({ data: [] as never[] }),
-        ]);
-
-      const profileBy = new Map((profiles ?? []).map((p) => [p.id, p]));
-      const ratingBy = new Map(
-        (ratings ?? []).map((r) => [
-          r.photographer_id,
-          { avg: r.avg_rating ?? 0, count: r.review_count ?? 0 },
-        ])
-      );
-      const tierBy = new Map(
-        (tiers ?? []).map((t) => [t.profile_id, t.effective_tier as Plan])
-      );
-
-      return (details ?? [])
-        .map((d) => {
-          const profile = profileBy.get(d.profile_id);
-          const rating = ratingBy.get(d.profile_id) ?? { avg: 0, count: 0 };
-          const effective_tier = tierBy.get(d.profile_id) ?? "free";
-          return profile ? { ...d, profile, rating, effective_tier } : null;
-        })
-        .filter((x): x is NonNullable<typeof x> => x !== null)
-        .filter((x) => !x.profile.is_suspended);
-    },
-    [
-      "photographers-directory",
-      type ?? "",
-      canton ?? "",
-      verified ?? "",
-      discipline ?? "",
-    ],
-    { revalidate: 120, tags: ["photographers-directory"] }
-  )();
-
-  const minR = minRating ? Number(minRating) : 0;
-
-  // Per-request overlay + ranking on the cached base list. minRating, the
-  // "saved only" restriction, and the name query are viewer/URL-specific, so
-  // they're applied here rather than in the cache.
-  let list = baseList
-    .filter((x) => x.rating.avg >= minR)
-    .filter((x) => !savedIds || savedIds.has(x.profile_id))
-    .filter(
-      (x) => !query || x.profile.display_name.toLowerCase().includes(query)
-    );
+  let list = applyDirectoryOverlay(baseList, {
+    minRating: minRating ? Number(minRating) : 0,
+    query,
+    savedIds,
+  });
 
   list = list.sort((a, b) => {
     if (sort === "price") {

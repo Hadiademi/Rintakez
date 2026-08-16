@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { CANTONS } from "@/lib/validation/photographer";
@@ -28,6 +28,27 @@ export function ProfileBasicsEditor({
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const bioRef = useRef<HTMLTextAreaElement>(null);
+
+  // Deep link from the profile checklist ("write a short bio" →
+  // #profile.basics-bio): the editor sits closed by default and the bio field
+  // doesn't exist until it opens, so honour the anchor by opening ourselves
+  // and focusing the field once it renders.
+  useEffect(() => {
+    const wantBio = () => window.location.hash.endsWith(".basics-bio");
+    const maybeOpen = () => {
+      if (wantBio()) setOpen(true);
+    };
+    maybeOpen();
+    window.addEventListener("hashchange", maybeOpen);
+    return () => window.removeEventListener("hashchange", maybeOpen);
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    if (!window.location.hash.endsWith(".basics-bio")) return;
+    bioRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    bioRef.current?.focus({ preventScroll: true });
+  }, [open]);
   const [name, setName] = useState(displayName);
   const [cityValue, setCityValue] = useState(city);
   const [cantonValue, setCantonValue] = useState(canton);
@@ -128,6 +149,7 @@ export function ProfileBasicsEditor({
           {t("bio")}
         </label>
         <textarea
+          ref={bioRef}
           id="basics-bio"
           data-testid="basics-bio"
           rows={4}

@@ -64,11 +64,13 @@ const BIO_MIN_CHARS = 80;
 const PORTFOLIO_TARGET = 3;
 
 /** Deep-links into the real edit surfaces (locale prefix is added by <Link>). */
+// "#tab.anchor" — ProfileTabs selects the tab, then scrolls to and focuses
+// the anchored element, so "write a short bio" lands ON the bio field.
 const HREF = {
-  avatar: "/profile#profile",
-  bio: "/profile#profile",
-  portfolio: "/profile#profile",
-  verification: "/profile#profile",
+  avatar: "/profile#profile.profile-avatar",
+  bio: "/profile#profile.basics-bio",
+  portfolio: "/profile#profile.profile-portfolio",
+  verification: "/profile#profile.profile-verification",
   rate: "/onboarding",
   cantons: "/onboarding",
   specialties: "/onboarding",

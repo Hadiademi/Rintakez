@@ -53,8 +53,13 @@ export function ProfileTabs({
 }) {
   const tAria = useTranslations("profile");
   const hash = useSyncExternalStore(subscribeHash, getHash, getServerHash);
-  const hasHash = tabs.some((t) => t.id === hash);
-  const active = hasHash ? hash : tabs[0]?.id ?? "";
+  // Extended deep-link convention: "#tab.anchor" selects the tab AND scrolls
+  // to / focuses the element with that anchor id inside it (e.g. the profile
+  // checklist's "write a short bio" → #profile.profile-bio lands ON the bio
+  // field instead of the top of a long panel). Plain "#tab" behaves as before.
+  const [tabPart, anchorPart] = hash.split(".", 2);
+  const hasHash = tabs.some((t) => t.id === tabPart);
+  const active = hasHash ? tabPart : tabs[0]?.id ?? "";
 
   // Mobile "account hub" mode: on a fresh /profile (no hash) show ONLY the hub
   // menu — don't dangle the default section's panel below it. Once a hub row is
@@ -65,9 +70,25 @@ export function ProfileTabs({
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(max-width: 1023px)").matches) return;
     document
-      .getElementById(hash)
+      .getElementById(tabPart)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [hash, hasHash, hideBarOnMobile]);
+  }, [tabPart, hasHash, hideBarOnMobile]);
+
+  // "#tab.anchor" second half: once the right tab is visible (any viewport),
+  // bring the anchored control into view and focus its first form field so
+  // the user can start typing immediately.
+  useEffect(() => {
+    if (!hasHash || !anchorPart) return;
+    const el = document.getElementById(anchorPart);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // The anchor may BE the form field (e.g. #profile.basics-bio) or a
+    // wrapper containing one — focus whichever applies.
+    const field = el.matches("textarea, input, select")
+      ? el
+      : el.querySelector<HTMLElement>("textarea, input, select");
+    field?.focus({ preventScroll: true });
+  }, [hasHash, anchorPart]);
 
   function select(id: string) {
     if (getHash() === id) return;

@@ -22,6 +22,7 @@ import { BillingPortalButton } from "@/components/billing-portal-button";
 import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
 import { ProfileHubRow } from "@/components/profile-hub-row";
 import { ProfileChecklist } from "@/components/profile-checklist";
+import { SettingsCard } from "@/components/ui/settings-card";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { effectivePlan, getBidQuotaUsage } from "@/lib/billing/entitlements";
 import type { Plan } from "@/lib/billing/plans";
@@ -96,22 +97,6 @@ function HubIcon({ name }: { name: string }) {
   );
 }
 
-function Section({
-  id,
-  title,
-  children,
-}: {
-  id: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="scroll-mt-24">
-      <h2 className="label mb-5 text-mute">{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 export default async function ProfilePage() {
   const [user, locale] = await Promise.all([getSessionUser(), getLocale()]);
@@ -467,10 +452,13 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Desktop header (hidden on mobile — the hub replaces it) ── */}
+      {/* ── Desktop header (hidden on mobile — the hub replaces it) ──
+          Account identity at a glance: avatar, name, location, and the
+          meta row (email · member since · plan) so the essentials are
+          visible without opening a single section. */}
       <div className="hidden items-start justify-between gap-6 lg:flex">
         <div className="flex items-start gap-5">
-          <div className="shrink-0">
+          <div id="profile-avatar" className="shrink-0 scroll-mt-24">
             <AvatarUploader initialUrl={avatarUrl} initials={initials} />
           </div>
           <div className="flex flex-col gap-1 pt-1">
@@ -483,6 +471,22 @@ export default async function ProfilePage() {
                 {[profile.city, profile.canton].filter(Boolean).join(", ")}
               </p>
             )}
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-mute">
+              {user.email && <span>{user.email}</span>}
+              {memberSince && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>{t("memberSinceDate", { date: memberSince })}</span>
+                </>
+              )}
+              {isPhotographer && entitlement && (
+                <span className="border border-line px-2 py-0.5 label text-ink">
+                  {entitlement.isActive
+                    ? tBilling(`plan.${entitlement.plan}.name`)
+                    : t("billingFreePlan")}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -504,36 +508,52 @@ export default async function ProfilePage() {
                 <ProfileChecklist result={completeness} />
               </div>
             )}
-            <section id="profile" className="scroll-mt-24">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="label text-mute">{t("publicProfileTitle")}</h2>
-                <Link
-                  href={`/photographers/${profile.id}`}
-                  className="label press text-accent hover:opacity-70"
-                >
-                  {t("viewPublic")} →
-                </Link>
-              </div>
-
-              <div className="mt-5 space-y-8">
+            <section id="profile" className="scroll-mt-24 space-y-6">
+              <SettingsCard
+                title={t("publicProfileTitle")}
+                description={t("publicProfileDesc")}
+                footer={
+                  <>
+                    <Link
+                      href="/onboarding"
+                      data-testid="profile-edit-details"
+                      className="label press text-mute hover:text-ink"
+                    >
+                      {t("editDetails")} →
+                    </Link>
+                    <Link
+                      href={`/photographers/${profile.id}`}
+                      className="label press text-accent hover:opacity-70"
+                    >
+                      {t("viewPublic")} →
+                    </Link>
+                  </>
+                }
+              >
                 <ProfileBasicsEditor
                   displayName={profile.display_name}
                   city={profile.city ?? ""}
                   canton={profile.canton ?? ""}
                   bio={profile.bio ?? ""}
                 />
+              </SettingsCard>
 
+              <SettingsCard>
                 <CoverUploader initialUrl={coverUrl} />
+              </SettingsCard>
 
+              <SettingsCard anchorId="profile-verification">
                 <VerificationRequest
                   status={details?.verification_status ?? "unverified"}
                 />
+              </SettingsCard>
 
                 {(specialties.length > 0 ||
                   coverageCantons.length > 0 ||
                   details?.hourly_rate_chf != null ||
                   details?.website_url ||
                   details?.instagram_url) && (
+                  <SettingsCard>
                   <div className="grid gap-6 sm:grid-cols-2">
                     {(details?.disciplines ?? []).length > 0 && (
                       <div className="space-y-2">
@@ -619,24 +639,19 @@ export default async function ProfilePage() {
                       </div>
                     )}
                   </div>
+                  </SettingsCard>
                 )}
 
-                <div className="flex justify-end">
-                  <Link
-                    href="/onboarding"
-                    data-testid="profile-edit-details"
-                    className="label press text-accent hover:opacity-70"
-                  >
-                    {t("editDetails")} →
-                  </Link>
-                </div>
+                <SettingsCard anchorId="profile-portfolio">
+                  <PortfolioEditor initial={portfolioImages} />
+                </SettingsCard>
 
-                <PortfolioEditor initial={portfolioImages} />
-                <AvailabilityManager initial={unavailableDates} />
+                <SettingsCard>
+                  <AvailabilityManager initial={unavailableDates} />
+                </SettingsCard>
 
                 {/* Reviews — the photographer may post one public reply each. */}
-                <div className="space-y-5 border-t border-line pt-8">
-                  <p className="label text-mute">{tReview("reviews")}</p>
+                <SettingsCard title={tReview("reviews")}>
                   {reviews.length > 0 ? (
                     <ul className="space-y-6">
                       {reviews.map((r) => (
@@ -672,8 +687,7 @@ export default async function ProfilePage() {
                       {tReview("noReviews")}
                     </p>
                   )}
-                </div>
-              </div>
+                </SettingsCard>
             </section>
           </ProfileTabPanel>
         )}
@@ -681,7 +695,22 @@ export default async function ProfilePage() {
         {/* Billing (photographer) */}
         {isPhotographer && entitlement && (
           <ProfileTabPanel id="billing" label={t("billingTitle")}>
-            <Section id="billing" title={t("billingTitle")}>
+            <SettingsCard
+              anchorId="billing"
+              title={t("billingTitle")}
+              description={t("billingDesc")}
+              footer={
+                <>
+                  {subRow?.stripe_customer_id ? <BillingPortalButton /> : null}
+                  <Link
+                    href="/pricing"
+                    className="press border border-line px-4 py-3 label text-ink"
+                  >
+                    {t("billingViewPlans")}
+                  </Link>
+                </>
+              }
+            >
               <div className="space-y-6">
                 <div className="space-y-1">
                   <p className="label text-mute">{t("billingCurrentPlan")}</p>
@@ -740,23 +769,18 @@ export default async function ProfilePage() {
                   </p>
                 ) : null}
 
-                <div className="flex flex-wrap gap-3">
-                  {subRow?.stripe_customer_id ? <BillingPortalButton /> : null}
-                  <Link
-                    href="/pricing"
-                    className="press border border-line px-4 py-3 label text-ink"
-                  >
-                    {t("billingViewPlans")}
-                  </Link>
-                </div>
               </div>
-            </Section>
+            </SettingsCard>
           </ProfileTabPanel>
         )}
 
         {/* Account */}
         <ProfileTabPanel id="account" label={t("account")}>
-          <Section id="account" title={t("account")}>
+          <SettingsCard
+            anchorId="account"
+            title={t("account")}
+            description={t("accountDesc")}
+          >
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-1">
                 <dt className="text-[13px] text-mute-2">{tAuth("email")}</dt>
@@ -780,49 +804,57 @@ export default async function ProfilePage() {
                 </div>
               )}
             </dl>
-          </Section>
+          </SettingsCard>
         </ProfileTabPanel>
 
         {/* Security */}
         <ProfileTabPanel id="security" label={t("securityTitle")}>
-          <Section id="security" title={t("securityTitle")}>
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h3 className="text-[15px] font-medium text-ink">
-                  {t("passwordTitle")}
-                </h3>
-                <ChangePasswordForm email={user.email ?? ""} />
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-[15px] font-medium text-ink">
-                  {t("emailTitle")}
-                </h3>
-                <ChangeEmailForm currentEmail={user.email ?? ""} />
-              </div>
-            </div>
-          </Section>
+          <div className="space-y-6">
+            <SettingsCard
+              anchorId="security"
+              title={t("passwordTitle")}
+              description={t("securityDesc")}
+            >
+              <ChangePasswordForm email={user.email ?? ""} />
+            </SettingsCard>
+            <SettingsCard title={t("emailTitle")}>
+              <ChangeEmailForm currentEmail={user.email ?? ""} />
+            </SettingsCard>
+          </div>
         </ProfileTabPanel>
 
         {/* Notifications */}
         <ProfileTabPanel id="notifications" label={t("notificationsTitle")}>
-          <Section id="notifications" title={t("notificationsTitle")}>
+          <SettingsCard
+            anchorId="notifications"
+            title={t("notificationsTitle")}
+            description={t("notificationsDesc")}
+          >
             <NotificationPrefs
               notifyBids={profile.notify_bids}
               notifyShootUpdates={profile.notify_shoot_updates}
               notifyMessages={profile.notify_messages}
             />
-          </Section>
+          </SettingsCard>
         </ProfileTabPanel>
 
         {/* Privacy */}
         <ProfileTabPanel id="privacy" label={t("dataPrivacy")}>
-          <Section id="privacy" title={t("dataPrivacy")}>
-            <p className="mb-3 text-[14px] text-mute">{t("exportDataHint")}</p>
-            <DataExportButton />
-            <div className="mt-8">
+          <div className="space-y-6">
+            <SettingsCard
+              anchorId="privacy"
+              title={t("dataPrivacy")}
+              description={t("privacyDesc")}
+            >
+              <p className="mb-3 text-[14px] text-mute">
+                {t("exportDataHint")}
+              </p>
+              <DataExportButton />
+            </SettingsCard>
+            <SettingsCard danger>
               <DeleteAccountButton />
-            </div>
-          </Section>
+            </SettingsCard>
+          </div>
         </ProfileTabPanel>
       </ProfileTabs>
     </div>
