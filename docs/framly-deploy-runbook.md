@@ -172,7 +172,22 @@ point-in-time recovery.
 ## Later (non-blocking)
 
 - Live Stripe on the client's account (KYC, bank) → swap 6 env vars
-- `ERROR_WEBHOOK_URL` → Slack/Discord for captureError alerts
+- `ERROR_WEBHOOK_URL` → Slack/Discord for captureError alerts. Setup (5 min):
+  1. Discord → your server → channel `#framly-alarms` → ⚙️ → Integrations →
+     Webhooks → New Webhook → Copy URL (`https://discord.com/api/webhooks/…`).
+  2. Vercel → framly → Settings → Environment Variables → add
+     `ERROR_WEBHOOK_URL` = that URL (Production) → redeploy.
+  3. Test: `curl -X POST "$URL" -H 'Content-Type: application/json' -d '{"content":"test"}'`
+     should post "test" in the channel.
+  The sink body auto-adapts (`src/lib/observability.ts`): Discord `{content}`,
+  Slack `{text}`, anything else raw JSON. Posts are throttled to 5/min per
+  instance so an error storm can't flood the channel; the full stream is always
+  in Vercel logs.
+- External uptime ping (5 min, free): UptimeRobot → New Monitor → HTTP(s) →
+  `https://framly.ch/api/health`, interval 5 min, alert on non-200. The health
+  route returns 503 when Supabase is unreachable, so this catches both a dead
+  deploy AND a broken database from OUTSIDE our infra (a Vercel-wide outage
+  can't alert itself).
 - Plausible analytics (`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`)
 - Google OAuth (client id + secret, Supabase provider config)
 - Rename Vercel/GitHub projects to Framly if not done in Phases 0/5
