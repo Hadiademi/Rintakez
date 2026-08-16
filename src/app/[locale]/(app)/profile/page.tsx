@@ -2,7 +2,7 @@ import { getLocale, getTranslations, getFormatter } from "next-intl/server";
 import { redirect, Link } from "@/i18n/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatCHF, formatSwissDate } from "@/lib/format";
+import { formatSwissDate } from "@/lib/format";
 import { Stars } from "@/components/stars";
 import { ReviewReplyForm } from "@/components/review-reply-form";
 import { AvatarUploader } from "@/components/avatar-uploader";
@@ -11,6 +11,7 @@ import { PortfolioEditor } from "@/components/portfolio-editor";
 import { AvailabilityManager } from "@/components/availability-manager";
 import { VerificationRequest } from "@/components/verification-request";
 import { ProfileBasicsEditor } from "@/components/profile-basics-editor";
+import { ProfessionalDetailsEditor } from "@/components/professional-details-editor";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { ChangeEmailForm } from "@/components/change-email-form";
 import { NotificationPrefs } from "@/components/notification-prefs";
@@ -212,7 +213,6 @@ export default async function ProfilePage() {
 
   const t = await getTranslations("profile");
   const tAuth = await getTranslations("auth");
-  const tShoot = await getTranslations("shoot");
   const tReview = await getTranslations("review");
   const tBilling = await getTranslations("billing");
   const tNav = await getTranslations("nav");
@@ -513,21 +513,12 @@ export default async function ProfilePage() {
                 title={t("publicProfileTitle")}
                 description={t("publicProfileDesc")}
                 footer={
-                  <>
-                    <Link
-                      href="/onboarding"
-                      data-testid="profile-edit-details"
-                      className="label press text-mute hover:text-ink"
-                    >
-                      {t("editDetails")} →
-                    </Link>
-                    <Link
-                      href={`/photographers/${profile.id}`}
-                      className="label press text-accent hover:opacity-70"
-                    >
-                      {t("viewPublic")} →
-                    </Link>
-                  </>
+                  <Link
+                    href={`/photographers/${profile.id}`}
+                    className="label press text-accent hover:opacity-70"
+                  >
+                    {t("viewPublic")} →
+                  </Link>
                 }
               >
                 <ProfileBasicsEditor
@@ -548,99 +539,25 @@ export default async function ProfilePage() {
                 />
               </SettingsCard>
 
-                {(specialties.length > 0 ||
-                  coverageCantons.length > 0 ||
-                  details?.hourly_rate_chf != null ||
-                  details?.website_url ||
-                  details?.instagram_url) && (
-                  <SettingsCard>
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    {(details?.disciplines ?? []).length > 0 && (
-                      <div className="space-y-2">
-                        <p className="label text-mute">{t("disciplines")}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(details?.disciplines ?? []).map((d) => (
-                            <span
-                              key={d}
-                              className="rounded-full border border-line px-3 py-1 text-[13px] text-ink"
-                            >
-                              {tShoot(`disciplines.${d}`)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {details?.hourly_rate_chf != null && (
-                      <div className="space-y-2">
-                        <p className="label text-mute">{t("hourlyRate")}</p>
-                        <p className="tabular text-[15px] text-ink">
-                          {t("hourlyFrom", {
-                            amount: formatCHF(details.hourly_rate_chf),
-                          })}
-                        </p>
-                      </div>
-                    )}
-
-                    {specialties.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="label text-mute">{t("specialties")}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {specialties.map((s) => (
-                            <span
-                              key={s}
-                              className="rounded-full bg-chip px-3 py-1 text-[13px] text-ink"
-                            >
-                              {tShoot(`types.${s}`)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {coverageCantons.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="label text-mute">{t("coverage")}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {coverageCantons.map((canton) => (
-                            <span
-                              key={canton}
-                              className="rounded-full bg-chip px-3 py-1 text-[13px] text-ink"
-                            >
-                              {canton}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {(details?.website_url || details?.instagram_url) && (
-                      <div className="flex flex-wrap gap-4 sm:col-span-2">
-                        {details.website_url && (
-                          <a
-                            href={details.website_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70"
-                          >
-                            {t("website")}
-                          </a>
-                        )}
-                        {details.instagram_url && (
-                          <a
-                            href={details.instagram_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70"
-                          >
-                            {t("instagram")}
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  </SettingsCard>
-                )}
+                <SettingsCard
+                  title={t("proDetailsTitle")}
+                  description={t("proDetailsDesc")}
+                  anchorId="profile-details"
+                >
+                  <ProfessionalDetailsEditor
+                    initial={{
+                      disciplines: details?.disciplines ?? [],
+                      specialties,
+                      cantons: coverageCantons,
+                      hourlyRate:
+                        details?.hourly_rate_chf != null
+                          ? String(details.hourly_rate_chf)
+                          : "",
+                      website: details?.website_url ?? "",
+                      instagram: details?.instagram_url ?? "",
+                    }}
+                  />
+                </SettingsCard>
 
                 <SettingsCard anchorId="profile-portfolio">
                   <PortfolioEditor initial={portfolioImages} />
