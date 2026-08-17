@@ -16,6 +16,17 @@ export function ClientErrorReporter() {
 
     const onError = (event: ErrorEvent) => {
       if (sent >= MAX) return;
+      // Cross-origin scripts (browser extensions, injected third parties)
+      // surface as the masked "Script error." with no stack, file or line —
+      // zero actionable signal, and by definition not our code. Sentry drops
+      // these by default for the same reason; keep the alert channel
+      // high-signal and skip them.
+      if (
+        (event.message === "Script error." || !event.message) &&
+        !event.error?.stack
+      ) {
+        return;
+      }
       sent++;
       void reportClientError({
         message: event.message || "window.onerror",
