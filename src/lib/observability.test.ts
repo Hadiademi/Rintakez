@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatSinkBody, sinkThrottleAllow } from "./observability";
+import { captureError, formatSinkBody, sinkThrottleAllow } from "./observability";
 
 const payload = {
   level: "error" as const,
@@ -67,5 +67,22 @@ describe("sinkThrottleAllow", () => {
     expect(sinkThrottleAllow(t0 + 6)).toBe(false);
     // New window → allowed again.
     expect(sinkThrottleAllow(t0 + 60_000)).toBe(true);
+  });
+});
+
+describe("captureError message shaping", () => {
+  it("serializes non-Error objects instead of '[object Object]'", () => {
+    const logged: string[] = [];
+    const orig = console.error;
+    console.error = (...args: unknown[]) => { logged.push(String(args[1])); };
+    try {
+      // Shape of a Supabase PostgrestError — a plain object, not an Error.
+      captureError({ code: "23505", message: "duplicate key" });
+    } finally {
+      console.error = orig;
+    }
+    expect(logged[0]).toContain("23505");
+    expect(logged[0]).toContain("duplicate key");
+    expect(logged[0]).not.toContain("[object Object]");
   });
 });

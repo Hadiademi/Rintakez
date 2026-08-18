@@ -76,10 +76,25 @@ export function sinkThrottleAllow(now: number): boolean {
   return postsInWindow <= MAX_POSTS_PER_WINDOW;
 }
 
+/** Non-Error throwables (Supabase PostgrestError, plain objects) stringify to
+ * the useless "[object Object]" — serialize them instead so the sink shows
+ * the actual code/message/details. Circular objects fall back to String(). */
+function describeError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  }
+  return String(error);
+}
+
 export function captureError(error: unknown, context?: ErrorContext): void {
   const payload: ErrorPayload = {
     level: "error",
-    message: error instanceof Error ? error.message : String(error),
+    message: describeError(error),
     stack: error instanceof Error ? error.stack : undefined,
     context,
     env: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
