@@ -23,7 +23,7 @@ export default async function AgbPage() {
           {t("agbTitle")}
         </h1>
         <p className="mt-3 text-mute">{t("agbIntro")}</p>
-        <p className="mt-1 text-[13px] text-mute-2">{t("agbReviewNote")}</p>
+        <p className="mt-1 text-[13px] text-mute-2">{t("agbVersionNote")}</p>
 
         <div className="mt-10 space-y-8">
           {SECTIONS.map((n) => (
