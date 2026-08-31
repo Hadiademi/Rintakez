@@ -617,6 +617,7 @@
     "dsSubprocessorsTitle": "Sous-traitants en détail",
     "dsUpdated": "Mise à jour : juin 2026",
     "footerAgb": "CGU",
+    "footerContact": "Contact",
     "footerDatenschutz": "Confidentialité",
     "footerImpressum": "Mentions légales",
     "footerInstagram": "Instagram",
@@ -972,5 +973,12 @@
       "body": "Appuie sur l’icône Partager, puis choisis « Sur l’écran d’accueil ».",
       "dismiss": "Fermer"
     }
+  },
+  "contact": {
+    "emailLabel": "E-mail",
+    "intro": "Des questions sur Framly, ton compte ou un mandat ? Nous t'aidons volontiers — écris-nous.",
+    "legalNote": "Les informations sur l'exploitant figurent dans les mentions légales.",
+    "responseNote": "Nous répondons en général dans un délai d'un jour ouvrable.",
+    "title": "Contact"
   }
 }

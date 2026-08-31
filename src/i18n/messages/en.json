@@ -617,6 +617,7 @@
     "dsSubprocessorsTitle": "Sub-processors in detail",
     "dsUpdated": "Last updated: June 2026",
     "footerAgb": "Terms",
+    "footerContact": "Contact",
     "footerDatenschutz": "Privacy",
     "footerImpressum": "Legal notice",
     "footerInstagram": "Instagram",
@@ -972,5 +973,12 @@
       "body": "Tap the Share icon, then choose “Add to Home Screen”.",
       "dismiss": "Dismiss"
     }
+  },
+  "contact": {
+    "emailLabel": "Email",
+    "intro": "Questions about Framly, your account, or a shoot? We're happy to help — write to us.",
+    "legalNote": "Operator details can be found in the legal notice.",
+    "responseNote": "We usually reply within one business day.",
+    "title": "Contact"
   }
 }

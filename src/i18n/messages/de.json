@@ -617,6 +617,7 @@
     "dsSubprocessorsTitle": "Auftragsverarbeiter im Detail",
     "dsUpdated": "Stand: Juni 2026",
     "footerAgb": "AGB",
+    "footerContact": "Kontakt",
     "footerDatenschutz": "Datenschutz",
     "footerImpressum": "Impressum",
     "footerInstagram": "Instagram",
@@ -972,5 +973,12 @@
       "body": "Tippe auf das Teilen-Symbol und wähle „Zum Home-Bildschirm“.",
       "dismiss": "Schließen"
     }
+  },
+  "contact": {
+    "emailLabel": "E-Mail",
+    "intro": "Fragen zu Framly, zu deinem Konto oder zu einem Auftrag? Wir helfen gerne — schreib uns.",
+    "legalNote": "Angaben zum Betreiber findest du im Impressum.",
+    "responseNote": "Wir antworten in der Regel innerhalb eines Werktags.",
+    "title": "Kontakt"
   }
 }

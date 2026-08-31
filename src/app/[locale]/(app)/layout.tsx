@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { SiteFooter } from "@/components/site-footer";
 import { AppNav } from "@/components/app-nav";
 import { PublicNav } from "@/components/public-nav";
 import { ToasterProvider } from "@/components/ui/toaster";
@@ -79,6 +80,10 @@ export default async function AppLayout({
           className="mx-auto max-w-7xl px-5 py-10 pb-24 sm:px-8 lg:pb-10"
         >
           {children}
+        </div>
+        {/* pb clears the fixed mobile tab bar so the legal links stay tappable. */}
+        <div className="pb-20 lg:pb-0">
+          <SiteFooter />
         </div>
       </div>
     </ToasterProvider>
