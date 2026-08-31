@@ -1,4 +1,4 @@
-// Rintakez service worker (hand-written, source file — committed, not generated).
+// Framly service worker (hand-written, source file — committed, not generated).
 //
 // Near-pass-through worker. It exists so the app qualifies as an installable
 // PWA and can show a branded offline page — but it deliberately does NOT cache
@@ -10,7 +10,7 @@
 // fall back to that page only when the network is unreachable. Normal loads
 // therefore always hit the network (no stale chunks).
 
-const OFFLINE_CACHE = "rintakez-offline-v1";
+const OFFLINE_CACHE = "framly-offline-v1";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
