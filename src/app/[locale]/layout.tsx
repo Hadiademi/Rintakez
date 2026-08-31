@@ -59,6 +59,19 @@ export async function generateMetadata({
       type: "website",
       locale,
       siteName: "Framly",
+      // Static per-locale brand cards (public/og/*.png) — full brand fidelity
+      // (serif wordmark) that satori's font set couldn't render, and localized
+      // where the old shared card was English-only. The photographer profile
+      // route still overrides this with its per-photographer dynamic card.
+      images: [
+        { url: `/og/${locale}.png`, width: 1200, height: 630, alt: t("ogTitle") },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("ogTitle"),
+      description: t("description"),
+      images: [`/og/${locale}.png`],
     },
   };
 }
