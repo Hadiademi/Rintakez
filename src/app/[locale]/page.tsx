@@ -250,6 +250,52 @@ export default async function Home({
         </div>
       </section>
 
+      {/* For photographers — the supply side finally gets addressed on the
+          landing page (until now every word above spoke to clients only,
+          while recruitment sends photographers exactly here). Dark editorial
+          band so the two audiences read as two chapters. */}
+      <section className="bg-ink text-paper">
+        <div className="mx-auto w-full max-w-6xl px-6 py-16 lg:py-20">
+          <p className="label text-paper/60">{t("photogEyebrow")}</p>
+          <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
+            {t("photogTitle")}
+          </h2>
+          <p className="mt-4 max-w-xl text-lg text-paper/70">
+            {t("photogSubtitle")}
+          </p>
+          <div className="mt-10 grid gap-8 sm:grid-cols-3">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="space-y-2 border-t border-paper/20 pt-4">
+                <span className="label tabular text-paper/50">
+                  {String(n).padStart(2, "0")}
+                </span>
+                <p className="text-[15px] leading-relaxed text-paper/90">
+                  {t(`photogStep${n}`)}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 text-[14px] font-medium text-accent">
+            {t("photogCommission")}
+          </p>
+          <div className="mt-6 flex flex-wrap items-center gap-4">
+            <Link
+              href="/register"
+              data-testid="landing-photog-cta"
+              className="press inline-block bg-paper px-5 py-3 label text-ink"
+            >
+              {t("photogCta")}
+            </Link>
+            <Link
+              href="/pricing"
+              className="label press text-paper/70 hover:text-paper"
+            >
+              {t("photogPricing")} →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto w-full max-w-6xl px-6 py-16 pb-20">
         <div className="flex items-center justify-between gap-4">
           <h2 className="label text-mute">{t("latestShoots")}</h2>

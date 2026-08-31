@@ -49,15 +49,24 @@
     "subscription": "Abo"
   },
   "landing": {
-    "title": "Foto & Video. Direkt. Schweizweit.",
-    "subtitle": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
     "cta": "Auftrag erstellen",
     "latestShoots": "Offene Aufträge",
+    "noShoots": "Gerade keine offenen Aufträge — erstelle den ersten.",
     "offersCount": "{count, plural, =0 {Keine Angebote} one {# Angebot} other {# Angebote}}",
+    "photogCommission": "0% Kommission — du behältst deinen ganzen Verdienst.",
+    "photogCta": "Als Fotograf:in starten",
+    "photogEyebrow": "Für Fotograf:innen",
+    "photogPricing": "Pläne ansehen",
+    "photogStep1": "Profil und Portfolio anlegen",
+    "photogStep2": "Passende Aufträge erhalten — nach Region und Spezialgebiet",
+    "photogStep3": "Angebot abgeben, Auftrag gewinnen, 100% behalten",
+    "photogSubtitle": "Auftraggeber:innen beschreiben ihren Shoot — du erhältst passende Anfragen aus deiner Region und gibst dein Angebot in Minuten ab.",
+    "photogTitle": "Aufträge finden statt suchen.",
+    "subtitle": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
+    "title": "Foto & Video. Direkt. Schweizweit.",
     "trust1": "Direkter Kontakt — kein Mittelsmann bei deinem Shooting.",
     "trust2": "Geprüfte Fotograf:innen mit echten, verifizierten Bewertungen.",
-    "trust3": "Schweizer Hosting, deine Daten bleiben in Zürich.",
-    "noShoots": "Gerade keine offenen Aufträge — erstelle den ersten."
+    "trust3": "Schweizer Hosting, deine Daten bleiben in Zürich."
   },
   "auth": {
     "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
@@ -262,16 +271,19 @@
     "reviewOffers": "{count, plural, one {# Angebot ansehen →} other {# Angebote ansehen →}}"
   },
   "browse": {
-    "title": "Offene Aufträge",
-    "count": "{count, plural, =0 {Keine Aufträge} one {# Auftrag} other {# Aufträge}}",
-    "filterLabel": "Filter",
-    "filterCanton": "Kanton",
-    "filterType": "Art",
-    "filterBudget": "Budget bis",
     "all": "Alle",
     "clear": "Zurücksetzen",
+    "count": "{count, plural, =0 {Keine Aufträge} one {# Auftrag} other {# Aufträge}}",
     "empty": "Keine offenen Aufträge passen zu deinen Filtern.",
-    "filterDiscipline": "Medium"
+    "emptyColdBody": "Framly ist frisch gestartet — die ersten Aufträge erscheinen in Kürze hier. Vervollständige dein Profil, damit Auftraggeber:innen dich sofort finden.",
+    "emptyColdCta": "Profil vervollständigen",
+    "emptyColdTitle": "Noch keine offenen Aufträge",
+    "filterBudget": "Budget bis",
+    "filterCanton": "Kanton",
+    "filterDiscipline": "Medium",
+    "filterLabel": "Filter",
+    "filterType": "Art",
+    "title": "Offene Aufträge"
   },
   "shootDetail": {
     "back": "Zurück",
@@ -710,6 +722,9 @@
     "clear": "Zurücksetzen",
     "count": "{count, plural, =0 {Keine} one {# Fotograf:in} other {# Fotograf:innen}}",
     "empty": "Keine Fotograf:innen entsprechen deinen Filtern.",
+    "emptyColdBody": "Framly ist neu — wir nehmen aktuell die ersten Fotograf:innen und Videograf:innen auf. Schau bald wieder vorbei oder beschreibe jetzt deinen Shoot.",
+    "emptyColdCta": "Shoot beschreiben",
+    "emptyColdTitle": "Die ersten Fotograf:innen kommen gerade an Bord",
     "eyebrow": "Verzeichnis",
     "filterDiscipline": "Disziplin",
     "filterRegion": "Region",
