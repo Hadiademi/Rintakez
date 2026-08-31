@@ -10,6 +10,7 @@ import {
   removePortfolioImage,
 } from "@/lib/actions/photographer";
 import { SHOOT_TYPES, CANTONS, DISCIPLINES } from "@/lib/validation/photographer";
+import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 
 type PortfolioItem = { id: string; url: string };
@@ -86,7 +87,10 @@ export default function OnboardingForm({
     for (const file of files) {
       try {
         const fd = new FormData();
-        fd.append("file", file);
+        // Downscale client-side like the profile portfolio editor does — a
+        // photographer batch-selecting full-resolution JPEGs (8–15 MB each)
+        // would otherwise have most of them rejected by the server's 5 MB cap.
+        fd.append("file", await downscaleImage(file), "photo.jpg");
         const result = await addPortfolioImage(fd);
         if (result.ok) {
           setPortfolio((prev) => [...prev, { id: result.id, url: result.url }]);
