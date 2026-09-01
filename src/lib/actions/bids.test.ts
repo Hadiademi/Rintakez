@@ -27,12 +27,23 @@ function fakeSupabase(insertResult: { error: unknown }) {
     if (table === "bids") {
       return { insert };
     }
-    // shoots lookup for the post-insert notify email — no row, so notifyEmail
-    // is skipped without needing to model its shape here.
+    // shoots lookups: the FIRST is the pre-insert biddability check (must
+    // return an open, future-dated shoot or the action short-circuits with
+    // shoot_closed before ever inserting); later calls are the post-insert
+    // notify-email lookup, where a null row skips notifyEmail without
+    // modelling its shape.
+    let shootsCall = 0;
     return {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+      maybeSingle: vi.fn().mockImplementation(() => {
+        shootsCall += 1;
+        return Promise.resolve(
+          shootsCall === 1
+            ? { data: { status: "open", shoot_date: "2099-12-31" } }
+            : { data: null }
+        );
+      }),
     };
   });
   return { from, insert };

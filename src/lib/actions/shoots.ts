@@ -249,7 +249,25 @@ export async function acceptBidAction(
 
   const supabase = await createClient();
   const { error } = await supabase.rpc("accept_bid", { p_bid_id: bidId });
-  if (error) return { ok: false, error: dbError(error, "shoots") };
+  if (error) {
+    // accept_bid raises five distinct, user-actionable refusals; collapsing
+    // them all to "generic" left the client staring at "something went wrong"
+    // with no idea whether to retry, pick someone else, or call support. The
+    // raise messages are stable API of the function — map them to codes the
+    // UI can name. Anything unrecognized still collapses via dbError.
+    const msg = (error as { message?: string }).message ?? "";
+    const mapped = (
+      {
+        "bid not acceptable": "bid_not_acceptable",
+        "photographer suspended": "photographer_suspended",
+        "discipline mismatch": "discipline_mismatch",
+        "photographer unavailable": "photographer_unavailable",
+        "photographer already booked": "photographer_already_booked",
+      } as const
+    )[msg];
+    if (mapped) return { ok: false, error: mapped };
+    return { ok: false, error: dbError(error, "shoots") };
+  }
 
   await emailBidOutcome(supabase, bidId, "bid_accepted");
 
