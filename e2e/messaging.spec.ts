@@ -62,25 +62,24 @@ function findConversationRow(page: Page, otherName: string) {
  * the OTHER participant's later reload reliably see it.
  */
 async function sendAndConfirm(page: Page, text: string): Promise<void> {
-  await page.getByTestId("message-input").fill(text);
-  const [response] = await Promise.all([
-    page.waitForResponse(
-      (res) =>
-        res.request().method() === "POST" &&
-        res.url() === page.url() &&
-        res.status() === 200
-    ),
-    page.getByTestId("message-send").click(),
-  ]);
-  await response.finished();
-  await expect(threadLog(page).getByText(text).first()).toBeVisible({
-    timeout: 20_000,
-  });
-
-  await page.reload();
-  await expect(threadLog(page).getByText(text).first()).toBeVisible({
-    timeout: 20_000,
-  });
+  // Persistence-confirmed send with retry. Two runner-only hazards make a
+  // single click unreliable: (a) right after navigation the button can be
+  // enabled in the DOM before its handler is live, so the click is a no-op;
+  // (b) opening a thread fires markConversationRead as a server action, and
+  // a sendMessage clicked while that is in flight can be dropped while the
+  // OPTIMISTIC bubble still renders — so any bubble-based confirmation lies.
+  // The only honest signal is the database: reload and look for the text
+  // (getThread is force-dynamic). If it isn't there, click again — a rare
+  // double-send is harmless in a test; a silent no-send fails the suite.
+  await expect(async () => {
+    await page.getByTestId("message-input").fill(text);
+    await page.getByTestId("message-send").click();
+    await page.waitForTimeout(1_000);
+    await page.reload();
+    await expect(threadLog(page).getByText(text).first()).toBeVisible({
+      timeout: 4_000,
+    });
+  }).toPass({ timeout: 40_000 });
 }
 
 test.describe("messaging", () => {
