@@ -25,7 +25,7 @@ const WEBHOOK_SECRET = "whsec_test_secret";
 // Pinned to the same literal as src/lib/stripe.ts (see that file's comment
 // for provenance). Only used here for local signature crypto — never talks
 // to the network.
-const realStripe = new Stripe("sk_test_xxx", { apiVersion: "2026-06-24.dahlia" });
+const realStripe = new Stripe("sk_test_xxx", { apiVersion: "2026-08-26.dahlia" });
 
 function signedRequest(body: string, secret = WEBHOOK_SECRET): Request {
   const header = realStripe.webhooks.generateTestHeaderString({

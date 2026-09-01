@@ -4,7 +4,7 @@ import Stripe from "stripe";
 // PINNED to the exact literal the installed `stripe` SDK's types accept
 // (the SDK's internal `LatestApiVersion` type, read from
 // node_modules/stripe/cjs/apiVersion.d.ts at the time this was written:
-// `stripe@22.3.0` → "2026-06-24.dahlia"). `LatestApiVersion` itself isn't
+// `stripe@22.6.0` → "2026-08-26.dahlia"). `LatestApiVersion` itself isn't
 // re-exported from the package's public `Stripe` namespace, so we can't
 // name the type directly here — but the literal below is still checked: it's
 // passed straight into the `Stripe` constructor below, whose `apiVersion`
@@ -15,7 +15,7 @@ import Stripe from "stripe";
 // `current_period_end` living on subscription items rather than the
 // subscription itself in this version) out from under us. Bumping this is a
 // deliberate, tested change — not a side effect of `npm update`.
-const PINNED_API_VERSION = "2026-06-24.dahlia";
+const PINNED_API_VERSION = "2026-08-26.dahlia";
 
 /**
  * Server-only Stripe client. Returns null when STRIPE_SECRET_KEY is unset so
