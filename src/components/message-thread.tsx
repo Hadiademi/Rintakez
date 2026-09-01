@@ -210,6 +210,10 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
       ? await unblockUser(thread.otherId)
       : await blockUser(thread.otherId);
     if (res.ok) setIBlocked((v) => !v);
+    // A failed block MUST be loud — a user being harassed taps "Block",
+    // nothing changes visually, and without this they have no way to know
+    // the block never took effect. Reuses the composer's alert line.
+    else setImageError(tErr(errorKey(res.error)));
     setBlocking(false);
   }
 
