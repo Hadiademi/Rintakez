@@ -413,6 +413,14 @@ export default async function HomePage() {
   const showDashboard = tier === "standard" || tier === "premium";
   let views30d: number | null = null;
   let benchmark: number | null = null;
+  let viewers: {
+    viewer_name: string;
+    viewer_city: string | null;
+    view_count: number;
+    last_view: string;
+    shoot_id: string;
+    shoot_title: string;
+  }[] = [];
   if (showDashboard) {
     const since = new Date();
     since.setDate(since.getDate() - 30);
@@ -437,16 +445,20 @@ export default async function HomePage() {
       ["platform-benchmark"],
       { revalidate: 300, tags: ["platform-benchmark"] }
     );
-    const [{ data: viewsData }, benchmarkData] = await Promise.all([
+    const [{ data: viewsData }, benchmarkData, viewersRes] = await Promise.all([
       supabase.rpc("photographer_view_count", {
         p_photographer_id: profile.id,
         p_since: sinceStr,
       }),
       tier === "premium" ? getCachedBenchmark() : Promise.resolve(null),
+      tier === "premium"
+        ? supabase.rpc("premium_profile_viewers", { p_since: sinceStr })
+        : Promise.resolve(null),
     ]);
     views30d = viewsData ?? 0;
     if (tier === "premium") {
       benchmark = benchmarkData ?? null;
+      viewers = viewersRes?.data ?? [];
     }
   }
 
@@ -486,6 +498,7 @@ export default async function HomePage() {
         views30d={views30d}
         benchmark={benchmark == null ? null : Number(benchmark)}
         ownRate={rate}
+        viewers={viewers}
       />
 
       {bids.length === 0 && (

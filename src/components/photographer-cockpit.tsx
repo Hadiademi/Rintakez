@@ -23,6 +23,7 @@ export async function PhotographerCockpit({
   views30d,
   benchmark,
   ownRate,
+  viewers,
 }: {
   tier: Plan;
   quotaUsed: number;
@@ -36,6 +37,15 @@ export async function PhotographerCockpit({
   benchmark: number | null;
   /** own acceptance rate (0..1), null with no bids */
   ownRate: number | null;
+  /** premium-only "who viewed you" rows (clients with an open shoot) */
+  viewers?: {
+    viewer_name: string;
+    viewer_city: string | null;
+    view_count: number;
+    last_view: string;
+    shoot_id: string;
+    shoot_title: string;
+  }[];
 }) {
   const t = await getTranslations("home");
   const paid = tier === "standard" || tier === "premium";
@@ -135,6 +145,51 @@ export async function PhotographerCockpit({
         )}
       </div>
 
+      {/* ── Premium flagship: WHO viewed you — but only clients actively in
+          the market (open shoot), so insight stays on the right side of
+          privacy. The open shoot rides along → one tap from "they looked"
+          to "here's my offer". ── */}
+      {tier === "premium" && (
+        <div
+          className="border border-line bg-paper"
+          data-testid="cockpit-viewers"
+        >
+          <p className="label flex items-center justify-between border-b border-line px-5 py-3 text-mute">
+            {t("cockpitViewersTitle")}
+            <span className="text-mute-2">{t("cockpitViewersWindow")}</span>
+          </p>
+          {(viewers ?? []).length === 0 ? (
+            <p className="px-5 py-5 text-[14px] text-mute">
+              {t("cockpitViewersEmpty")}
+            </p>
+          ) : (
+            <ul className="divide-y divide-line">
+              {(viewers ?? []).map((v) => (
+                <li key={v.shoot_id}>
+                  <Link
+                    href={`/shoots/${v.shoot_id}`}
+                    className="press flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3.5 hover:bg-surface"
+                  >
+                    <span className="text-[14.5px] font-medium text-ink">
+                      {v.viewer_name}
+                      {v.viewer_city ? (
+                        <span className="font-normal text-mute"> · {v.viewer_city}</span>
+                      ) : null}
+                      {v.view_count > 1 ? (
+                        <span className="font-normal text-mute"> · {v.view_count}×</span>
+                      ) : null}
+                    </span>
+                    <span className="text-[13px] text-accent">
+                      {t("cockpitViewersShoot", { title: v.shoot_title })} →
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* ── The perks band: what your plan does for you, visibly ── */}
       <div className="border border-line bg-paper" data-testid="cockpit-perks">
         <p className="label border-b border-line px-5 py-3 text-mute">
@@ -179,6 +234,15 @@ export async function PhotographerCockpit({
               upsellHref={upsellHref}
             />
           ) : null}
+          {/* The premium flagship, teased for everyone below premium. */}
+          {tier !== "premium" && (
+            <PerkRow
+              active={false}
+              activeText=""
+              lockedText={t("cockpitPerkViewersLocked")}
+              upsellHref={upsellHref}
+            />
+          )}
         </ul>
       </div>
     </section>

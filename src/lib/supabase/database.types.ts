@@ -1152,6 +1152,17 @@ export type Database = {
         Args: { p_photographer_id: string; p_since?: string }
         Returns: number
       }
+      premium_profile_viewers: {
+        Args: { p_since: string }
+        Returns: {
+          viewer_name: string
+          viewer_city: string | null
+          view_count: number
+          last_view: string
+          shoot_id: string
+          shoot_title: string
+        }[]
+      }
       platform_median_acceptance_rate: { Args: never; Returns: number }
       record_profile_view: {
         Args: { p_photographer_id: string }
