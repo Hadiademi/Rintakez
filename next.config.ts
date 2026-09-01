@@ -49,7 +49,20 @@ const cspDirectives = [
     process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"
   }`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  // Like connect-src below, img-src needs the EXPLICIT configured Supabase
+  // origin for local/self-hosted stacks over plain HTTP: storage public URLs
+  // are `http://127.0.0.1:54321/...` locally, and the `https:` source alone
+  // silently blocks them (thumbnails render as empty boxes only in local
+  // testing). Hosted Supabase is https and was always covered; production
+  // policy is unchanged by this addition.
+  [
+    "img-src",
+    "'self'",
+    "data:",
+    "blob:",
+    "https:",
+    ...supabaseConnectOrigins().filter((o) => o.startsWith("http:")),
+  ].join(" "),
   ["connect-src", "'self'", "https:", "wss:", ...supabaseConnectOrigins()].join(" "),
   "font-src 'self' data:",
   "frame-ancestors 'self'",
