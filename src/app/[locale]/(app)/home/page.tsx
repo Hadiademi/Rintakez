@@ -9,6 +9,8 @@ import { ShootCard } from "@/components/shoot-card";
 import { ShootStatusBadge } from "@/components/shoot-status-badge";
 import { SectionLabel } from "@/components/section-label";
 import { RecommendedPhotographers } from "@/components/recommended-photographers";
+import { getBidQuotaUsage } from "@/lib/billing/entitlements";
+import { PhotographerCockpit } from "@/components/photographer-cockpit";
 import { ProfileChecklist } from "@/components/profile-checklist";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
@@ -315,7 +317,6 @@ export default async function HomePage() {
     { data: myBids },
     { data: ownProfile },
     { count: portfolioCount },
-    { data: effTierRow },
   ] = await Promise.all([
     supabase
       .from("photographer_details")
@@ -324,20 +325,25 @@ export default async function HomePage() {
       )
       .eq("profile_id", profile.id)
       .maybeSingle(),
-    supabase.from("bids").select("id,status").eq("photographer_id", profile.id),
+    supabase
+      .from("bids")
+      .select("id,status,amount_chf")
+      .eq("photographer_id", profile.id),
     supabase.from("profiles").select("bio").eq("id", profile.id).single(),
     supabase
       .from("portfolio_images")
       .select("id", { count: "exact", head: true })
       .eq("photographer_id", profile.id),
-    supabase
-      .from("photographer_effective_tier")
-      .select("effective_tier")
-      .eq("profile_id", profile.id)
-      .maybeSingle(),
   ]);
 
-  const tier = effTierRow?.effective_tier ?? "free";
+  // The cockpit's quota card needs the live month usage + plan limit.
+  const quota = await getBidQuotaUsage(supabase, profile.id, new Date());
+  // Single source of truth for the WHOLE cockpit: the same entitlement
+  // computation the quota gate uses (subscriptions row). The denormalized
+  // photographer_effective_tier view serves public/directory reads and can
+  // lag a heartbeat behind writes — mixing the two let one card contradict
+  // itself (∞ quota labeled "Standard-Plan").
+  const tier = quota.plan;
 
   const coverageCantons = details?.coverage_cantons ?? [];
   const disciplines = details?.disciplines ?? [];
@@ -389,8 +395,10 @@ export default async function HomePage() {
   }
 
   const bids = myBids ?? [];
-  const pending = bids.filter((b) => b.status === "pending").length;
   const accepted = bids.filter((b) => b.status === "accepted").length;
+  const wonSumChf = bids
+    .filter((b) => b.status === "accepted")
+    .reduce((sum, b) => sum + (b.amount_chf ?? 0), 0);
   const featured = open[0];
   const rest = open.slice(1, 7);
   const rate = acceptanceRate(bids);
@@ -468,49 +476,17 @@ export default async function HomePage() {
 
       <ProfileChecklist result={completeness} />
 
-      {bids.length > 0 && (
-        <StatStrip>
-          <Stat value={bids.length} label={t("statBids")} />
-          <Stat value={pending} label={t("statPending")} />
-          <Stat value={accepted} label={t("statAssigned")} />
-        </StatStrip>
-      )}
-
-      {showDashboard && (
-        <StatStrip>
-          <Stat value={views30d ?? 0} label={t("statViews30d")} />
-          <Stat
-            formatted={rate === null ? "—" : `${Math.round(rate * 100)} %`}
-            label={t("statApplicationRate")}
-          />
-          {tier === "premium" ? (
-            <Stat
-              formatted={
-                benchmark == null ? "—" : `${Math.round(Number(benchmark) * 100)} %`
-              }
-              label={t("statBenchmark")}
-            />
-          ) : (
-            <Link href="/pricing" className="press block bg-paper px-5 py-6">
-              <div className="text-4xl font-semibold tabular tracking-tight text-mute">
-                —
-              </div>
-              <div className="label mt-2 text-mute">
-                {t("statBenchmarkLocked")}
-              </div>
-            </Link>
-          )}
-        </StatStrip>
-      )}
-
-      {(tier === "free" || tier === "basic") && (
-        <Link
-          href="/pricing"
-          className="press block border border-line px-4 py-3 text-sm text-mute hover:text-ink"
-        >
-          {t("dashboardUpsell")}
-        </Link>
-      )}
+      <PhotographerCockpit
+        tier={tier}
+        quotaUsed={quota.used}
+        quotaLimit={quota.limit}
+        wonCount={accepted}
+        wonSumChf={wonSumChf}
+        totalBids={bids.length}
+        views30d={views30d}
+        benchmark={benchmark == null ? null : Number(benchmark)}
+        ownRate={rate}
+      />
 
       {bids.length === 0 && (
         <HowItWorks heading={t("howItWorks")} steps={steps} />
@@ -527,7 +503,20 @@ export default async function HomePage() {
           }
         />
         {rest.length === 0 ? (
-          <p className="text-mute">{t("none")}</p>
+          // Guidance instead of a bare "nothing here": an incomplete profile
+          // is the usual cause of an empty personalized feed — say so and
+          // link the fix; a complete profile just waits for new shoots.
+          coverageCantons.length === 0 ||
+          (details?.specialties ?? []).length === 0 ? (
+            <Link
+              href="/profile#profile.pro-cantons"
+              className="press block border border-dashed border-line px-5 py-6 text-[14px] text-mute hover:text-ink"
+            >
+              {t("openEmptyIncomplete")} <span className="text-accent">→</span>
+            </Link>
+          ) : (
+            <p className="text-[14px] text-mute">{t("openEmptyWaiting")}</p>
+          )
         ) : (
           <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((s) => (
