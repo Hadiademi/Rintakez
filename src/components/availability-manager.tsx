@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toaster";
 
 export function AvailabilityManager({ initial }: { initial: string[] }) {
   const t = useTranslations("profile");
+  const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
   const tToast = useTranslations("toast");
   const { toast } = useToast();
@@ -29,8 +30,12 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
     setValue("");
     startTransition(async () => {
       const res = await addUnavailableDate(date);
-      if (!res.ok) setDates((prev) => prev.filter((d) => d !== date));
-      else {
+      if (!res.ok) {
+        // Revert AND say so — a silent revert means the photographer believes
+        // the date is blocked while accept_bid will happily book them on it.
+        setDates((prev) => prev.filter((d) => d !== date));
+        toast(tErr("generic"));
+      } else {
         toast(tToast("availabilitySaved"));
         router.refresh();
       }
@@ -41,8 +46,10 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
     setDates((prev) => prev.filter((d) => d !== date));
     startTransition(async () => {
       const res = await removeUnavailableDate(date);
-      if (!res.ok) setDates((prev) => [...prev, date].sort());
-      else router.refresh();
+      if (!res.ok) {
+        setDates((prev) => [...prev, date].sort());
+        toast(tErr("generic"));
+      } else router.refresh();
     });
   }
 

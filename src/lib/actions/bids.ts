@@ -35,6 +35,23 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
   // so a capped photographer cannot withdraw-and-rebid to dodge the limit.
   const { used, limit } = await getBidQuotaUsage(supabase, profile.id, new Date());
   if (used >= limit) return { ok: false, error: "quota_reached" };
+  // Pre-check the shoot is still biddable so the common race (client accepted
+  // someone else / date passed while the photographer composed their offer)
+  // gets a real answer instead of the RLS with-check failing into "generic".
+  // RLS remains the enforcement; this is UX. The insert's 42501 below catches
+  // the window between this read and the write.
+  const { data: shootRow } = await supabase
+    .from("shoots")
+    .select("status, shoot_date")
+    .eq("id", shootId)
+    .maybeSingle();
+  if (
+    !shootRow ||
+    shootRow.status !== "open" ||
+    shootRow.shoot_date < new Date().toISOString().slice(0, 10)
+  ) {
+    return { ok: false, error: "shoot_closed" };
+  }
   const { error } = await supabase.from("bids").insert({
     shoot_id: shootId,
     photographer_id: profile.id,
@@ -62,6 +79,10 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
       if (!revived || revived.length === 0)
         return { ok: false, error: "already_bid" };
       // Revived — fall through to the email + revalidate below.
+    } else if (error.code === "42501") {
+      // RLS with-check refusal on this insert means the shoot stopped being
+      // biddable in the window since the pre-check above — same user answer.
+      return { ok: false, error: "shoot_closed" };
     } else {
       return { ok: false, error: dbError(error, "bids") };
     }

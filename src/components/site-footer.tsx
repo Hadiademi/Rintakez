@@ -13,6 +13,12 @@ export async function SiteFooter() {
         <span className="label text-mute">© 2026 Framly</span>
         <nav className="flex items-center gap-5">
           <Link
+            href="/contact"
+            className="label text-mute hover:text-ink transition-colors"
+          >
+            {t("footerContact")}
+          </Link>
+          <Link
             href="/impressum"
             className="label text-mute hover:text-ink transition-colors"
           >

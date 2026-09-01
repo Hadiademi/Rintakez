@@ -128,7 +128,27 @@ export default async function BrowseShootsPage({
 
         <div>
           {list.length === 0 ? (
-            <EmptyState description={t("empty")} />
+            // Cold start (no filters, table simply empty) must not blame the
+            // user's filters — say honestly that the marketplace is young and
+            // point photographers at the one thing that pays off meanwhile.
+            !canton && !type && !discipline && !budgetMax && !q ? (
+              <EmptyState
+                title={t("emptyColdTitle")}
+                description={t("emptyColdBody")}
+                action={
+                  profile?.role === "photographer" ? (
+                    <Link
+                      href="/profile"
+                      className="press inline-block bg-ink px-4 py-2.5 label text-paper"
+                    >
+                      {t("emptyColdCta")}
+                    </Link>
+                  ) : undefined
+                }
+              />
+            ) : (
+              <EmptyState description={t("empty")} />
+            )
           ) : (
             <div
               data-testid="browse-list"

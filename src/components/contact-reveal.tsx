@@ -7,9 +7,25 @@ export async function ContactReveal({ shootId }: { shootId: string }) {
     p_shoot_id: shootId,
   });
 
-  if (error || !data) return null;
-
   const t = await getTranslations("shootDetail");
+
+  // No data without an error = the caller isn't entitled (no accepted bid
+  // linking the parties) — correctly render nothing. A transient RPC FAILURE
+  // is different: silently hiding the section made the core payoff of an
+  // accepted bid simply not exist on the page. Show the section with an
+  // explanatory line instead.
+  if (error) {
+    return (
+      <section
+        data-testid="contact-reveal"
+        className="border border-line bg-surface p-6"
+      >
+        <h2 className="label text-mute">{t("contactTitle")}</h2>
+        <p className="mt-2 text-sm text-accent">{t("contactError")}</p>
+      </section>
+    );
+  }
+  if (!data) return null;
 
   return (
     <section

@@ -25,6 +25,13 @@ const KNOWN = new Set([
   "price_unavailable",
   "no_customer",
   "billing_cancel_failed",
+  // Distinguishable marketplace refusals (accept_bid raises + bid pre-check).
+  "shoot_closed",
+  "bid_not_acceptable",
+  "photographer_suspended",
+  "discipline_mismatch",
+  "photographer_unavailable",
+  "photographer_already_booked",
 ]);
 
 /** Map an action error string to a stable i18n key under the `errors` namespace.

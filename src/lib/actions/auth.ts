@@ -40,6 +40,15 @@ export async function registerAction(raw: unknown): Promise<RegisterResult> {
       return { ok: false, error: "email_taken" };
     return { ok: false, error: dbError(error, "auth") };
   }
+  // Hosted Supabase with confirmations + enumeration protection does NOT
+  // error on a duplicate email: it returns 200 with an obfuscated user whose
+  // identities array is EMPTY (and sends no email). Without this check the
+  // duplicate registrant is told "check your inbox" and waits forever. The
+  // register UX already names email_taken deliberately, so surfacing it here
+  // is consistent with the error-code branch above.
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return { ok: false, error: "email_taken" };
+  }
   // When local confirmations are disabled, signUp returns a live session and
   // would auto-log-in the user. We instead send them to the login page, so the
   // session is torn down here before returning.

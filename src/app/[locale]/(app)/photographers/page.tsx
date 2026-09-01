@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -175,7 +176,26 @@ export default async function PhotographersDirectoryPage({
 
         <div className="mt-6 space-y-8 lg:mt-0">
           {total === 0 ? (
-            <EmptyState description={t("empty")} />
+            // Cold start vs filtered-out: with no filters active, an empty
+            // directory means the marketplace is young — say so and route the
+            // visitor to the action that creates liquidity (posting a shoot),
+            // instead of blaming filters they never touched.
+            !type && !canton && !discipline && !minRating && !saved && !verified && !query ? (
+              <EmptyState
+                title={t("emptyColdTitle")}
+                description={t("emptyColdBody")}
+                action={
+                  <Link
+                    href="/shoots/new"
+                    className="press inline-block bg-ink px-4 py-2.5 label text-paper"
+                  >
+                    {t("emptyColdCta")}
+                  </Link>
+                }
+              />
+            ) : (
+              <EmptyState description={t("empty")} />
+            )
           ) : (
             <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
               {pageItems.map((x) => {

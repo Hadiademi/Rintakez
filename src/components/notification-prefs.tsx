@@ -55,6 +55,7 @@ export function NotificationPrefs({
   notifyMessages: boolean;
 }) {
   const t = useTranslations("profile");
+  const tErr = useTranslations("errors");
   const { toast } = useToast();
   const [bids, setBids] = useState(notifyBids);
   const [shoots, setShoots] = useState(notifyShootUpdates);
@@ -73,6 +74,14 @@ export function NotificationPrefs({
       if (r.ok) {
         setSaved(true);
         toast(t("prefsSaved"));
+      } else {
+        // Revert the optimistic flips and SAY so — a silently failed save
+        // left the UI showing "off" while emails kept arriving, which trains
+        // users to hit "mark as spam" instead of retrying the toggle.
+        setBids(notifyBids);
+        setShoots(notifyShootUpdates);
+        setMsgs(notifyMessages);
+        toast(tErr("generic"));
       }
     });
   }

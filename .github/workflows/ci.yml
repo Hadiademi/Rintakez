@@ -43,6 +43,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Supply-chain gate: fail on known HIGH/CRITICAL vulnerabilities in
+      # production dependencies. Dev-only advisories don't block (they don't
+      # ship), and moderate/low stay visible in Dependabot without gating.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Typecheck
         run: npm run typecheck
 
