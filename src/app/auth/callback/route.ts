@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeLocale, safeRedirectTarget } from "@/lib/safe-redirect";
 
 // A freshly-created OAuth user is one whose account was minted by this very
 // code exchange; created_at is therefore within seconds of now. Email signups
@@ -19,8 +20,12 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const role = searchParams.get("role");
-  const locale = searchParams.get("locale") ?? "de";
-  const next = searchParams.get("next") ?? `/${locale}/home`;
+  // Both query values are attacker-controllable (the whole callback URL can be
+  // handed to a victim), so neither is trusted: `locale` is narrowed to one we
+  // serve, and `next` is forced back on-origin. Previously `next` was passed
+  // straight to `new URL(next, origin)`, which an absolute URL overrides —
+  // i.e. an open redirect laundered through a genuine, successful Google login.
+  const locale = safeLocale(searchParams.get("locale"));
 
   if (code) {
     const supabase = await createClient();
@@ -37,11 +42,17 @@ export async function GET(request: NextRequest) {
         !!user?.created_at &&
         Date.now() - new Date(user.created_at).getTime() < NEW_USER_WINDOW_MS;
 
-      const target = new URL(next, origin);
+      const target = safeRedirectTarget(
+        searchParams.get("next"),
+        origin,
+        `/${locale}/home`
+      );
       if (isNewUser) target.searchParams.set("signup", "1");
       return NextResponse.redirect(target);
     }
   }
 
-  return NextResponse.redirect(`${origin}/${locale}/login?error=oauth`);
+  return NextResponse.redirect(
+    new URL(`/${locale}/login?error=oauth`, origin)
+  );
 }

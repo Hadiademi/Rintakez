@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeLocale, safeRedirectTarget } from "@/lib/safe-redirect";
 
 /**
  * Email-link confirmation via token_hash + verifyOtp — the SSR-safe flow for
@@ -21,11 +22,15 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const locale = searchParams.get("locale") ?? "de";
-  const rawNext = searchParams.get("next") ?? `/${locale}/home`;
-
-  let target = new URL(rawNext, origin);
-  if (target.origin !== origin) target = new URL(`/${locale}/home`, origin);
+  // The inline origin check that used to live here now lives in
+  // safe-redirect.ts, shared with /auth/callback (which was missing it).
+  // Behaviour is unchanged; `locale` is additionally narrowed to a served one.
+  const locale = safeLocale(searchParams.get("locale"));
+  const target = safeRedirectTarget(
+    searchParams.get("next"),
+    origin,
+    `/${locale}/home`
+  );
 
   if (token_hash && type) {
     const supabase = await createClient();
