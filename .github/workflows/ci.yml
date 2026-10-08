@@ -3,9 +3,15 @@
 # the local "gates before done" in CLAUDE.md, so a push that would break the
 # auto-deploy fails HERE first.
 #
-# Deliberately phase 1: no pgTAP (needs a local Supabase stack) and no
-# Playwright e2e — both stay local for now; add them as a second job when they
-# earn their CI minutes.
+# The `database` job below runs the pgTAP suite against a real Postgres. It is
+# separate from `gates` on purpose: it needs a full Supabase stack (~2-3 min to
+# boot), so keeping it parallel means the fast feedback from typecheck/lint/
+# tests still arrives in about a minute.
+#
+# Playwright e2e is still deliberately local-only: it needs a seeded database
+# AND a running dev server, and the specs share one login (see
+# playwright.config.ts — workers: 1), so it is slow and not yet worth the CI
+# minutes. Add it as a third job when it earns them.
 #
 # The build needs no real secrets: Supabase URLs/keys are read at request time
 # in prod, so dummy values satisfy the build-time inlining (verified locally
@@ -60,3 +66,31 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # ── database (pgTAP) ────────────────────────────────────────────────
+  # The RLS policies, column-scoped grants, SECURITY DEFINER functions and the
+  # accept_bid transaction are the security boundary of this app, and the 33
+  # pgTAP suites are the only thing that proves they still hold. Running them
+  # only when a human remembers meant a policy regression in a new migration
+  # could reach production having never been executed. Now every push runs them.
+  #
+  # `supabase start` applies every migration to a fresh stack, so no separate
+  # `db reset` is needed here (unlike locally, where the database persists
+  # between runs — see CLAUDE.md). seed.sql runs as part of start, which is
+  # correct for a throwaway CI database and never touches production.
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase (applies all migrations)
+        run: supabase start
+
+      - name: pgTAP suite
+        run: supabase test db
