@@ -6,7 +6,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(9);
+select plan(11);
 
 -- ── 1-2: catalog-wide hygiene ───────────────────────────────────────────
 select is(
@@ -25,6 +25,26 @@ select is(
        or has_table_privilege('authenticated', c.oid, 'TRUNCATE'))),
   0,
   'no app role can TRUNCATE any public table (TRUNCATE bypasses RLS)'
+);
+
+-- Server-only functions by naming convention: cron candidate readers
+-- (lifecycle_*) and admin aggregates (admin_*) must be service-role only.
+-- Supabase's default ACL grants EXECUTE on new functions to anon and
+-- authenticated EXPLICITLY, so `revoke ... from public` alone does not close
+-- them — this assertion covers every current and future function so named.
+select is(
+  (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and (p.proname like 'lifecycle\_%' or p.proname like 'admin\_%')
+     and has_function_privilege('anon', p.oid, 'EXECUTE')),
+  0,
+  'anon cannot execute any lifecycle_* / admin_* server-only function'
+);
+select is(
+  (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and (p.proname like 'lifecycle\_%' or p.proname like 'admin\_%')
+     and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
+  0,
+  'authenticated cannot execute any lifecycle_* / admin_* server-only function'
 );
 
 -- ── 3-6: column scope is real, not overridden by a table-level grant ─────
