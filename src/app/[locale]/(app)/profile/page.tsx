@@ -123,44 +123,6 @@ export default async function ProfilePage() {
 
   const isPhotographer = profile.role === "photographer";
 
-  const { data: details } = isPhotographer
-    ? await supabase
-        .from("photographer_details")
-        .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines, cover_path"
-        )
-        .eq("profile_id", profile.id)
-        .maybeSingle()
-    : { data: null };
-
-  const { data: rawImages } = isPhotographer
-    ? await supabase
-        .from("portfolio_images")
-        .select("id, storage_path, caption")
-        .eq("photographer_id", profile.id)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true })
-    : { data: [] };
-
-  const { data: unavailableRows } = isPhotographer
-    ? await supabase
-        .from("photographer_unavailable")
-        .select("date")
-        .eq("photographer_id", profile.id)
-        .order("date", { ascending: true })
-    : { data: [] };
-  const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
-
-  // The photographer's own reviews — so they can post a single public reply.
-  const { data: reviewRows } = isPhotographer
-    ? await supabase
-        .from("reviews")
-        .select("id, rating, comment, created_at, reply, reply_at")
-        .eq("photographer_id", profile.id)
-        .order("created_at", { ascending: false })
-    : { data: [] };
-  const reviews = reviewRows ?? [];
-
   // Billing tab (photographer only) — one extra query for the subscriptions
   // row (source of cancel_at_period_end / stripe_customer_id, which
   // getEntitlement() doesn't expose), reusing the same pure effectivePlan()
@@ -175,20 +137,69 @@ export default async function ProfilePage() {
     stripe_customer_id: string | null;
   } | null;
 
-  const { data: subRow } = isPhotographer
-    ? ((await supabase
-        .from("subscriptions")
-        .select(
-          "plan, status, source, current_period_end, comp_until, cancel_at_period_end, stripe_customer_id"
-        )
-        .eq("user_id", profile.id)
-        .maybeSingle()) as { data: BillingSubRow })
-    : { data: null as BillingSubRow };
+  // These six reads are independent of each other, so they run together rather
+  // than as a six-deep await chain — on the profile page that was six
+  // serialised round trips to Zurich before the first byte of markup. The
+  // non-photographer branches resolve to the same empty shapes the sequential
+  // version produced, so behaviour is unchanged.
+  const [
+    { data: details },
+    { data: rawImages },
+    { data: unavailableRows },
+    { data: reviewRows },
+    subResult,
+    quota,
+  ] = await Promise.all([
+    isPhotographer
+      ? supabase
+          .from("photographer_details")
+          .select(
+            "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines, cover_path"
+          )
+          .eq("profile_id", profile.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    isPhotographer
+      ? supabase
+          .from("portfolio_images")
+          .select("id, storage_path, caption")
+          .eq("photographer_id", profile.id)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [] }),
+    isPhotographer
+      ? supabase
+          .from("photographer_unavailable")
+          .select("date")
+          .eq("photographer_id", profile.id)
+          .order("date", { ascending: true })
+      : Promise.resolve({ data: [] }),
+    // The photographer's own reviews — so they can post a single public reply.
+    isPhotographer
+      ? supabase
+          .from("reviews")
+          .select("id, rating, comment, created_at, reply, reply_at")
+          .eq("photographer_id", profile.id)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    isPhotographer
+      ? (supabase
+          .from("subscriptions")
+          .select(
+            "plan, status, source, current_period_end, comp_until, cancel_at_period_end, stripe_customer_id"
+          )
+          .eq("user_id", profile.id)
+          .maybeSingle() as unknown as Promise<{ data: BillingSubRow }>)
+      : Promise.resolve({ data: null as BillingSubRow }),
+    isPhotographer
+      ? getBidQuotaUsage(supabase, profile.id, new Date())
+      : Promise.resolve(null),
+  ]);
 
+  const unavailableDates = (unavailableRows ?? []).map((r) => r.date);
+  const reviews = reviewRows ?? [];
+  const subRow = subResult.data;
   const entitlement = isPhotographer ? effectivePlan(subRow, new Date()) : null;
-  const quota = isPhotographer
-    ? await getBidQuotaUsage(supabase, profile.id, new Date())
-    : null;
 
   const portfolioImages = (rawImages ?? []).map((img) => ({
     id: img.id,
