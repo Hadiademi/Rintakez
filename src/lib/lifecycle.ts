@@ -7,14 +7,22 @@ import { photographerMatchesShoot } from "@/lib/shoot-match";
 // Lifecycle emails (Task C2): periodic scans that catch silent-churn points
 // the transactional triggers don't cover — a photographer who never finishes
 // onboarding, a shoot nobody bid on, a completed shoot nobody reviewed. Each
-// scan is a plain SELECT for eligible subjects, run from the existing cron
-// (see /api/cron/process), enqueuing an email_outbox row per subject. Unlike
+// scan asks the database for eligible subjects, runs from the existing cron
+// (see /api/cron/process), and enqueues an email_outbox row per subject. Unlike
 // the transactional emails (fired once, from the action that causes them),
 // these scans re-run on every cron tick and would re-match the same subject
 // forever without a guard — so each send is paired with an insert into
-// public.lifecycle_email_log (kind, subject_id), and the SELECT excludes
-// subjects already present there. That table is service-role only (see
+// public.lifecycle_email_log (kind, subject_id), and the candidate query
+// excludes subjects already present there. That table is service-role only (see
 // 20260701080000_lifecycle_markers.sql), matching email_outbox's posture.
+//
+// The three cron scans below select candidates through SECURITY DEFINER
+// functions (20260903120000_lifecycle_scan_candidates.sql) rather than
+// assembling the predicate here. That is deliberate and load-bearing: the
+// exclusion of already-notified subjects has to happen BEFORE the row limit.
+// When it ran as a JavaScript filter afterwards, accumulated already-notified
+// subjects consumed the whole batch and new ones were never reached — the
+// scans quietly stopped sending while still reporting success.
 //
 // N days are small named constants rather than env/config — they are product
 // behavior, not deployment config, and keeping them in code keeps the scan
@@ -52,15 +60,14 @@ const ONBOARDING_REMINDER_DAYS = 3;
 const ZERO_BID_RESCUE_DAYS = 3;
 const REVIEW_REQUEST_DAYS = 5;
 
-// Bids in these statuses still count as "the shoot has a live bid" — a
-// withdrawn (or declined) bid must NOT protect a shoot from the zero-bid
-// rescue email, since from the client's perspective they still have nobody
-// actively bidding. Mirrors withdrawBidAction, which sets status='withdrawn'
-// rather than deleting the row.
-const ACTIVE_BID_STATUSES = ["pending", "accepted"] as const;
-
 // Bound each scan's work per cron tick so a large backlog (or a bug) cannot
-// turn one invocation into an unbounded scan + fan-out.
+// turn one invocation into an unbounded scan + fan-out. Since the candidate
+// queries moved into SQL (20260903120000_lifecycle_scan_candidates.sql) this
+// is a pure THROUGHPUT bound: every exclusion is applied before the limit, so
+// a full batch means "more to do next tick", never "new subjects starved".
+//
+// (The "which bid statuses count as live" rule that used to live here now
+// sits in lifecycle_zero_bid_candidates() next to the anti-join that uses it.)
 const BATCH_LIMIT = 100;
 
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
@@ -114,28 +121,18 @@ async function scanOnboardingReminder(admin: AdminClient): Promise<number> {
     Date.now() - ONBOARDING_REMINDER_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: candidates } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("role", "photographer")
-    .eq("is_suspended", false)
-    .lt("created_at", cutoff)
-    .limit(BATCH_LIMIT);
-  if (!candidates || candidates.length === 0) return 0;
-
-  const ids = candidates.map((c) => c.id);
-
-  const { data: withDetails } = await admin
-    .from("photographer_details")
-    .select("profile_id")
-    .in("profile_id", ids);
-  const hasDetails = new Set((withDetails ?? []).map((d) => d.profile_id));
-
-  const logged = await alreadyLogged(admin, "onboarding_reminder", ids);
-
-  const eligibleIds = ids.filter(
-    (id) => !hasDetails.has(id) && !logged.has(id)
+  // Candidate selection (including the "not already notified" exclusion, the
+  // missing-details check and the suspension filter) happens in SQL — see
+  // 20260903120000_lifecycle_scan_candidates.sql. It used to be a `.limit()`
+  // followed by a JavaScript filter, which meant the limit was consumed by
+  // already-notified subjects and new ones were never reached.
+  const { data: candidates, error } = await admin.rpc(
+    "lifecycle_onboarding_candidates",
+    { p_cutoff: cutoff, p_limit: BATCH_LIMIT }
   );
+  if (error) throw error;
+
+  const eligibleIds = (candidates ?? []).map((c) => c.profile_id);
   if (eligibleIds.length === 0) return 0;
 
   // Bulk insert: enqueue the email for the whole batch first, then write the
@@ -173,51 +170,24 @@ async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
     Date.now() - ZERO_BID_RESCUE_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: candidates } = await admin
-    .from("shoots")
-    .select("id, client_id, title")
-    .eq("status", "open")
-    .lt("created_at", cutoff)
-    .limit(BATCH_LIMIT);
-  if (!candidates || candidates.length === 0) return 0;
-
-  const ids = candidates.map((c) => c.id);
-
-  const { data: bidRows } = await admin
-    .from("bids")
-    .select("shoot_id")
-    .in("shoot_id", ids)
-    .in("status", ACTIVE_BID_STATUSES);
-  const hasActiveBids = new Set((bidRows ?? []).map((b) => b.shoot_id));
-
-  const logged = await alreadyLogged(admin, "zero_bid_rescue", ids);
-
-  const clientIds = [...new Set(candidates.map((c) => c.client_id))];
-  const suspendedClients = await suspendedIds(admin, clientIds);
-
-  const eligible = candidates.filter(
-    (shoot) =>
-      !hasActiveBids.has(shoot.id) &&
-      !logged.has(shoot.id) &&
-      !suspendedClients.has(shoot.client_id)
+  // One SQL query now covers what used to be four round trips plus a JS
+  // filter: the zero-active-bids anti-join, the already-notified exclusion,
+  // the suspension check and the notify_shoot_updates preference — all before
+  // the limit, so the batch bound throttles throughput instead of silently
+  // starving new shoots. See 20260903120000_lifecycle_scan_candidates.sql.
+  const { data: candidates, error } = await admin.rpc(
+    "lifecycle_zero_bid_candidates",
+    { p_cutoff: cutoff, p_limit: BATCH_LIMIT }
   );
-  if (eligible.length === 0) return 0;
+  if (error) throw error;
 
-  // Respect the client's shoot-update preference, same column/default
-  // notify_matching_photographers uses (coalesce(..., true)).
-  const prefEligibleIds = await filterByNotifyShootUpdates(
-    admin,
-    eligible.map((s) => s.client_id)
-  );
-  const finalEligible = eligible.filter((s) =>
-    prefEligibleIds.has(s.client_id)
-  );
+  const finalEligible = candidates ?? [];
   if (finalEligible.length === 0) return 0;
 
   const outboxRows = finalEligible.map((shoot) => ({
     recipient_id: shoot.client_id,
     kind: "zero_bid_rescue" as const,
-    shoot_id: shoot.id,
+    shoot_id: shoot.shoot_id,
     shoot_title: shoot.title,
   }));
   const { error: outboxError } = await admin
@@ -227,7 +197,7 @@ async function scanZeroBidRescue(admin: AdminClient): Promise<number> {
 
   const markerRows = finalEligible.map((shoot) => ({
     kind: "zero_bid_rescue",
-    subject_id: shoot.id,
+    subject_id: shoot.shoot_id,
   }));
   const { error: markerError } = await admin
     .from("lifecycle_email_log")
@@ -254,48 +224,22 @@ async function scanReviewRequest(admin: AdminClient): Promise<number> {
     Date.now() - REVIEW_REQUEST_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
-  const { data: candidates } = await admin
-    .from("shoots")
-    .select("id, client_id, title")
-    .eq("status", "completed")
-    .lt("completed_at", cutoff)
-    .limit(BATCH_LIMIT);
-  if (!candidates || candidates.length === 0) return 0;
-
-  const ids = candidates.map((c) => c.id);
-
-  const { data: reviewRows } = await admin
-    .from("reviews")
-    .select("shoot_id")
-    .in("shoot_id", ids);
-  const hasReview = new Set((reviewRows ?? []).map((r) => r.shoot_id));
-
-  const logged = await alreadyLogged(admin, "review_request", ids);
-
-  const clientIds = [...new Set(candidates.map((c) => c.client_id))];
-  const suspendedClients = await suspendedIds(admin, clientIds);
-
-  const eligible = candidates.filter(
-    (shoot) =>
-      !hasReview.has(shoot.id) &&
-      !logged.has(shoot.id) &&
-      !suspendedClients.has(shoot.client_id)
+  // Same shape as the zero-bid scan: the no-review anti-join, the
+  // already-notified exclusion, suspension and the notify_shoot_updates
+  // preference all resolve in SQL before the limit.
+  const { data: candidates, error } = await admin.rpc(
+    "lifecycle_review_request_candidates",
+    { p_cutoff: cutoff, p_limit: BATCH_LIMIT }
   );
-  if (eligible.length === 0) return 0;
+  if (error) throw error;
 
-  const prefEligibleIds = await filterByNotifyShootUpdates(
-    admin,
-    eligible.map((s) => s.client_id)
-  );
-  const finalEligible = eligible.filter((s) =>
-    prefEligibleIds.has(s.client_id)
-  );
+  const finalEligible = candidates ?? [];
   if (finalEligible.length === 0) return 0;
 
   const outboxRows = finalEligible.map((shoot) => ({
     recipient_id: shoot.client_id,
     kind: "review_request" as const,
-    shoot_id: shoot.id,
+    shoot_id: shoot.shoot_id,
     shoot_title: shoot.title,
   }));
   const { error: outboxError } = await admin
@@ -305,7 +249,7 @@ async function scanReviewRequest(admin: AdminClient): Promise<number> {
 
   const markerRows = finalEligible.map((shoot) => ({
     kind: "review_request",
-    subject_id: shoot.id,
+    subject_id: shoot.shoot_id,
   }));
   const { error: markerError } = await admin
     .from("lifecycle_email_log")

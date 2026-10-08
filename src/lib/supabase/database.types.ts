@@ -1152,6 +1152,28 @@ export type Database = {
         Args: { p_photographer_id: string; p_since?: string }
         Returns: number
       }
+      lifecycle_onboarding_candidates: {
+        Args: { p_cutoff: string; p_limit: number }
+        Returns: {
+          profile_id: string
+        }[]
+      }
+      lifecycle_review_request_candidates: {
+        Args: { p_cutoff: string; p_limit: number }
+        Returns: {
+          shoot_id: string
+          client_id: string
+          title: string
+        }[]
+      }
+      lifecycle_zero_bid_candidates: {
+        Args: { p_cutoff: string; p_limit: number }
+        Returns: {
+          shoot_id: string
+          client_id: string
+          title: string
+        }[]
+      }
       premium_profile_viewers: {
         Args: { p_since: string }
         Returns: {

@@ -273,11 +273,40 @@ const IMPRESSUM: Record<Locale, string> = {
 const ACCENT = "#C8462C";
 
 /**
+ * Escape a value for interpolation into the HTML template below. Every dynamic
+ * slot there is either text content or a DOUBLE-quoted attribute value, so
+ * `&`, `<`, `>` and `"` is the complete set — the template has no
+ * single-quoted attributes, which is why `'` is deliberately left alone (it
+ * would only add noise to copy like "hasn't"). `&` must be replaced first or
+ * it would double-escape the entities produced by the later replacements.
+ *
+ * Why this exists: `shoots.title` (3-120 chars) and `profiles.display_name`
+ * (1-80) carry no character constraint, so without escaping any registered
+ * client could put an arbitrary link into a Framly-branded, DKIM-signed email
+ * delivered to every matched photographer — phishing with our own domain
+ * reputation as the payload. Exported for unit tests.
+ */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
  * Branded transactional template. Email-client constraints shape everything
  * here: table layout + inline styles (Outlook ignores <style>), the wordmark
  * as styled TEXT (remote images are blocked by default in Gmail/Outlook — a
  * text wordmark always renders), and a hidden preheader span so inbox list
  * views show the lead instead of random body text.
+ *
+ * Every caller-supplied value is escaped ONCE, up front, into `safe` — the
+ * template below interpolates only from that object. Escaping at the single
+ * choke point rather than at each `${}` is deliberate: a new slot added later
+ * cannot silently ship unescaped. The plain-text alternative built by
+ * `render()` intentionally keeps the RAW values (entities would be shown
+ * literally in a text/plain part).
  */
 export function renderBrandedEmail(opts: {
   locale: Locale;
@@ -308,10 +337,29 @@ export function renderBrandedEmail(opts: {
         }
       : opts.footerLink;
 
+  // The single escaping choke point — see the doc comment above. Our own
+  // constants (tagline, Impressum label, site URL) go through it too: they are
+  // trusted, but routing everything through one path is what makes "did I
+  // escape this slot?" a question nobody has to ask again. It also fixes the
+  // bare `&` in "Foto & Video", which was never valid HTML.
+  const safe = {
+    lead: escapeHtml(lead),
+    cta: escapeHtml(cta),
+    url: escapeHtml(url),
+    greeting: escapeHtml(greeting),
+    detail: detail === null ? null : escapeHtml(detail),
+    body: body === null ? null : escapeHtml(body),
+    siteUrl: escapeHtml(SITE_URL),
+    tagline: escapeHtml(TAGLINE[locale]),
+    impressum: escapeHtml(IMPRESSUM[locale]),
+    footerHref: footerLink ? escapeHtml(footerLink.href) : "",
+    footerLabel: footerLink ? escapeHtml(footerLink.label) : "",
+  };
+
   return `<!DOCTYPE html>
 <html lang="${locale}">
 <body style="margin:0;padding:0;background:#f4f2ee">
-  <span style="display:none;max-height:0;overflow:hidden;mso-hide:all">${lead}</span>
+  <span style="display:none;max-height:0;overflow:hidden;mso-hide:all">${safe.lead}</span>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2ee">
     <tr><td align="center" style="padding:40px 16px">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px">
@@ -319,26 +367,26 @@ export function renderBrandedEmail(opts: {
           <span style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;letter-spacing:-.02em;color:#141414">Framly<span style="color:${ACCENT}">.</span></span>
         </td></tr>
         <tr><td style="background:#ffffff;border:1px solid #e6e2da;padding:36px 32px">
-          ${greeting ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:15px;color:#141414">${greeting}</p>` : ""}
-          <h1 style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:#141414">${lead}</h1>
-          ${detail ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 6px;font-size:14px;color:#6b6b6b">${detail}</p>` : ""}
-          ${body ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:14px 0 0;font-size:15px;line-height:1.6;color:#3d3d3d">${body}</p>` : ""}
+          ${safe.greeting ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:15px;color:#141414">${safe.greeting}</p>` : ""}
+          <h1 style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 10px;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:#141414">${safe.lead}</h1>
+          ${safe.detail ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0 0 6px;font-size:14px;color:#6b6b6b">${safe.detail}</p>` : ""}
+          ${safe.body ? `<p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:14px 0 0;font-size:15px;line-height:1.6;color:#3d3d3d">${safe.body}</p>` : ""}
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 0">
             <tr><td style="background:#141414">
-              <a href="${url}" style="font-family:Inter,Helvetica,Arial,sans-serif;display:inline-block;padding:13px 26px;font-size:14px;font-weight:500;color:#ffffff;text-decoration:none">${cta}</a>
+              <a href="${safe.url}" style="font-family:Inter,Helvetica,Arial,sans-serif;display:inline-block;padding:13px 26px;font-size:14px;font-weight:500;color:#ffffff;text-decoration:none">${safe.cta}</a>
             </td></tr>
           </table>
         </td></tr>
         <tr><td style="padding:20px 4px 0">
           <p style="font-family:Inter,Helvetica,Arial,sans-serif;margin:0;font-size:12px;line-height:1.7;color:#9a958c">
-            <span style="color:#6b6b6b">Framly</span> — ${TAGLINE[locale]}<br>
-            <a href="${SITE_URL}/${locale}" style="color:#9a958c;text-decoration:underline">framly.ch</a>
+            <span style="color:#6b6b6b">Framly</span> — ${safe.tagline}<br>
+            <a href="${safe.siteUrl}/${locale}" style="color:#9a958c;text-decoration:underline">framly.ch</a>
             &nbsp;·&nbsp;
-            <a href="${SITE_URL}/${locale}/impressum" style="color:#9a958c;text-decoration:underline">${IMPRESSUM[locale]}</a>${
+            <a href="${safe.siteUrl}/${locale}/impressum" style="color:#9a958c;text-decoration:underline">${safe.impressum}</a>${
               footerLink
                 ? `
             &nbsp;·&nbsp;
-            <a href="${footerLink.href}" style="color:#9a958c;text-decoration:underline">${footerLink.label}</a>`
+            <a href="${safe.footerHref}" style="color:#9a958c;text-decoration:underline">${safe.footerLabel}</a>`
                 : ""
             }
           </p>
