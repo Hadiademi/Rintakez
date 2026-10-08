@@ -97,6 +97,72 @@ describe("notifyEmail dedupe", () => {
   });
 });
 
+describe("render escapes user-controlled content", () => {
+  // shoots.title (3-120 chars) and profiles.display_name (1-80) have no
+  // character constraint, so both reach the email template as arbitrary text.
+  // Unescaped, any client could make Framly's own DKIM-signed domain deliver an
+  // attacker-authored link to every matched photographer.
+  it("escapes markup in the shoot title so an email cannot carry an injected link", async () => {
+    const { render } = await import("@/lib/email");
+    const evil = '<a href="https://evil.example">Bestaetigen</a>';
+    const { html, text } = render(
+      "bid_received",
+      "de",
+      "Marko",
+      evil,
+      "https://framly.ch/x"
+    );
+
+    expect(html).not.toContain('<a href="https://evil.example"');
+    expect(html).toContain("&lt;a href=&quot;https://evil.example&quot;&gt;");
+    // The plain-text alternative is not HTML — escaping there would show the
+    // entities literally to the reader, so it must stay raw.
+    expect(text).toContain(evil);
+  });
+
+  it("escapes markup in the display name", async () => {
+    const { render } = await import("@/lib/email");
+    const { html } = render(
+      "bid_accepted",
+      "en",
+      '<script>alert(1)</script>',
+      null,
+      "https://framly.ch/x"
+    );
+
+    expect(html).not.toContain("<script>");
+    expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("escapes the CTA url so it cannot break out of the href attribute", async () => {
+    const { render } = await import("@/lib/email");
+    const { html } = render(
+      "bid_received",
+      "de",
+      "Marko",
+      null,
+      'https://framly.ch/x" onmouseover="alert(1)'
+    );
+
+    expect(html).not.toContain('" onmouseover="');
+    expect(html).toContain("&quot; onmouseover=&quot;");
+  });
+
+  it("leaves ordinary titles readable — no double-escaping of plain text", async () => {
+    const { render } = await import("@/lib/email");
+    const { html } = render(
+      "bid_received",
+      "de",
+      "Marko",
+      "Hochzeit in Chur",
+      "https://framly.ch/x"
+    );
+
+    expect(html).toContain("Hochzeit in Chur");
+    expect(html).not.toContain("&amp;amp;");
+  });
+});
+
 describe("render (branded template)", () => {
   it("renders every kind in every locale with the brand invariants intact", async () => {
     const { render, COPY } = await import("@/lib/email");
