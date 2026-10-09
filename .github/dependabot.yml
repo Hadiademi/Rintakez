@@ -11,6 +11,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Major upgrades (TypeScript, ESLint, @types/node beyond the Node runtime…)
+    # change behaviour and are planned work, not weekly PRs that sit red for
+    # months. Security fixes still arrive via Dependabot security updates and
+    # the `npm audit` gate in CI.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
