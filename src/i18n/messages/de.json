@@ -836,7 +836,7 @@
     "attachPhoto": "Foto anhängen",
     "photoAlt": "Foto",
     "photoPreview": "📷 Foto",
-    "imageTooLarge": "Dieses Bild ist zu groß. Bitte wähle eines unter 5 MB.",
+    "imageTooLarge": "Dieses Bild ist zu gross. Bitte wähle eines unter 5 MB.",
     "imageInvalid": "Bitte wähle eine Bilddatei.",
     "filterAll": "Alle",
     "filterUnread": "Ungelesen",
@@ -1011,7 +1011,7 @@
     "emptyJoin": "Als Fotograf:in registrieren"
   },
   "toast": {
-    "dismiss": "Schließen",
+    "dismiss": "Schliessen",
     "bidSubmitted": "Angebot gesendet",
     "bidWithdrawn": "Angebot zurückgezogen",
     "reviewSubmitted": "Bewertung gesendet",
@@ -1039,12 +1039,12 @@
       "title": "Framly installieren",
       "body": "Füge die App zum Startbildschirm hinzu — schneller Zugriff und Vollbild.",
       "action": "Installieren",
-      "dismiss": "Schließen"
+      "dismiss": "Schliessen"
     },
     "ios": {
       "title": "Framly zum Home-Bildschirm hinzufügen",
       "body": "Tippe auf das Teilen-Symbol und wähle „Zum Home-Bildschirm“.",
-      "dismiss": "Schließen"
+      "dismiss": "Schliessen"
     }
   },
   "contact": {
