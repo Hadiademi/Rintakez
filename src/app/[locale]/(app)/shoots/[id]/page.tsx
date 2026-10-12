@@ -13,6 +13,7 @@ import { ShootStepper, type StepperHint } from "@/components/shoot-stepper";
 import { SectionLabel } from "@/components/section-label";
 import { Avatar } from "@/components/ui/avatar";
 import { BidCard, type BidCardData } from "@/components/bid-card";
+import { BidCompare, type BidCompareItem } from "@/components/bid-compare";
 import { ShootRefGallery } from "@/components/shoot-ref-gallery";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
@@ -600,6 +601,38 @@ export default async function ShootDetailPage({
       : false,
   }));
 
+  // With two or more open offers the owner gets the side-by-side comparison
+  // (sortable by price / rating / newest). It needs each bidder's completed
+  // count too; bidders per shoot are few, so one small RPC each, in parallel.
+  const compareItems: BidCompareItem[] | null =
+    canManageBids && visibleBids.length >= 2
+      ? await Promise.all(
+          visibleBids.map(async (b) => {
+            const pid = b.photographer?.id;
+            const { data: completed } = pid
+              ? await supabase.rpc("photographer_completed_shoots_count", { p_photographer_id: pid })
+              : { data: 0 };
+            return {
+              id: b.id,
+              amount_chf: b.amount_chf,
+              message: b.message,
+              createdAt: b.created_at,
+              photographer: b.photographer
+                ? {
+                    id: b.photographer.id,
+                    display_name: b.photographer.display_name,
+                    avatarUrl: toAvatarUrl(b.photographer.avatar_url),
+                    verified: verifiedBy.get(b.photographer.id) ?? false,
+                    memberSinceYear: new Date(b.photographer.created_at).getFullYear(),
+                  }
+                : null,
+              rating: (b.photographer && ratingBy.get(b.photographer.id)) || { avg: 0, count: 0 },
+              completedShoots: Number(completed ?? 0),
+            };
+          })
+        )
+      : null;
+
   // Existing review (owner, completed shoot).
   const { data: myReview } =
     shoot.status === "completed"
@@ -718,9 +751,13 @@ export default async function ShootDetailPage({
           </p>
         ) : (
           <div data-testid="bids-list" className="space-y-4">
-            {bidCards.map((bid) => (
-              <BidCard key={bid.id} bid={bid} canManage={canManageBids} />
-            ))}
+            {compareItems ? (
+              <BidCompare bids={compareItems} />
+            ) : (
+              bidCards.map((bid) => (
+                <BidCard key={bid.id} bid={bid} canManage={canManageBids} />
+              ))
+            )}
             {hiddenBidCount > 0 ? (
               <p className="text-[13px] text-mute-2">
                 {t("pastOffers", { count: hiddenBidCount })}
