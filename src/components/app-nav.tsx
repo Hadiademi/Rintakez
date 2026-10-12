@@ -79,7 +79,7 @@ export async function AppNav({
 
           {/* Right cluster */}
           <div className="flex items-center gap-3 shrink-0">
-            <LocaleSwitcher />
+            <LocaleSwitcher persist />
             <ThemeToggle />
             <NotificationBell
               userId={userId}
@@ -147,7 +147,7 @@ export async function AppNav({
               initialItems={notifItems}
               initialUnread={notifUnread}
             />
-            <LocaleSwitcher />
+            <LocaleSwitcher persist />
             <ThemeToggle />
             <SignOutButton showTestId={false} />
           </div>

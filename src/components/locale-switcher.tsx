@@ -3,8 +3,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { setPreferredLocale } from "@/lib/actions/settings";
 
-export function LocaleSwitcher() {
+/**
+ * `persist` (signed-in surfaces): the choice also becomes the account's
+ * language for emails and notifications (profiles.locale).
+ */
+export function LocaleSwitcher({ persist = false }: { persist?: boolean }) {
   const locale = useLocale();
   const pathname = usePathname();
   const t = useTranslations("common");
@@ -12,8 +17,12 @@ export function LocaleSwitcher() {
   // Hard navigation (full reload) rather than a soft router push: switching the
   // [locale] segment would otherwise re-render the root layout on the client,
   // and React 19 errors on the inline theme <script> there.
-  function changeLocale(next: string) {
+  async function changeLocale(next: string) {
     if (next === locale) return;
+    if (persist) {
+      // Best-effort: saving the preference must never block the switch.
+      await setPreferredLocale(next).catch(() => undefined);
+    }
     window.location.assign(`/${next}${pathname === "/" ? "" : pathname}`);
   }
 

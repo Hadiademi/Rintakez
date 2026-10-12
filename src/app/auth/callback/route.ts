@@ -14,7 +14,8 @@ const NEW_USER_WINDOW_MS = 60_000;
  * new OAuth user — applies the role chosen on the register page (no-op for
  * existing/confirmed users, enforced in set_initial_role) and appends a
  * one-shot `?signup=1` flag so the landing can fire the `signup` analytics
- * event. Locale-agnostic by design; it redirects into the locale-prefixed app.
+ * event, and stores the page language as the new account's email language.
+ * It redirects into the locale-prefixed app.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -41,6 +42,12 @@ export async function GET(request: NextRequest) {
       const isNewUser =
         !!user?.created_at &&
         Date.now() - new Date(user.created_at).getTime() < NEW_USER_WINDOW_MS;
+      if (user && isNewUser) {
+        // An OAuth signup carries no language, so handle_new_user stored the
+        // default. Keep the page's language instead: it drives every email.
+        // Returning users keep the language they chose.
+        await supabase.from("profiles").update({ locale }).eq("id", user.id);
+      }
 
       const target = safeRedirectTarget(
         searchParams.get("next"),

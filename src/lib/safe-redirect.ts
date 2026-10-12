@@ -1,4 +1,4 @@
-import { routing } from "@/i18n/routing";
+import { routing, type Locale } from "@/i18n/routing";
 
 /**
  * Shared open-redirect guard for the two auth routes that take a destination
@@ -28,8 +28,8 @@ const LOCALES: readonly string[] = routing.locales;
  * made the path structure attacker-influenced. Anything unrecognised falls
  * back to the app's default locale.
  */
-export function safeLocale(raw: string | null | undefined): string {
-  return raw && LOCALES.includes(raw) ? raw : routing.defaultLocale;
+export function safeLocale(raw: string | null | undefined): Locale {
+  return raw && LOCALES.includes(raw) ? (raw as Locale) : routing.defaultLocale;
 }
 
 /**

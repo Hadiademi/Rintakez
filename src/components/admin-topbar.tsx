@@ -17,7 +17,7 @@ export async function AdminTopbar({
       {leading}
       <span className="label text-mute-2">{t("badgeAdmin")}</span>
       <div className="ml-auto flex items-center gap-3">
-        <LocaleSwitcher />
+        <LocaleSwitcher persist />
         <ThemeToggle />
         <Link
           href="/home"
