@@ -158,7 +158,7 @@ export default async function Home({
           <span className="hidden sm:inline-flex">
             <ThemeToggle />
           </span>
-          <LocaleSwitcher />
+          <LocaleSwitcher persist={!!profile} />
         </div>
       </header>
       <div className="h-px bg-line" />
