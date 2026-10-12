@@ -77,12 +77,7 @@ function isStoragePath(value: string): boolean {
 
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
 
-/**
- * Recursively collect every object path under a storage prefix. Storage `list`
- * returns nested folders as entries with a null id; we descend into them so
- * nested objects (e.g. `<uid>/cover/...`, `<uid>/<shootId>/...`) are not left
- * behind. Throws on any listing error so the caller can fail safe.
- */
+/** Remove every object under `prefix` (recursively). Throws on any error. */
 async function removeStorageFolder(admin: AdminClient, bucket: string, prefix: string) {
   const paths = await collectStoragePaths(admin, bucket, prefix);
   if (paths.length === 0) return;
@@ -90,6 +85,12 @@ async function removeStorageFolder(admin: AdminClient, bucket: string, prefix: s
   if (error) throw error;
 }
 
+/**
+ * Recursively collect every object path under a storage prefix. Storage `list`
+ * returns nested folders as entries with a null id; we descend into them so
+ * nested objects (e.g. `<uid>/cover/...`, `<uid>/<shootId>/...`) are not left
+ * behind. Throws on any listing error so the caller can fail safe.
+ */
 async function collectStoragePaths(
   admin: AdminClient,
   bucket: string,
@@ -172,34 +173,50 @@ export async function uploadAvatar(
   return { ok: true, url: urlData.publicUrl };
 }
 
+const SUBSCRIPTION_ENDED = new Set(["canceled", "incomplete_expired"]);
+
+/**
+ * Cancel every Stripe subscription of this user that can still charge.
+ * Stripe is the source of truth (our row can lag behind a webhook), and the
+ * customer may hold more than the subscription on file: an older past_due
+ * one survives a re-checkout, and a new one may exist before its webhook
+ * landed. With a customer id we list them all; otherwise we check the one id
+ * we have. Ids Stripe does not know (e.g. from the test-mode period) bill
+ * nothing in this account: we proceed but report it. Any other failure
+ * throws, and the caller aborts the deletion.
+ */
+async function cancelLiveSubscriptions(
+  stripe: NonNullable<ReturnType<typeof getStripe>>,
+  ref: { customerId: string | null; subscriptionId: string | null },
+  userId: string
+): Promise<void> {
+  let live: string[] = [];
+  try {
+    if (ref.customerId) {
+      const { data } = await stripe.subscriptions.list({
+        customer: ref.customerId,
+        status: "all",
+        limit: 100,
+      });
+      live = data.filter((s) => !SUBSCRIPTION_ENDED.has(s.status)).map((s) => s.id);
+    } else if (ref.subscriptionId) {
+      const sub = await stripe.subscriptions.retrieve(ref.subscriptionId);
+      if (!SUBSCRIPTION_ENDED.has(sub.status)) live = [sub.id];
+    }
+  } catch (err) {
+    if ((err as { code?: unknown })?.code !== "resource_missing") throw err;
+    captureError(err, { scope: "profile.deleteAccount.stripeMissing", userId });
+    return;
+  }
+  for (const id of live) await stripe.subscriptions.cancel(id);
+}
+
 /**
  * Permanently delete the current user's account and all associated data
  * (revFADP right to erasure). Deleting the auth user cascades through every
  * table via the `on delete cascade` foreign keys on profiles. Requires the
  * service-role key; returns an error if it is not configured.
  */
-/**
- * Cancel the Stripe subscription if it is still live. Stripe is the source of
- * truth for its state (our row can lag behind a webhook): an already
- * cancelled or expired subscription, or one this Stripe account does not know
- * (e.g. a test-mode id), has nothing left to cancel. Anything else that fails
- * throws, and the caller aborts the deletion.
- */
-async function cancelLiveSubscription(
-  stripe: NonNullable<ReturnType<typeof getStripe>>,
-  subscriptionId: string
-): Promise<void> {
-  let status: string;
-  try {
-    status = (await stripe.subscriptions.retrieve(subscriptionId)).status;
-  } catch (err) {
-    if ((err as { code?: unknown })?.code === "resource_missing") return;
-    throw err;
-  }
-  if (status === "canceled" || status === "incomplete_expired") return;
-  await stripe.subscriptions.cancel(subscriptionId);
-}
-
 export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
@@ -211,11 +228,11 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   // must never be orphaned behind a deleted account (no one could reach it
   // to cancel, and the card keeps being charged), so any failure here aborts
   // the deletion while every file and row is still intact and the user can
-  // simply retry. No row, no stripe_subscription_id, or Stripe not configured
-  // (local dev/test) means there is nothing to cancel.
+  // simply retry. No row, no Stripe ids, or Stripe not configured (local
+  // dev/test) means there is nothing to cancel.
   const { data: sub, error: subError } = await admin
     .from("subscriptions")
-    .select("stripe_subscription_id")
+    .select("stripe_subscription_id, stripe_customer_id")
     .eq("user_id", user.id)
     .maybeSingle();
   // Fail-safe on a transient READ error: never proceed as if there were no
@@ -224,11 +241,15 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
     captureError(subError, { scope: "profile.deleteAccount.subRead", userId: user.id });
     return { ok: false, error: "billing_cancel_failed" };
   }
-  if (sub?.stripe_subscription_id) {
+  if (sub?.stripe_subscription_id || sub?.stripe_customer_id) {
     const stripe = getStripe();
     if (stripe) {
       try {
-        await cancelLiveSubscription(stripe, sub.stripe_subscription_id);
+        await cancelLiveSubscriptions(
+          stripe,
+          { customerId: sub.stripe_customer_id ?? null, subscriptionId: sub.stripe_subscription_id ?? null },
+          user.id
+        );
       } catch (err) {
         captureError(err, { scope: "profile.deleteAccount.stripeCancel", userId: user.id });
         return { ok: false, error: "billing_cancel_failed" };

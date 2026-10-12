@@ -97,17 +97,27 @@ function fakeAdmin(opts: {
   };
 }
 
-/** A Stripe fake whose subscription currently has `status`. */
-function fakeStripe(status: string, calls?: string[]) {
-  const retrieve = vi.fn(async () => {
+/**
+ * A Stripe fake. `subs` are the subscriptions Stripe knows (by id, with their
+ * current status); `list` answers per customer with all of them.
+ */
+function fakeStripe(status: string, calls?: string[], subs?: Array<{ id: string; status: string }>) {
+  const known = subs ?? [{ id: "sub_1", status }, { id: "sub_old", status }, { id: "sub_test_mode", status }];
+  const retrieve = vi.fn(async (id: string) => {
     calls?.push("stripe.retrieve");
-    return { status };
+    const found = known.find((s) => s.id === id);
+    if (!found) throw Object.assign(new Error("No such subscription"), { code: "resource_missing" });
+    return found;
   });
-  const cancel = vi.fn(async () => {
-    calls?.push("stripe.cancel");
+  const list = vi.fn(async () => {
+    calls?.push("stripe.list");
+    return { data: known };
+  });
+  const cancel = vi.fn(async (id: string) => {
+    calls?.push(`stripe.cancel:${id}`);
     return {};
   });
-  return { subscriptions: { retrieve, cancel }, retrieve, cancel };
+  return { subscriptions: { retrieve, list, cancel }, retrieve, list, cancel };
 }
 
 beforeEach(() => {
@@ -221,8 +231,9 @@ describe("deleteAccount — order, already-cancelled subscriptions, chat photos"
     await expect(deleteAccount()).resolves.toEqual({ ok: true });
 
     const firstStorage = admin.calls.findIndex((c) => c.startsWith("storage."));
-    expect(admin.calls.indexOf("stripe.cancel")).toBeGreaterThan(-1);
-    expect(admin.calls.indexOf("stripe.cancel")).toBeLessThan(firstStorage);
+    const cancelAt = admin.calls.indexOf("stripe.cancel:sub_1");
+    expect(cancelAt).toBeGreaterThan(-1);
+    expect(cancelAt).toBeLessThan(firstStorage);
   });
 
   it("does not re-cancel an already cancelled subscription and still deletes", async () => {
@@ -289,6 +300,77 @@ describe("deleteAccount — order, already-cancelled subscriptions, chat photos"
     expect(admin.calls.indexOf("storage.remove:message-images")).toBeLessThan(
       admin.calls.indexOf("auth.deleteUser")
     );
+  });
+
+  it("cancels every live subscription of the Stripe customer, not just the one on file", async () => {
+    // An older past_due subscription survives a re-checkout, and a new one
+    // may exist before its webhook landed; both would keep charging.
+    const admin = fakeAdmin({
+      subscriptionRow: {
+        data: { stripe_subscription_id: "sub_new", stripe_customer_id: "cus_1" },
+        error: null,
+      },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const stripe = fakeStripe("active", admin.calls, [
+      { id: "sub_new", status: "active" },
+      { id: "sub_prev", status: "past_due" },
+      { id: "sub_done", status: "canceled" },
+      { id: "sub_unpaid", status: "unpaid" },
+    ]);
+    getStripe.mockReturnValue(stripe);
+
+    await expect(deleteAccount()).resolves.toEqual({ ok: true });
+    expect(stripe.list).toHaveBeenCalledWith(expect.objectContaining({ customer: "cus_1", status: "all" }));
+    expect(stripe.cancel.mock.calls.map((c) => c[0]).sort()).toEqual(["sub_new", "sub_prev", "sub_unpaid"]);
+  });
+
+  it("aborts with everything intact when Stripe cannot be read", async () => {
+    const admin = fakeAdmin({
+      subscriptionRow: { data: { stripe_subscription_id: "sub_1" }, error: null },
+      files: { "avatars:user-1": [{ id: "a1", name: "me.jpg" }] },
+    });
+    createAdminClient.mockReturnValue(admin);
+    const stripe = fakeStripe("active", admin.calls);
+    stripe.retrieve.mockRejectedValue(Object.assign(new Error("rate limited"), { code: "rate_limit" }));
+    getStripe.mockReturnValue(stripe);
+
+    await expect(deleteAccount()).resolves.toEqual({ ok: false, error: "billing_cancel_failed" });
+    expect(admin.calls.filter((c) => c.startsWith("storage.remove"))).toEqual([]);
+    expect(admin.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("logs a subscription Stripe does not know instead of skipping it silently", async () => {
+    const admin = fakeAdmin({
+      subscriptionRow: { data: { stripe_subscription_id: "sub_from_test_mode" }, error: null },
+    });
+    createAdminClient.mockReturnValue(admin);
+    getStripe.mockReturnValue(fakeStripe("active", admin.calls, []));
+
+    await expect(deleteAccount()).resolves.toEqual({ ok: true });
+    expect(captureError).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ scope: "profile.deleteAccount.stripeMissing" })
+    );
+  });
+
+  it("aborts before deleting the account when the conversations can't be read", async () => {
+    const admin = fakeAdmin({});
+    admin.from.mockImplementation(((table: string) => {
+      if (table === "subscriptions") {
+        return { select: vi.fn(() => makeQueryBuilder({ data: null, error: null })) };
+      }
+      if (table === "conversations") {
+        const builder = makeQueryBuilder({ data: null, error: { code: "XX000", message: "read failed" } });
+        builder.or = vi.fn(() => builder);
+        return { select: vi.fn(() => builder) };
+      }
+      return { insert: admin.insert };
+    }) as never);
+    createAdminClient.mockReturnValue(admin);
+
+    await expect(deleteAccount()).resolves.toEqual({ ok: false, error: "storage_cleanup_failed" });
+    expect(admin.deleteUser).not.toHaveBeenCalled();
   });
 });
 
