@@ -1,6 +1,6 @@
 "use server";
 
-import { dbError } from "@/lib/action-error";
+import { dbError, isDbRefusal } from "@/lib/action-error";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
@@ -35,6 +35,8 @@ export async function submitReport(
     reason: parsed.data.reason.trim(),
     category: parsed.data.category,
   });
+  // The DB throttles reports as well (10 per hour), across server instances.
+  if (isDbRefusal(error, "limit_reached")) return { ok: false, error: "limit_reached" };
   if (error) return { ok: false, error: dbError(error, "reports") };
 
   return { ok: true };

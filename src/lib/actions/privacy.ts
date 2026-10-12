@@ -102,6 +102,7 @@ export async function exportMyData(): Promise<
     userBlocks,
     notifications,
     shootInvitations,
+    verificationNote,
   ] = await Promise.all([
     // current_profile() (SECURITY DEFINER) returns the caller's own full row,
     // including the columns the column-scoped profiles SELECT grant excludes
@@ -111,9 +112,14 @@ export async function exportMyData(): Promise<
     // already (see src/lib/auth.ts for why chaining it breaks inference).
     // Single row, so no paging.
     supabase.rpc("current_profile"),
+    // Explicit columns: SELECT on photographer_details is column-scoped and
+    // excludes verification_note (20261013120000), so "*" would fail. The
+    // note is read through my_verification_note() below.
     supabase
       .from("photographer_details")
-      .select("*")
+      .select(
+        "profile_id, specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, created_at, verification_status, disciplines, cover_path, plan_tier, plan_expires_at"
+      )
       .eq("profile_id", user.id)
       .maybeSingle(),
     fetchAllRows("unavailable_dates", (from, to) =>
@@ -218,7 +224,14 @@ export async function exportMyData(): Promise<
         .order("id", { ascending: true })
         .range(from, to)
     , incomplete),
+    supabase.rpc("my_verification_note"),
   ]);
+
+  // Single-row reads: a failure must mark the export incomplete, never
+  // silently drop the dataset.
+  if (profile.error) incomplete.push("profile");
+  if (details.error) incomplete.push("photographer_details");
+  if (verificationNote.error) incomplete.push("verification_note");
 
   return {
     ok: true,
@@ -231,7 +244,9 @@ export async function exportMyData(): Promise<
       export_complete: incomplete.length === 0,
       incomplete_datasets: incomplete,
       profile: profile.data,
-      photographer_details: details.data,
+      photographer_details: details.data
+        ? { ...details.data, verification_note: verificationNote.data ?? null }
+        : null,
       unavailable_dates: unavailable,
       shoots,
       bids,

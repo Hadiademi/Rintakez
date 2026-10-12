@@ -12,3 +12,14 @@ export function dbError(error: unknown, scope: string): "generic" {
   captureError(error, { scope });
   return "generic";
 }
+
+/**
+ * True when `error` is a deliberate refusal raised by a database trigger
+ * (`raise exception '<code>' using errcode = 'P0001'`), e.g. the bid quota
+ * ("quota_reached") or the report throttle ("limit_reached"). Those carry a
+ * user-facing code and must not be collapsed into "generic".
+ */
+export function isDbRefusal(error: unknown, code: string): boolean {
+  const e = error as { code?: unknown; message?: unknown } | null | undefined;
+  return e?.code === "P0001" && e?.message === code;
+}

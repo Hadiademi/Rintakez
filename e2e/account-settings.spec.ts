@@ -27,4 +27,30 @@ test.describe("account settings", () => {
       page.getByRole("status").getByText("Gespeichert.")
     ).toBeVisible({ timeout: 20_000 });
   });
+
+  // revFADP Art. 25: the export must contain everything we hold about the
+  // user. Since 20261013120000 the verification note is no longer selectable
+  // through the API, so the export reads it via my_verification_note(); a
+  // plain select("*") would have dropped the photographer's details silently.
+  test("a photographer's data export includes their details and verification note", async ({
+    page,
+  }) => {
+    await login(page, SEED.photographer.email, SEED.photographer.password);
+    await page.goto("/de/profile");
+    await page.getByTestId("profile-tab-privacy").click();
+
+    const [download] = await Promise.all([
+      page.waitForEvent("download", { timeout: 30_000 }),
+      page.getByRole("button", { name: "Meine Daten herunterladen" }).click(),
+    ]);
+    const exported = JSON.parse(
+      await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString("utf8"))
+    );
+
+    expect(exported.export_complete).toBe(true);
+    expect(exported.photographer_details).toMatchObject({
+      verification_note: "Website: markostudio.ch · Handelsregister CHE-123.456.789",
+    });
+    expect(exported.photographer_details.specialties.length).toBeGreaterThan(0);
+  });
 });
