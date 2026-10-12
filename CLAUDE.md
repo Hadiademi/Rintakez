@@ -44,11 +44,21 @@ GitHub/Vercel/Supabase/Google (owner + friend). Founding photographers hold
 `admin_comp` premium until 2027-01-07/08 — they drop to Free silently on
 expiry; plan an outreach/reminder before then.
 
-**Grants rule (learned 2026-10-08):** Supabase's default ACL grants ALL on
-every new public table to anon/authenticated. A column-scoped grant is moot
-while the table-level grant exists — every migration that adds a table must
-`revoke` what it doesn't want granted. `grants_hardening.test.sql` enforces
-the catalog-wide invariants (no anon writes, no TRUNCATE).
+**Grants rule (learned 2026-10-08, extended 2026-10-12):** Supabase's default
+ACL used to grant ALL on every new public table to anon/authenticated, and a
+column-scoped grant is moot while a table-level grant exists. Since
+`20261012120000` tables created by migrations start with NO write privilege
+for app roles: a migration adding a table must `grant insert (cols…)` /
+`update (cols…)` for exactly the columns its server actions write — never
+table-level INSERT, never server-owned columns (status, created_at, reply,
+resolved_*, …). `grants_hardening.test.sql` + `insert_grants_hardening.test.sql`
+enforce this catalog-wide.
+
+**Admin pages:** read data only via `adminPageClient()` / `requireAdminProfile()`
+(`src/lib/admin/guard.ts`). A layout check does not protect page segments in
+Next 16 (they render independently and layouts can be skipped).
+**JSON-LD / inline scripts:** always `safeJsonLd()` (`src/lib/json-ld.ts`),
+never a bare `JSON.stringify` — user names land there.
 
 ## Working conventions (bite hard if ignored)
 

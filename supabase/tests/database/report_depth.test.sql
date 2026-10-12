@@ -42,14 +42,12 @@ update public.shoots
   set status = 'completed'
   where id = '10000000-0000-0000-0000-0000000000d3';
 
-set local role authenticated;
-set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000d1","role":"authenticated"}';
+-- Fixture review, written as the table owner so it can carry a fixed id.
 insert into public.reviews (id, shoot_id, client_id, photographer_id, rating, comment)
 values
   ('30000000-0000-0000-0000-0000000000d5', '10000000-0000-0000-0000-0000000000d3',
    '00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000d2',
    4, 'Good session.');
-reset role;
 
 -- ── 1: report_target now accepts 'review' ────────────────────────────
 set local role authenticated;

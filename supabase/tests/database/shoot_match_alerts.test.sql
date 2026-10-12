@@ -58,11 +58,12 @@ values
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e1","role":"authenticated"}';
 
-insert into public.shoots (id, client_id, title, type, discipline, brief, location_city,
+-- No id: like the app, the client never chooses one (insert is column-scoped).
+insert into public.shoots (client_id, title, type, discipline, brief, location_city,
                            canton, shoot_date, duration_hours,
                            budget_min_chf, budget_max_chf)
 values
-  ('10000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000e1',
+  ('00000000-0000-0000-0000-0000000000e1',
    'Match alert shoot', 'portrait', 'photo', 'A brief long enough to pass validation.', 'Bern', 'BE',
    '2027-09-01', 2, 500, 900);
 
@@ -74,7 +75,7 @@ select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000e2'
      and kind = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   1,
   'the matching photographer receives a shoot_match email'
 );
@@ -84,7 +85,7 @@ select is(
   (select shoot_title from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000e2'
      and kind = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   'Match alert shoot',
   'the outbox row carries the shoot title'
 );
@@ -94,7 +95,7 @@ select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000e3'
      and kind = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   0,
   'no email for a photographer in a different canton'
 );
@@ -104,7 +105,7 @@ select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000e4'
      and kind = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   0,
   'no email for a photographer with the wrong discipline'
 );
@@ -114,7 +115,7 @@ select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000e5'
      and kind = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   0,
   'no email for a matching photographer who opted out of shoot-update emails'
 );
@@ -124,18 +125,18 @@ select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000e2'
      and type = 'shoot_match'
-     and shoot_id = '10000000-0000-0000-0000-0000000000e1'),
+     and shoot_id = (select id from public.shoots where title = 'Match alert shoot')),
   1,
   'the matching photographer receives an in-app shoot_match notification'
 );
 
 -- ── reopen: a shoot flipping assigned -> open re-enqueues the fan-out ──
--- Act as the client again, post a second shoot, assign+accept a bid from the
--- matching photographer, then delete that bid so the booking_integrity
--- orphan-reopen trigger flips the shoot back to 'open'. That reopen should
--- re-run notify_matching_photographers and enqueue a second round of alerts.
-set local role authenticated;
-set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e1","role":"authenticated"}';
+-- Post a second shoot, assign+accept a bid from the matching photographer,
+-- then delete that bid so the booking_integrity orphan-reopen trigger flips
+-- the shoot back to 'open'. That reopen should re-run
+-- notify_matching_photographers and enqueue a second round of alerts. The
+-- fixture rows are written as the table owner (fixed ids); the client-insert
+-- path is covered by assertion 1 above.
 
 insert into public.shoots (id, client_id, title, type, discipline, brief, location_city,
                            canton, shoot_date, duration_hours,
@@ -145,16 +146,10 @@ values
    'Reopen alert shoot', 'portrait', 'photo', 'A brief long enough to pass validation.', 'Bern', 'BE',
    '2027-09-02', 2, 500, 900);
 
--- Switch to the matching photographer to place their own bid (bids RLS
--- requires photographer_id = auth.uid() on insert).
-set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}';
-
 insert into public.bids (id, shoot_id, photographer_id, amount_chf, message)
 values
   ('20000000-0000-0000-0000-0000000000e2', '10000000-0000-0000-0000-0000000000e2',
    '00000000-0000-0000-0000-0000000000e2', 700, 'Bid to be accepted then orphaned.');
-
-reset role;
 
 -- Assign the shoot via the legal open->assigned transition (bypassing RLS as
 -- the test superuser, same idiom as constraints.test.sql).

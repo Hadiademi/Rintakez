@@ -65,11 +65,12 @@ values
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000d1","role":"authenticated"}';
 
-insert into public.shoots (id, client_id, title, type, discipline, brief, location_city,
+-- No id: like the app, the client never chooses one (insert is column-scoped).
+insert into public.shoots (client_id, title, type, discipline, brief, location_city,
                            canton, shoot_date, duration_hours,
                            budget_min_chf, budget_max_chf)
 values
-  ('10000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000d1',
+  ('00000000-0000-0000-0000-0000000000d1',
    'Gating alert shoot', 'portrait', 'photo', 'A brief long enough to pass validation.', 'Bern', 'BE',
    '2027-09-01', 2, 500, 900);
 
@@ -89,13 +90,13 @@ select is(
 select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000d2'
-     and type = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and type = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'basic tier photographer receives the in-app bell'
 );
 select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000d2'
-     and kind = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and kind = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   0, 'basic tier photographer does NOT receive the instant email'
 );
 
@@ -103,13 +104,13 @@ select is(
 select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000d3'
-     and type = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and type = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'active standard tier photographer receives the in-app bell'
 );
 select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000d3'
-     and kind = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and kind = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'active standard tier photographer receives the instant email'
 );
 
@@ -117,13 +118,13 @@ select is(
 select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000d4'
-     and type = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and type = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'expired standard tier photographer still receives the in-app bell'
 );
 select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000d4'
-     and kind = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and kind = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   0, 'expired standard tier photographer does NOT receive the instant email'
 );
 
@@ -131,13 +132,13 @@ select is(
 select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000d5'
-     and type = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and type = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'active premium tier photographer receives the in-app bell'
 );
 select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000d5'
-     and kind = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and kind = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'active premium tier photographer receives the instant email'
 );
 
@@ -145,13 +146,13 @@ select is(
 select is(
   (select count(*)::int from public.notifications
    where user_id = '00000000-0000-0000-0000-0000000000d6'
-     and type = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and type = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   1, 'free tier photographer still receives the in-app bell'
 );
 select is(
   (select count(*)::int from public.email_outbox
    where recipient_id = '00000000-0000-0000-0000-0000000000d6'
-     and kind = 'shoot_match' and shoot_id = '10000000-0000-0000-0000-0000000000d1'),
+     and kind = 'shoot_match' and shoot_id = (select id from public.shoots where title = 'Gating alert shoot')),
   0, 'free tier photographer does NOT receive the instant email'
 );
 
