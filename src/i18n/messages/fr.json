@@ -8,8 +8,8 @@
     "shootsTitle": "Projets ouverts en Suisse",
     "shootsDescription": "Découvre les projets photo et vidéo ouverts publiés par des clients partout en Suisse et propose ton offre.",
     "shootFallbackTitle": "Projet",
-    "landingTitle": "{type} à {canton}",
-    "landingDescription": "Trouve et compare des {type} à {canton}. Parcours profils, portfolios et avis, puis publie ta demande pour recevoir des offres.",
+    "landingTitle": "{h1} – comparer les offres",
+    "landingDescription": "{h1} : compare profils, portfolios et avis, puis publie ta demande pour recevoir des offres.",
     "pricingTitle": "Tarifs — Framly",
     "pricingDescription": "Formules d'abonnement pour les photographes sur Framly."
   },
@@ -985,27 +985,27 @@
   },
   "landingSeo": {
     "h1": {
-      "wedding": "Photographes mariage à {canton}",
-      "portrait": "Photographes portrait à {canton}",
-      "commercial": "Photographes commercial à {canton}",
-      "event": "Photographes événementiel à {canton}",
-      "architecture": "Photographes architecture à {canton}",
-      "family": "Photographes famille à {canton}",
-      "other": "Photographes à {canton}"
+      "wedding": "Photographes de mariage {inCanton}",
+      "portrait": "Photographes de portrait {inCanton}",
+      "commercial": "Photographes commerciaux {inCanton}",
+      "event": "Photographes d'événements {inCanton}",
+      "architecture": "Photographes d'architecture {inCanton}",
+      "family": "Photographes de famille {inCanton}",
+      "other": "Photographes {inCanton}"
     },
     "intro": {
-      "wedding": "Tu organises un mariage à {canton}? Parcours les photographes mariage locaux, compare portfolios et avis, puis invite tes favoris à faire une offre pour ton jour J.",
-      "portrait": "Tu cherches une séance portrait à {canton}? Compare les photographes portrait locaux selon le style, le prix et la note avant de réserver.",
-      "commercial": "Besoin de photographie commercial à {canton}? Parcours les photographes expérimentés en produit, campagne et éditorial près de chez toi.",
-      "event": "Tu organises un événement à {canton}? Trouve des photographes événementiel qui connaissent les lieux locaux et peuvent couvrir ton événement de A à Z.",
-      "architecture": "Besoin de photographie d'architecture à {canton}? Parcours les photographes spécialisés en intérieur et extérieur près de chez toi.",
-      "family": "Tu cherches une séance famille à {canton}? Parcours des photographes famille locaux et décontractés, et regarde leurs travaux récents avant de les contacter.",
-      "other": "Parcours les photographes couvrant {canton} pour des projets qui ne rentrent pas dans une catégorie standard — décris ton projet et compare les offres."
+      "wedding": "Tu organises un mariage {inCanton}? Parcours les photographes de mariage locaux, compare portfolios et avis, puis invite tes favoris à faire une offre pour ton jour J.",
+      "portrait": "Tu cherches une séance portrait {inCanton}? Compare les photographes de portrait locaux selon le style, le prix et la note avant de réserver.",
+      "commercial": "Besoin de photographie commerciale {inCanton}? Parcours les photographes expérimentés en produit, campagne et éditorial près de chez toi.",
+      "event": "Tu organises un événement {inCanton}? Trouve des photographes d'événements qui connaissent les lieux locaux et peuvent couvrir ton événement de A à Z.",
+      "architecture": "Besoin de photographie d'architecture {inCanton}? Parcours les photographes spécialisés en intérieur et extérieur près de chez toi.",
+      "family": "Tu cherches une séance famille {inCanton}? Parcours des photographes de famille locaux et décontractés, et regarde leurs travaux récents avant de les contacter.",
+      "other": "Parcours les photographes {inCanton} pour des projets qui ne rentrent pas dans une catégorie standard — décris ton projet et compare les offres."
     },
-    "snapshotHeading": "Photographes pour {type} à {canton}",
-    "viewAllCta": "Voir tous les {type} à {canton}",
+    "snapshotHeading": "Photographes correspondants {inCanton}",
+    "viewAllCta": "Voir tous les photographes correspondants {inCanton}",
     "emptyTitle": "Pas encore de photographe ici",
-    "emptyDescription": "Aucun·e photographe {type} n'est encore référencé·e à {canton}. Sois le/la premier·ère à ajouter ton profil, ou parcours l'annuaire complet.",
+    "emptyDescription": "Aucun·e photographe de cette catégorie n'est encore référencé·e {inCanton}. Sois le/la premier·ère à ajouter ton profil, ou parcours l'annuaire complet.",
     "emptyBrowseAll": "Voir tous les photographes",
     "emptyJoin": "S'inscrire comme photographe"
   },

@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createPublicClient } from "@/lib/supabase/public";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
-import { cantonName } from "@/lib/canton-names";
+import { cantonLocative } from "@/lib/canton-names";
 import { PhotographerCard } from "@/components/photographer-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
@@ -177,19 +177,22 @@ export async function generateMetadata({
   const { locale, id: canton, type } = await params;
 
   if (!isCanton(canton) || !isShootType(type)) {
-    return { title: "Framly" };
+    return { title: { absolute: "Framly" } };
   }
 
-  const t = await getTranslations({ locale, namespace: "meta" });
-  const tShoot = await getTranslations({ locale, namespace: "shoot" });
-  const cName = cantonName(canton, locale);
-  const typeLabel = tShoot(`types.${type}`);
+  const [t, tSeo] = await Promise.all([
+    getTranslations({ locale, namespace: "meta" }),
+    getTranslations({ locale, namespace: "landingSeo" }),
+  ]);
+  // e.g. "Hochzeitsfotografen im Wallis" — the type-specific noun people
+  // search for, with the canton's own preposition (cantonLocative).
+  const h1 = tSeo(`h1.${type}`, { inCanton: cantonLocative(canton, locale) });
 
   const { total } = await getLandingData(canton, type);
 
   return {
-    title: t("landingTitle", { type: typeLabel, canton: cName }),
-    description: t("landingDescription", { type: typeLabel, canton: cName }),
+    title: t("landingTitle", { h1 }),
+    description: t("landingDescription", { h1 }),
     alternates: buildAlternates(locale, `/photographers/${canton}/${type}`),
     // Thin-content guard: a combo with zero matching photographers has
     // nothing unique to say beyond the generic template, so keep it out of
@@ -215,7 +218,7 @@ export default async function CantonShootTypeLandingPage({
   ]);
   const tReview = await getTranslations("review");
 
-  const cName = cantonName(canton, locale);
+  const inCanton = cantonLocative(canton, locale);
   const typeLabel = tShoot(`types.${type}`);
 
   const { total, items } = await getLandingData(canton, type);
@@ -223,7 +226,7 @@ export default async function CantonShootTypeLandingPage({
   const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: t("h1." + type, { canton: cName }),
+    name: t("h1." + type, { inCanton }),
     about: typeLabel,
     ...(items.length > 0
       ? {
@@ -249,27 +252,27 @@ export default async function CantonShootTypeLandingPage({
 
       <div className="space-y-3">
         <h1 className="text-4xl font-semibold tracking-tight text-ink">
-          {t(`h1.${type}`, { canton: cName })}
+          {t(`h1.${type}`, { inCanton })}
         </h1>
-        <p className="max-w-2xl text-mute">{t(`intro.${type}`, { canton: cName })}</p>
+        <p className="max-w-2xl text-mute">{t(`intro.${type}`, { inCanton })}</p>
       </div>
 
       <div className="flex items-center justify-between gap-4">
         <p className="label text-mute">
-          {t("snapshotHeading", { type: typeLabel, canton: cName })}
+          {t("snapshotHeading", { inCanton })}
         </p>
         <Link
           href={{ pathname: "/photographers", query: { canton, type } }}
           className="label shrink-0 text-accent hover:opacity-70 transition-opacity"
         >
-          {t("viewAllCta", { type: typeLabel, canton: cName })} →
+          {t("viewAllCta", { inCanton })} →
         </Link>
       </div>
 
       {total === 0 ? (
         <EmptyState
           title={t("emptyTitle")}
-          description={t("emptyDescription", { type: typeLabel, canton: cName })}
+          description={t("emptyDescription", { inCanton })}
           action={
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -320,7 +323,7 @@ export default async function CantonShootTypeLandingPage({
           href={{ pathname: "/photographers", query: { canton, type } }}
           className="press inline-block border border-line px-5 py-3 text-[14px] text-ink hover:border-ink"
         >
-          {t("viewAllCta", { type: typeLabel, canton: cName })}
+          {t("viewAllCta", { inCanton })}
         </Link>
       </div>
     </div>
