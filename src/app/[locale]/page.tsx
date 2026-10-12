@@ -12,6 +12,7 @@ import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { Link, getPathname } from "@/i18n/navigation";
 import { unstable_cache } from "next/cache";
 import { buildAlternates } from "@/lib/seo";
+import { safeJsonLd } from "@/lib/json-ld";
 import { SkipToContent } from "@/components/skip-to-content";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -121,7 +122,7 @@ export default async function Home({
       <SkipToContent />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         <Link

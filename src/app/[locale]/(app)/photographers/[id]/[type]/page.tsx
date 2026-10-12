@@ -9,6 +9,7 @@ import { cantonName } from "@/lib/canton-names";
 import { PhotographerCard } from "@/components/photographer-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { buildAlternates } from "@/lib/seo";
+import { safeJsonLd } from "@/lib/json-ld";
 import { TIER_RANK, type Plan } from "@/lib/billing/plans";
 
 // NOTE ON THE FOLDER NAME: this route lives at `photographers/[id]/[type]`,
@@ -243,7 +244,7 @@ export default async function CantonShootTypeLandingPage({
     <div className="mx-auto max-w-6xl space-y-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <div className="space-y-3">

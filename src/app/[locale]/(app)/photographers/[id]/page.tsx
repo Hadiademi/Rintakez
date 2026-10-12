@@ -15,6 +15,7 @@ import { InvitePhotographerButton } from "@/components/invite-photographer-butto
 import { AvailabilityCalendar } from "@/components/availability-calendar";
 import { RecordProfileView } from "@/components/record-profile-view";
 import { buildAlternates } from "@/lib/seo";
+import { safeJsonLd } from "@/lib/json-ld";
 import type { Plan } from "@/lib/billing/plans";
 
 export const dynamic = "force-dynamic";
@@ -306,7 +307,7 @@ export default async function PhotographerProfilePage({
     <main className="bg-paper min-h-screen">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       {/* Best-effort profile-view collection for a future analytics
