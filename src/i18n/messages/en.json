@@ -4,12 +4,12 @@
     "description": "Describe your shoot and get offers from professional photographers and videographers in your area.",
     "ogTitle": "Framly — Photo & Video Marketplace Switzerland",
     "photographersTitle": "Photographers & videographers in Switzerland",
-    "photographersDescription": "Browse verified photographers and videographers across Switzerland and find the right match for your shoot.",
+    "photographersDescription": "Browse photographers and videographers across Switzerland, compare portfolios and reviews, and find the right match for your shoot.",
     "shootsTitle": "Open shoots in Switzerland",
     "shootsDescription": "Browse open photo and video shoots from clients across Switzerland and place your offer.",
     "shootFallbackTitle": "Shoot",
     "landingTitle": "{type} photographers in {canton}",
-    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse verified profiles, portfolios and reviews, then post your shoot for offers.",
+    "landingDescription": "Find and compare {type} photographers in {canton}, Switzerland. Browse profiles, portfolios and reviews, then post your shoot for offers.",
     "pricingTitle": "Pricing — Framly",
     "pricingDescription": "Subscription plans for photographers on Framly."
   },
@@ -65,8 +65,8 @@
     "subtitle": "Describe your shoot and get offers from professional photographers and videographers in your area.",
     "title": "Photo & video. Direct. Across Switzerland.",
     "trust1": "Direct contact — no middleman on your shoot.",
-    "trust2": "Reviewed photographers with real, verified ratings.",
-    "trust3": "Swiss-hosted, with your data kept in Zürich."
+    "trust2": "Reviews only after a completed booking — checked profiles carry the Verified badge.",
+    "trust3": "Profile and shoot data stored in a database in Zurich."
   },
   "auth": {
     "checkEmail": "Confirm your email address to continue.",
@@ -147,7 +147,7 @@
     "cockpitWonNone": "Your first offer is waiting — browse the open shoots.",
     "cockpitWonRate": "{pct} % of your offers accepted",
     "cockpitWonSum": "{amount} total",
-    "ctaClientDesc": "A brief in a few steps. First offers usually within a few hours.",
+    "ctaClientDesc": "A brief in a few steps. We notify matching photographers in your region.",
     "ctaClientLabel": "NEW SHOOT",
     "ctaClientTitle": "Post a new shoot",
     "ctaPhotographerDesc": "Filter by canton, type and budget, then submit your offer.",
@@ -342,7 +342,7 @@
     "decline": "Decline",
     "declineConfirm": "Decline this offer? This can't be undone.",
     "details": "Details",
-    "noOffers": "No offers yet. Most shoots get their first offer within a few hours.",
+    "noOffers": "No offers yet. We notify matching photographers in your region — you'll get a notification as soon as the first offer arrives.",
     "offers": "Offers",
     "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}",
     "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}"
@@ -614,6 +614,24 @@
     "shoot_closed": "This shoot is no longer accepting offers — it was assigned, closed, or its date has passed.",
     "stripe_not_configured": "Billing isn't available right now.",
     "unauthorized": "Please log in."
+  },
+  "validation": {
+    "required": "Please fill in this field.",
+    "tooShort": "At least {n, number} characters.",
+    "tooLong": "At most {n, number} characters.",
+    "number": "Please enter a number.",
+    "wholeNumber": "Please enter a whole number.",
+    "numberMin": "At least {n, number}.",
+    "numberMax": "At most {n, number}.",
+    "numberPositive": "Please enter an amount above 0.",
+    "email": "Please enter a valid email address.",
+    "url": "Please enter a valid address (https://…).",
+    "postcode": "Please enter a four-digit postcode.",
+    "chooseOption": "Please choose an option.",
+    "dateMustBeFuture": "The date can't be in the past.",
+    "budgetRange": "The maximum budget must be at least the minimum.",
+    "acceptTerms": "Please accept the Terms and Privacy Policy.",
+    "generic": "Please check this entry."
   },
   "theme": {
     "toggle": "Toggle theme",

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { forgotPasswordAction } from "@/lib/actions/auth";
 import { errorKey } from "@/lib/error-messages";
@@ -13,6 +14,7 @@ import {
 
 export default function ForgotPasswordForm() {
   const t = useTranslations("auth");
+  const validationMessage = useValidationMessage();
   const tErr = useTranslations("errors");
   const [sent, setSent] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ export default function ForgotPasswordForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordInput>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: localizedZodResolver(forgotPasswordSchema),
   });
 
   async function onSubmit(values: ForgotPasswordInput) {
@@ -65,7 +67,7 @@ export default function ForgotPasswordForm() {
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />
         {errors.email && (
-          <p className="text-[12px] text-accent">{errors.email.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.email)}</p>
         )}
       </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch, type FieldErrors } from "react-hook-form";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
@@ -10,6 +11,7 @@ import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
+import { downscaleImage } from "@/lib/image-downscale";
 import { useToast } from "@/components/ui/toaster";
 import {
   draftKey,
@@ -44,6 +46,7 @@ const inputClass =
 
 export default function NewShootForm({ userId }: { userId: string }) {
   const t = useTranslations("createShoot");
+  const validationMessage = useValidationMessage();
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
@@ -56,6 +59,20 @@ export default function NewShootForm({ userId }: { userId: string }) {
   // Reference images are held in memory and uploaded after the shoot is created
   // (the upload needs the new shoot id, which only exists post-insert).
   const [refImages, setRefImages] = useState<{ file: File; url: string }[]>([]);
+  // Step changes the user makes move focus to the new step's heading; the
+  // buttons that triggered them are replaced, so focus would otherwise drop
+  // to <body>.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingOnStep = useRef(false);
+  function goToStep(next: number) {
+    focusHeadingOnStep.current = true;
+    setStep(Math.max(0, Math.min(STEP_COUNT - 1, next)));
+  }
+  useEffect(() => {
+    if (!focusHeadingOnStep.current) return;
+    focusHeadingOnStep.current = false;
+    headingRef.current?.focus();
+  }, [step]);
 
   function addRefFiles(files: FileList | null) {
     if (!files) return;
@@ -92,7 +109,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
     formState: { errors, isSubmitting },
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createShootSchema) as any,
+    resolver: localizedZodResolver(createShootSchema) as any,
     defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
@@ -159,7 +176,15 @@ export default function NewShootForm({ userId }: { userId: string }) {
 
   async function handleNext() {
     const valid = await trigger(STEP_FIELDS[step]);
-    if (valid) setStep((s) => s + 1);
+    if (valid) goToStep(step + 1);
+  }
+
+  // Publishing validates every step. A restored draft can hide an invalid
+  // value on an earlier step (e.g. a date that has passed); show that step
+  // so the error is visible instead of the button silently doing nothing.
+  function onInvalid(fieldErrors: FieldErrors<CreateShootInput>) {
+    const first = STEP_FIELDS.findIndex((fields) => fields.some((f) => fieldErrors[f]));
+    if (first !== -1 && first !== step) goToStep(first);
   }
 
   async function onSubmit(values: CreateShootInput) {
@@ -187,7 +212,9 @@ export default function NewShootForm({ userId }: { userId: string }) {
     for (const { file } of refImages) {
       try {
         const fd = new FormData();
-        fd.append("file", file);
+        // Phone originals (5–8 MB) exceed the upload limit; send at most
+        // 2000px like every other uploader in the app.
+        fd.append("file", await downscaleImage(file), "reference.jpg");
         const r = await addShootImage(result.id, fd);
         if (!r.ok) failed++;
       } catch {
@@ -230,7 +257,11 @@ export default function NewShootForm({ userId }: { userId: string }) {
       </div>
 
       {/* Step heading */}
-      <h1 className="mt-12 text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
+      <h1
+        ref={headingRef}
+        tabIndex={-1}
+        className="mt-12 text-4xl font-semibold leading-[1.05] tracking-tight text-ink outline-none sm:text-5xl"
+      >
         {stepHeadings[step]}
       </h1>
 
@@ -257,15 +288,27 @@ export default function NewShootForm({ userId }: { userId: string }) {
           functionality. */}
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(e) => {
+          // Only the last step may submit. Anything else (a click whose
+          // default action lands after the step flipped, a stray Enter) is
+          // swallowed, so advancing can never publish or validate early.
+          if (step < STEP_COUNT - 1) {
+            e.preventDefault();
+            return;
+          }
+          return handleSubmit(onSubmit, onInvalid)(e);
+        }}
         onKeyDown={(e) => {
-          // Enter advances the step (matching the last step's submit) instead of
-          // doing nothing; Shift+Enter / textareas keep their newline behaviour.
+          // Enter in a field advances the step (matching the last step's
+          // submit) instead of doing nothing; Shift+Enter / textareas keep
+          // their newline behaviour, and buttons keep Enter as a click.
+          const tag = (e.target as HTMLElement).tagName;
           if (
             e.key === "Enter" &&
             !e.shiftKey &&
             step < STEP_COUNT - 1 &&
-            (e.target as HTMLElement).tagName !== "TEXTAREA"
+            tag !== "TEXTAREA" &&
+            tag !== "BUTTON"
           ) {
             e.preventDefault();
             handleNext();
@@ -340,7 +383,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
               })}
             </div>
             {errors.type && (
-              <p className="text-[13px] text-accent">{errors.type.message}</p>
+              <p className="text-[13px] text-accent break-words">{validationMessage(errors.type)}</p>
             )}
           </div>
         )}
@@ -351,13 +394,13 @@ export default function NewShootForm({ userId }: { userId: string }) {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-city" className="label text-mute">{t("fieldCity")}</label>
               <input id="shoot-city" data-testid="shoot-city" type="text" {...register("locationCity")} className={inputClass} />
-              {errors.locationCity && <p className="text-[13px] text-accent">{errors.locationCity.message}</p>}
+              {errors.locationCity && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationCity)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-postcode" className="label text-mute">{t("fieldPostcode")}</label>
               <input id="shoot-postcode" data-testid="shoot-postcode" type="text" inputMode="numeric" maxLength={4} {...register("locationPostcode")} className={inputClass} />
-              {errors.locationPostcode && <p className="text-[13px] text-accent">{errors.locationPostcode.message}</p>}
+              {errors.locationPostcode && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationPostcode)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -368,19 +411,19 @@ export default function NewShootForm({ userId }: { userId: string }) {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              {errors.canton && <p className="text-[13px] text-accent">{errors.canton.message}</p>}
+              {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-date" className="label text-mute">{t("fieldDate")}</label>
               <input id="shoot-date" data-testid="shoot-date" type="date" min={today} {...register("shootDate")} className={inputClass} />
-              {errors.shootDate && <p className="text-[13px] text-accent">{errors.shootDate.message}</p>}
+              {errors.shootDate && <p className="text-[13px] text-accent break-words">{validationMessage(errors.shootDate)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-duration" className="label text-mute">{t("fieldDuration")}</label>
               <input id="shoot-duration" data-testid="shoot-duration" type="number" min={1} max={24} {...register("durationHours", { valueAsNumber: true })} className={inputClass} />
-              {errors.durationHours && <p className="text-[13px] text-accent">{errors.durationHours.message}</p>}
+              {errors.durationHours && <p className="text-[13px] text-accent break-words">{validationMessage(errors.durationHours)}</p>}
             </div>
           </div>
         )}
@@ -391,25 +434,25 @@ export default function NewShootForm({ userId }: { userId: string }) {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-title" className="label text-mute">{t("fieldTitle")}</label>
               <input id="shoot-title" data-testid="shoot-title" type="text" {...register("title")} className={inputClass} />
-              {errors.title && <p className="text-[13px] text-accent">{errors.title.message}</p>}
+              {errors.title && <p className="text-[13px] text-accent break-words">{validationMessage(errors.title)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-brief" className="label text-mute">{t("fieldBrief")}</label>
               <textarea id="shoot-brief" data-testid="shoot-brief" rows={5} placeholder={t("briefPlaceholder")} {...register("brief")} className={`${inputClass} resize-y`} />
-              {errors.brief && <p className="text-[13px] text-accent">{errors.brief.message}</p>}
+              {errors.brief && <p className="text-[13px] text-accent break-words">{validationMessage(errors.brief)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-budget-min" className="label text-mute">{t("fieldBudgetMin")}</label>
               <input id="shoot-budget-min" data-testid="shoot-budget-min" type="number" min={1} {...register("budgetMinChf", { valueAsNumber: true })} className={inputClass} />
-              {errors.budgetMinChf && <p className="text-[13px] text-accent">{errors.budgetMinChf.message}</p>}
+              {errors.budgetMinChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMinChf)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-budget-max" className="label text-mute">{t("fieldBudgetMax")}</label>
               <input id="shoot-budget-max" data-testid="shoot-budget-max" type="number" min={1} {...register("budgetMaxChf", { valueAsNumber: true })} className={inputClass} />
-              {errors.budgetMaxChf && <p className="text-[13px] text-accent">{errors.budgetMaxChf.message}</p>}
+              {errors.budgetMaxChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMaxChf)}</p>}
             </div>
 
             {/* Reference images — optional */}
@@ -469,7 +512,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
           <button
             type="button"
             data-testid="shoot-back"
-            onClick={() => setStep((s) => s - 1)}
+            onClick={() => goToStep(step - 1)}
             disabled={step === 0}
             className="press text-sm font-medium text-mute transition-colors hover:text-ink disabled:invisible"
           >
@@ -478,9 +521,16 @@ export default function NewShootForm({ userId }: { userId: string }) {
 
           {step < STEP_COUNT - 1 ? (
             <button
+              key="next"
               type="button"
               data-testid="shoot-next"
-              onClick={handleNext}
+              onClick={(e) => {
+                // The step flips before the click's default action runs; the
+                // distinct keys stop React reusing this node as the submit
+                // button, and preventDefault stops any activation outright.
+                e.preventDefault();
+                handleNext();
+              }}
               className="press inline-flex items-center gap-2 bg-ink px-7 py-3.5 text-sm font-medium text-paper"
             >
               {t("next")}
@@ -490,6 +540,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
             </button>
           ) : (
             <button
+              key="submit"
               type="submit"
               data-testid="shoot-submit"
               disabled={isSubmitting}

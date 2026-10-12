@@ -1,7 +1,8 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { loginAction } from "@/lib/actions/auth";
@@ -11,6 +12,7 @@ import { useState } from "react";
 
 export default function LoginForm() {
   const t = useTranslations("auth");
+  const validationMessage = useValidationMessage();
   const tErr = useTranslations("errors");
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export default function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: localizedZodResolver(loginSchema),
   });
 
   async function onSubmit(values: LoginInput) {
@@ -56,7 +58,7 @@ export default function LoginForm() {
           className="w-full border border-line bg-surface px-4 py-3 text-[16px] text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.email && (
-          <p className="text-[12px] text-accent">{errors.email.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.email)}</p>
         )}
       </div>
 
@@ -92,7 +94,7 @@ export default function LoginForm() {
           {t("forgotLink")}
         </Link>
         {errors.password && (
-          <p className="text-[12px] text-accent">{errors.password.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.password)}</p>
         )}
       </div>
 

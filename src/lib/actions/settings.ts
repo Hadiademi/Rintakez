@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
+import { routing, type Locale } from "@/i18n/routing";
 
 type ErrResult = { ok: false; error: string };
 
@@ -37,4 +38,29 @@ export async function updateNotificationPrefs(
 
   revalidatePath("/[locale]/(app)/profile", "page");
   return { ok: true };
+}
+
+/**
+ * Persist the site language as the signed-in user's language for emails,
+ * notifications and Stripe return URLs (profiles.locale). Called by the
+ * language switcher; a no-op for visitors who are not signed in.
+ */
+export async function setPreferredLocale(
+  locale: string
+): Promise<{ ok: true; saved: boolean } | ErrResult> {
+  if (typeof locale !== "string" || !(routing.locales as readonly string[]).includes(locale)) {
+    return { ok: false, error: "invalid_input" };
+  }
+
+  const user = await getSessionUser();
+  if (!user) return { ok: true, saved: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ locale: locale as Locale })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: dbError(error, "settings") };
+
+  return { ok: true, saved: true };
 }

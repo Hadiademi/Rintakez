@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -12,6 +13,7 @@ import {
 
 export function ChangePasswordForm({ email }: { email: string }) {
   const t = useTranslations("profile");
+  const validationMessage = useValidationMessage();
   const [done, setDone] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -20,7 +22,7 @@ export function ChangePasswordForm({ email }: { email: string }) {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<ChangePasswordInput>({
-    resolver: zodResolver(changePasswordSchema),
+    resolver: localizedZodResolver(changePasswordSchema),
   });
 
   async function onSubmit(values: ChangePasswordInput) {
@@ -65,8 +67,8 @@ export function ChangePasswordForm({ email }: { email: string }) {
           className="w-full border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />
         {errors.currentPassword && (
-          <p className="text-[12px] text-accent">
-            {errors.currentPassword.message}
+          <p className="text-[12px] text-accent break-words">
+            {validationMessage(errors.currentPassword)}
           </p>
         )}
       </div>
@@ -83,7 +85,7 @@ export function ChangePasswordForm({ email }: { email: string }) {
           className="w-full border border-line bg-surface px-4 py-2.5 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />
         {errors.newPassword && (
-          <p className="text-[12px] text-accent">{errors.newPassword.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.newPassword)}</p>
         )}
       </div>
 

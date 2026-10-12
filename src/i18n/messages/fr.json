@@ -4,12 +4,12 @@
     "description": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
     "ogTitle": "Framly — Marché photo & vidéo en Suisse",
     "photographersTitle": "Photographes & vidéastes en Suisse",
-    "photographersDescription": "Découvre des photographes et vidéastes vérifiés partout en Suisse et trouve la bonne personne pour ton projet.",
+    "photographersDescription": "Découvre des photographes et vidéastes partout en Suisse, compare portfolios et avis, et trouve la bonne personne pour ton projet.",
     "shootsTitle": "Projets ouverts en Suisse",
     "shootsDescription": "Découvre les projets photo et vidéo ouverts publiés par des clients partout en Suisse et propose ton offre.",
     "shootFallbackTitle": "Projet",
     "landingTitle": "{type} à {canton}",
-    "landingDescription": "Trouve et compare des {type} à {canton}. Parcours des profils vérifiés, des portfolios et des avis, puis publie ta demande pour recevoir des offres.",
+    "landingDescription": "Trouve et compare des {type} à {canton}. Parcours profils, portfolios et avis, puis publie ta demande pour recevoir des offres.",
     "pricingTitle": "Tarifs — Framly",
     "pricingDescription": "Formules d'abonnement pour les photographes sur Framly."
   },
@@ -65,8 +65,8 @@
     "subtitle": "Décris ton projet et reçois des offres de photographes et vidéastes professionnels de ta région.",
     "title": "Photo & vidéo. En direct. Partout en Suisse.",
     "trust1": "Contact direct — sans intermédiaire sur ton shooting.",
-    "trust2": "Photographes vérifiés avec de vraies évaluations.",
-    "trust3": "Hébergement suisse, tes données restent à Zürich."
+    "trust2": "Des avis uniquement après une réservation terminée — les profils contrôlés portent le badge Vérifié.",
+    "trust3": "Données de profil et de mission stockées dans une base de données à Zurich."
   },
   "auth": {
     "checkEmail": "Confirme ton adresse e-mail pour continuer.",
@@ -147,7 +147,7 @@
     "cockpitWonNone": "Ta première offre t'attend — découvre les mandats ouverts.",
     "cockpitWonRate": "{pct} % de tes offres acceptées",
     "cockpitWonSum": "{amount} au total",
-    "ctaClientDesc": "Un brief en quelques étapes. Premières offres souvent en quelques heures.",
+    "ctaClientDesc": "Un brief en quelques étapes. Nous prévenons les photographes adaptés de ta région.",
     "ctaClientLabel": "NOUVELLE MISSION",
     "ctaClientTitle": "Créer une nouvelle mission",
     "ctaPhotographerDesc": "Filtre par canton, type et budget, puis soumets ton offre.",
@@ -342,7 +342,7 @@
     "decline": "Refuser",
     "declineConfirm": "Refuser cette offre ? Cette action est irréversible.",
     "details": "Détails",
-    "noOffers": "Pas encore d'offres. La plupart des missions reçoivent leur première offre en quelques heures.",
+    "noOffers": "Pas encore d'offres. Nous prévenons les photographes adaptés de ta région — tu recevras une notification dès la première offre.",
     "offers": "Offres",
     "pastOffers": "{count, plural, one {# offre antérieure n'est plus active} other {# offres antérieures ne sont plus actives}}",
     "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}"
@@ -614,6 +614,24 @@
     "shoot_closed": "Cette séance n'accepte plus d'offres — elle a été attribuée, fermée ou la date est passée.",
     "stripe_not_configured": "La facturation n'est pas disponible pour le moment.",
     "unauthorized": "Connecte-toi."
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire.",
+    "tooShort": "Au moins {n, number} caractères.",
+    "tooLong": "{n, number} caractères au maximum.",
+    "number": "Merci d'indiquer un nombre.",
+    "wholeNumber": "Merci d'indiquer un nombre entier.",
+    "numberMin": "Au minimum {n, number}.",
+    "numberMax": "Au maximum {n, number}.",
+    "numberPositive": "Merci d'indiquer un montant supérieur à 0.",
+    "email": "Merci d'indiquer une adresse e-mail valide.",
+    "url": "Merci d'indiquer une adresse valide (https://…).",
+    "postcode": "Merci d'indiquer un NPA à quatre chiffres.",
+    "chooseOption": "Merci de choisir une option.",
+    "dateMustBeFuture": "La date ne peut pas être dans le passé.",
+    "budgetRange": "Le budget maximum doit être au moins égal au minimum.",
+    "acceptTerms": "Merci d'accepter les CGU et la politique de confidentialité.",
+    "generic": "Merci de vérifier cette information."
   },
   "theme": {
     "toggle": "Changer de thème",

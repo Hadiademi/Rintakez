@@ -1,19 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { setPreferredLocale } from "@/lib/actions/settings";
 
-export function LocaleSwitcher() {
+const PERSIST_TIMEOUT_MS = 1500;
+
+/**
+ * `persist` (signed-in surfaces): the choice also becomes the account's
+ * language for emails and notifications (profiles.locale).
+ */
+export function LocaleSwitcher({ persist = false }: { persist?: boolean }) {
   const locale = useLocale();
   const pathname = usePathname();
   const t = useTranslations("common");
+  const [switching, setSwitching] = useState(false);
 
   // Hard navigation (full reload) rather than a soft router push: switching the
   // [locale] segment would otherwise re-render the root layout on the client,
   // and React 19 errors on the inline theme <script> there.
-  function changeLocale(next: string) {
-    if (next === locale) return;
+  async function changeLocale(next: string) {
+    if (next === locale || switching) return;
+    setSwitching(true);
+    if (persist) {
+      // Best-effort and bounded: saving the preference must never block or
+      // stall the switch (server actions queue behind any in-flight one).
+      await Promise.race([
+        setPreferredLocale(next).catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, PERSIST_TIMEOUT_MS)),
+      ]);
+    }
     window.location.assign(`/${next}${pathname === "/" ? "" : pathname}`);
   }
 
@@ -22,6 +40,7 @@ export function LocaleSwitcher() {
       <select
         value={locale}
         onChange={(e) => changeLocale(e.target.value)}
+        disabled={switching}
         aria-label={t("languageAria")}
         data-testid="locale-switcher"
         className="label press cursor-pointer appearance-none border border-line bg-paper py-1.5 pl-2.5 pr-7 text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none"

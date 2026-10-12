@@ -448,7 +448,7 @@ export default async function ProfilePage() {
             </span>
             <span className="flex-1 text-[15px] text-ink">{t("language")}</span>
             <span className="label text-mute">{currentLanguage}</span>
-            <LocaleSwitcher />
+            <LocaleSwitcher persist />
           </div>
 
           {/* Log out — reuses SignOutButton's real sign-out action. */}

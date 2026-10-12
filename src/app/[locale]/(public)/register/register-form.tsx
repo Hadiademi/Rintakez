@@ -1,7 +1,8 @@
 "use client";
 
 import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { registerAction } from "@/lib/actions/auth";
@@ -16,6 +17,7 @@ import { useState } from "react";
 
 export default function RegisterForm() {
   const t = useTranslations("auth");
+  const validationMessage = useValidationMessage();
   const tErr = useTranslations("errors");
   const locale = useLocale() as RegisterInput["locale"];
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function RegisterForm() {
     control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
+    resolver: localizedZodResolver(registerSchema),
     defaultValues: {
       role: "client",
       locale,
@@ -76,7 +78,7 @@ export default function RegisterForm() {
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.displayName && (
-          <p className="text-[12px] text-accent">{errors.displayName.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.displayName)}</p>
         )}
       </div>
 
@@ -95,7 +97,7 @@ export default function RegisterForm() {
           className="w-full border border-line bg-surface px-4 py-3 text-[16px] text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
         />
         {errors.email && (
-          <p className="text-[12px] text-accent">{errors.email.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.email)}</p>
         )}
       </div>
 
@@ -125,7 +127,7 @@ export default function RegisterForm() {
           </button>
         </div>
         {errors.password && (
-          <p className="text-[12px] text-accent">{errors.password.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.password)}</p>
         )}
       </div>
 
@@ -174,7 +176,7 @@ export default function RegisterForm() {
           </button>
         </div>
         {errors.role && (
-          <p className="text-[12px] text-accent">{errors.role.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.role)}</p>
         )}
       </div>
 

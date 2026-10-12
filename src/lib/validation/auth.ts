@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   displayName: z.string().min(2).max(80),
   role: z.enum(["client", "photographer"]),
   locale: z.enum(["de", "fr", "en"]),
-  acceptTerms: z.literal(true),
+  acceptTerms: z.literal(true, "v:acceptTerms"),
 });
 
 export const loginSchema = z.object({
