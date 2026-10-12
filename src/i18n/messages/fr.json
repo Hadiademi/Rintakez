@@ -413,7 +413,7 @@
     "dataPrivacy": "Données & confidentialité",
     "deleteAccount": "Supprimer définitivement le compte",
     "deleteConfirm": "Vraiment supprimer ? Action irréversible.",
-    "deleteWarning": "Ton compte et tes données (profil, missions, offres, messages, photos) seront supprimés définitivement. Un abonnement en cours prend fin immédiatement, sans remboursement des jours déjà payés.",
+    "deleteWarning": "Ton compte et tes données (profil, missions, offres, messages, photos, avis) seront supprimés définitivement. Un abonnement en cours prend fin immédiatement, sans remboursement des jours déjà payés.",
     "deleting": "Suppression …",
     "disciplines": "Discipline",
     "edit": "Modifier",
@@ -613,7 +613,10 @@
     "quota_reached": "Tu as atteint ta limite d'offres mensuelle.",
     "shoot_closed": "Cette séance n'accepte plus d'offres — elle a été attribuée, fermée ou la date est passée.",
     "stripe_not_configured": "La facturation n'est pas disponible pour le moment.",
-    "unauthorized": "Connecte-toi."
+    "unauthorized": "Connecte-toi.",
+    "booking_past": "La mission ne peut plus être annulée le jour du shooting ni après. Marque-la comme terminée ou signale un problème.",
+    "dispute_open": "Tant qu'un problème signalé est ouvert, la mission ne peut pas être annulée.",
+    "storage_cleanup_failed": "Tes fichiers n'ont pas pu être entièrement supprimés. Ton compte est conservé. Réessaie dans quelques minutes."
   },
   "theme": {
     "toggle": "Changer de thème",

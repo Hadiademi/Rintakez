@@ -13,6 +13,7 @@ type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 export function MyBidPanel({
   bid,
   canEdit,
+  shootStatus,
 }: {
   bid: {
     id: string;
@@ -21,8 +22,12 @@ export function MyBidPanel({
     status: BidStatus;
   };
   canEdit: boolean;
+  /** An accepted bid on a shoot that has since ended (cancelled/completed)
+   *  shows the shoot's state, like the My Bids list does. */
+  shootStatus?: "open" | "assigned" | "completed" | "cancelled";
 }) {
   const t = useTranslations("bidSheet");
+  const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
   const { toast } = useToast();
@@ -33,8 +38,14 @@ export function MyBidPanel({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const statusLabel =
-    bid.status === "accepted"
+  const endedBooking =
+    bid.status === "accepted" && (shootStatus === "cancelled" || shootStatus === "completed")
+      ? shootStatus
+      : null;
+
+  const statusLabel = endedBooking
+    ? tShoot(`status.${endedBooking}`)
+    : bid.status === "accepted"
       ? t("bidStatusAccepted")
       : bid.status === "declined"
         ? t("bidStatusDeclined")
@@ -43,14 +54,16 @@ export function MyBidPanel({
           : t("bidStatusPending");
 
   const dotClass =
-    bid.status === "pending"
-      ? "bg-accent"
-      : bid.status === "accepted"
-        ? "bg-ink"
-        : "bg-mute";
+    endedBooking === "cancelled"
+      ? "bg-mute"
+      : bid.status === "pending"
+        ? "bg-accent"
+        : bid.status === "accepted"
+          ? "bg-ink"
+          : "bg-mute";
 
   const statusTextClass =
-    bid.status === "accepted" ? "text-ink" : "text-mute";
+    bid.status === "accepted" && endedBooking !== "cancelled" ? "text-ink" : "text-mute";
 
   function onSave() {
     setError(null);

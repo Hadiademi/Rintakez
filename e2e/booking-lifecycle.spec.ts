@@ -22,5 +22,14 @@ test.describe("booking lifecycle", () => {
 
     await expect(page.getByText("Storniert", { exact: true }).first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("cancel-shoot")).toHaveCount(0);
+
+    // The photographer's view of the same page (the cancellation email links
+    // here) must not still congratulate them on the booking.
+    const shootUrl = page.url();
+    await page.context().clearCookies();
+    await login(page, SEED.photographer.email, SEED.photographer.password);
+    await page.goto(shootUrl);
+    await expect(page.getByText("Storniert", { exact: true }).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Glückwunsch/)).toHaveCount(0);
   });
 });

@@ -17,6 +17,7 @@ import { ShootRefGallery } from "@/components/shoot-ref-gallery";
 import { ContactReveal } from "@/components/contact-reveal";
 import { CancelShootButton } from "@/components/cancel-shoot-button";
 import { CompleteShootButton } from "@/components/complete-shoot-button";
+import { zurichDateString } from "@/lib/billing/zurich";
 import { ReviewForm } from "@/components/review-form";
 import { Stars } from "@/components/stars";
 import { BidSheet } from "@/components/bid-sheet";
@@ -450,6 +451,7 @@ export default async function ShootDetailPage({
         <MyBidPanel
           bid={myBid}
           canEdit={myBid.status === "pending" && shoot.status === "open"}
+          shootStatus={shoot.status}
         />
       ) : (
         <p className="text-mute">{tBid("notOpen")}</p>
@@ -640,10 +642,13 @@ export default async function ShootDetailPage({
       {shoot.status === "assigned" ? (
         <div className="flex flex-col items-start gap-6">
           <CompleteShootButton shootId={shoot.id} />
-          {/* A booked shoot can still fall through (postponed, ill). The
-              status guard allows assigned → cancelled and the photographer
-              is notified in-app and by email. */}
-          <CancelShootButton shootId={shoot.id} />
+          {/* A booking can still fall through (postponed, ill) — but only
+              before the shoot day and with no dispute open; afterwards it
+              is completed or disputed (rule enforced in the DB too). The
+              photographer is notified in-app and by email. */}
+          {shoot.shoot_date > zurichDateString(new Date()) && disputeStatus !== "open" ? (
+            <CancelShootButton shootId={shoot.id} />
+          ) : null}
         </div>
       ) : null}
 
