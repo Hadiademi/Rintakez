@@ -413,7 +413,7 @@
     "dataPrivacy": "Données & confidentialité",
     "deleteAccount": "Supprimer définitivement le compte",
     "deleteConfirm": "Vraiment supprimer ? Action irréversible.",
-    "deleteWarning": "Ton compte et toutes les données associées seront supprimés définitivement.",
+    "deleteWarning": "Ton compte et tes données (profil, missions, offres, messages, photos) seront supprimés définitivement. Un abonnement en cours prend fin immédiatement, sans remboursement des jours déjà payés.",
     "deleting": "Suppression …",
     "disciplines": "Discipline",
     "edit": "Modifier",

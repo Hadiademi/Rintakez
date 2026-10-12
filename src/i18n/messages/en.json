@@ -413,7 +413,7 @@
     "dataPrivacy": "Data & privacy",
     "deleteAccount": "Permanently delete account",
     "deleteConfirm": "Really delete? This cannot be undone.",
-    "deleteWarning": "Your account and all associated data will be permanently deleted.",
+    "deleteWarning": "Your account and your data (profile, shoots, offers, messages, photos) will be permanently deleted. A running subscription ends immediately; days already paid are not refunded.",
     "deleting": "Deleting …",
     "disciplines": "Discipline",
     "edit": "Edit",

@@ -413,7 +413,7 @@
     "dataPrivacy": "Daten & Datenschutz",
     "deleteAccount": "Konto endgültig löschen",
     "deleteConfirm": "Wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-    "deleteWarning": "Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht.",
+    "deleteWarning": "Dein Konto und deine Daten (Profil, Aufträge, Angebote, Nachrichten, Fotos) werden unwiderruflich gelöscht. Ein laufendes Abo endet sofort, bereits bezahlte Tage werden nicht erstattet.",
     "deleting": "Wird gelöscht …",
     "disciplines": "Disziplin",
     "edit": "Bearbeiten",
