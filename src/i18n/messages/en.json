@@ -413,7 +413,7 @@
     "dataPrivacy": "Data & privacy",
     "deleteAccount": "Permanently delete account",
     "deleteConfirm": "Really delete? This cannot be undone.",
-    "deleteWarning": "Your account and all associated data will be permanently deleted.",
+    "deleteWarning": "Your account and your data (profile, shoots, offers, messages, photos, reviews) will be permanently deleted. A running subscription ends immediately; days already paid are not refunded.",
     "deleting": "Deleting …",
     "disciplines": "Discipline",
     "edit": "Edit",
@@ -613,7 +613,10 @@
     "quota_reached": "You've reached your monthly bid limit.",
     "shoot_closed": "This shoot is no longer accepting offers — it was assigned, closed, or its date has passed.",
     "stripe_not_configured": "Billing isn't available right now.",
-    "unauthorized": "Please log in."
+    "unauthorized": "Please log in.",
+    "booking_past": "A booking can't be cancelled on or after the shoot day. Mark it as completed or report a problem.",
+    "dispute_open": "A booking can't be cancelled while a reported problem is open.",
+    "storage_cleanup_failed": "Your files could not all be deleted. Your account is kept; please try again in a few minutes."
   },
   "validation": {
     "required": "Please fill in this field.",

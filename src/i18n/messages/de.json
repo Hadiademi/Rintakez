@@ -413,7 +413,7 @@
     "dataPrivacy": "Daten & Datenschutz",
     "deleteAccount": "Konto endgültig löschen",
     "deleteConfirm": "Wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
-    "deleteWarning": "Dein Konto und alle zugehörigen Daten werden unwiderruflich gelöscht.",
+    "deleteWarning": "Dein Konto und deine Daten (Profil, Aufträge, Angebote, Nachrichten, Fotos, Bewertungen) werden unwiderruflich gelöscht. Ein laufendes Abo endet sofort, bereits bezahlte Tage werden nicht erstattet.",
     "deleting": "Wird gelöscht …",
     "disciplines": "Disziplin",
     "edit": "Bearbeiten",
@@ -613,7 +613,10 @@
     "quota_reached": "Du hast dein monatliches Angebots-Limit erreicht.",
     "shoot_closed": "Dieses Shooting nimmt keine Angebote mehr an — es wurde vergeben, geschlossen oder das Datum ist vorbei.",
     "stripe_not_configured": "Abrechnung ist momentan nicht verfügbar.",
-    "unauthorized": "Bitte melde dich an."
+    "unauthorized": "Bitte melde dich an.",
+    "booking_past": "Am Tag des Shootings und danach kann der Auftrag nicht mehr storniert werden. Markiere ihn als abgeschlossen oder melde ein Problem.",
+    "dispute_open": "Solange ein gemeldetes Problem offen ist, kann der Auftrag nicht storniert werden.",
+    "storage_cleanup_failed": "Deine Dateien konnten nicht vollständig gelöscht werden. Dein Konto bleibt bestehen; bitte versuche es in ein paar Minuten erneut."
   },
   "validation": {
     "required": "Bitte ausfüllen.",

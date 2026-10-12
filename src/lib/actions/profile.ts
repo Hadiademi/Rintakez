@@ -78,6 +78,14 @@ function isStoragePath(value: string): boolean {
 
 type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
 
+/** Remove every object under `prefix` (recursively). Throws on any error. */
+async function removeStorageFolder(admin: AdminClient, bucket: string, prefix: string) {
+  const paths = await collectStoragePaths(admin, bucket, prefix);
+  if (paths.length === 0) return;
+  const { error } = await admin.storage.from(bucket).remove(paths);
+  if (error) throw error;
+}
+
 /**
  * Recursively collect every object path under a storage prefix. Storage `list`
  * returns nested folders as entries with a null id; we descend into them so
@@ -164,6 +172,44 @@ export async function uploadAvatar(
   return { ok: true, url: urlData.publicUrl };
 }
 
+const SUBSCRIPTION_ENDED = new Set(["canceled", "incomplete_expired"]);
+
+/**
+ * Cancel every Stripe subscription of this user that can still charge.
+ * Stripe is the source of truth (our row can lag behind a webhook), and the
+ * customer may hold more than the subscription on file: an older past_due
+ * one survives a re-checkout, and a new one may exist before its webhook
+ * landed. With a customer id we list them all; otherwise we check the one id
+ * we have. Ids Stripe does not know (e.g. from the test-mode period) bill
+ * nothing in this account: we proceed but report it. Any other failure
+ * throws, and the caller aborts the deletion.
+ */
+async function cancelLiveSubscriptions(
+  stripe: NonNullable<ReturnType<typeof getStripe>>,
+  ref: { customerId: string | null; subscriptionId: string | null },
+  userId: string
+): Promise<void> {
+  let live: string[] = [];
+  try {
+    if (ref.customerId) {
+      const { data } = await stripe.subscriptions.list({
+        customer: ref.customerId,
+        status: "all",
+        limit: 100,
+      });
+      live = data.filter((s) => !SUBSCRIPTION_ENDED.has(s.status)).map((s) => s.id);
+    } else if (ref.subscriptionId) {
+      const sub = await stripe.subscriptions.retrieve(ref.subscriptionId);
+      if (!SUBSCRIPTION_ENDED.has(sub.status)) live = [sub.id];
+    }
+  } catch (err) {
+    if ((err as { code?: unknown })?.code !== "resource_missing") throw err;
+    captureError(err, { scope: "profile.deleteAccount.stripeMissing", userId });
+    return;
+  }
+  for (const id of live) await stripe.subscriptions.cancel(id);
+}
+
 /**
  * Permanently delete the current user's account and all associated data
  * (revFADP right to erasure). Deleting the auth user cascades through every
@@ -177,54 +223,58 @@ export async function deleteAccount(): Promise<{ ok: true } | ErrResult> {
   const admin = createAdminClient();
   if (!admin) return { ok: false, error: "generic" };
 
-  // Storage cleanup (avatars/portfolio/shoot-refs live under the user's uid
-  // folder, possibly nested); DB rows cascade from the auth.users delete.
-  // Fail-safe: if any listing/removal errors, abort BEFORE deleting the auth
-  // user so we never leave orphaned PII behind with no account to retry from.
-  try {
-    for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
-      const paths = await collectStoragePaths(admin, bucket, user.id);
-      if (paths.length > 0) {
-        const { error: removeError } = await admin.storage
-          .from(bucket)
-          .remove(paths);
-        if (removeError) throw removeError;
-      }
-    }
-  } catch {
-    return { ok: false, error: "storage_cleanup_failed" };
-  }
-
-  // Cancel any live Stripe subscription before the account (and its
-  // subscriptions row) disappears. If cancellation fails, ABORT the deletion
-  // — never orphan a live paid Stripe subscription behind a deleted account,
-  // where no one can reach it to cancel and the customer keeps getting
-  // charged with no way to stop it themselves. No subscription row, or no
-  // stripe_subscription_id, or Stripe not configured (local dev/test) all
-  // proceed straight to deletion — there's nothing to cancel.
+  // 1. Billing first, before anything is deleted. A live paid subscription
+  // must never be orphaned behind a deleted account (no one could reach it
+  // to cancel, and the card keeps being charged), so any failure here aborts
+  // the deletion while every file and row is still intact and the user can
+  // simply retry. No row, no Stripe ids, or Stripe not configured (local
+  // dev/test) means there is nothing to cancel.
   const { data: sub, error: subError } = await admin
     .from("subscriptions")
-    .select("stripe_subscription_id")
+    .select("stripe_subscription_id, stripe_customer_id")
     .eq("user_id", user.id)
     .maybeSingle();
-  // Fail-safe on a transient READ error: do NOT proceed to delete. A swallowed
-  // read error would leave `sub` null → cancellation skipped → the account is
-  // erased while a live paid Stripe subscription keeps billing with no way to
-  // reach it. Same posture as a cancel failure: abort with billing_cancel_failed.
+  // Fail-safe on a transient READ error: never proceed as if there were no
+  // subscription.
   if (subError) {
     captureError(subError, { scope: "profile.deleteAccount.subRead", userId: user.id });
     return { ok: false, error: "billing_cancel_failed" };
   }
-  if (sub?.stripe_subscription_id) {
+  if (sub?.stripe_subscription_id || sub?.stripe_customer_id) {
     const stripe = getStripe();
     if (stripe) {
       try {
-        await stripe.subscriptions.cancel(sub.stripe_subscription_id);
+        await cancelLiveSubscriptions(
+          stripe,
+          { customerId: sub.stripe_customer_id ?? null, subscriptionId: sub.stripe_subscription_id ?? null },
+          user.id
+        );
       } catch (err) {
         captureError(err, { scope: "profile.deleteAccount.stripeCancel", userId: user.id });
         return { ok: false, error: "billing_cancel_failed" };
       }
     }
+  }
+
+  // 2. Files. avatars/portfolio/shoot-refs live under the user's uid folder
+  // (possibly nested). Chat photos live under message-images/<conversation>/:
+  // the user's conversations and their messages cascade with the account, so
+  // their photos go too. Any listing/removal error aborts BEFORE the auth user
+  // is deleted, so no PII is left behind without an account to retry from.
+  try {
+    for (const bucket of ["avatars", "portfolio", "shoot-refs"]) {
+      await removeStorageFolder(admin, bucket, user.id);
+    }
+    const { data: conversations, error: convError } = await admin
+      .from("conversations")
+      .select("id")
+      .or(`client_id.eq.${user.id},photographer_id.eq.${user.id}`);
+    if (convError) throw convError;
+    for (const conversation of conversations ?? []) {
+      await removeStorageFolder(admin, "message-images", conversation.id);
+    }
+  } catch {
+    return { ok: false, error: "storage_cleanup_failed" };
   }
 
   // Record the erasure before it happens (audit_log.actor_id is ON DELETE SET

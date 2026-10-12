@@ -32,6 +32,10 @@ const KNOWN = new Set([
   "discipline_mismatch",
   "photographer_unavailable",
   "photographer_already_booked",
+  // Booking cancellation rules (20261013130000) and account deletion.
+  "booking_past",
+  "dispute_open",
+  "storage_cleanup_failed",
 ]);
 
 /** Map an action error string to a stable i18n key under the `errors` namespace.

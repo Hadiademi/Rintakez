@@ -1,6 +1,6 @@
 "use server";
 
-import { dbError } from "@/lib/action-error";
+import { dbError, isDbRefusal } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -329,6 +329,11 @@ export async function cancelShootAction(
     .eq("id", shootId)
     .eq("client_id", user.id)
     .select("id, title, accepted_bid_id");
+  // A booking can't be called off on/after the shoot day or while a dispute
+  // is open (20261013130000); say so instead of failing generically.
+  for (const refusal of ["booking_past", "dispute_open"] as const) {
+    if (isDbRefusal(error, refusal)) return { ok: false, error: refusal };
+  }
   if (error) return { ok: false, error: dbError(error, "shoots") };
   if (!data || data.length === 0) return { ok: false, error: "forbidden" };
 
