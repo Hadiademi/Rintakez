@@ -40,7 +40,10 @@ export const validationErrorMap: $ZodErrorMap = (issue) => {
   switch (issue.code) {
     case "invalid_type":
       if (issue.expected === "int") return token("wholeNumber");
-      if (issue.expected === "number") return token("number");
+      // An emptied <input type="number" valueAsNumber> arrives as NaN.
+      if (issue.expected === "number") {
+        return token(Number.isNaN(issue.input) || empty ? "required" : "number");
+      }
       return token(empty ? "required" : "generic");
     case "too_small":
       if (issue.origin === "string") return empty ? token("required") : token("tooShort", issue.minimum);

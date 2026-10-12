@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { localizedZodResolver } from "@/lib/validation/resolver";
 import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
@@ -59,6 +59,20 @@ export default function NewShootForm({ userId }: { userId: string }) {
   // Reference images are held in memory and uploaded after the shoot is created
   // (the upload needs the new shoot id, which only exists post-insert).
   const [refImages, setRefImages] = useState<{ file: File; url: string }[]>([]);
+  // Step changes the user makes move focus to the new step's heading; the
+  // buttons that triggered them are replaced, so focus would otherwise drop
+  // to <body>.
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingOnStep = useRef(false);
+  function goToStep(next: number) {
+    focusHeadingOnStep.current = true;
+    setStep(Math.max(0, Math.min(STEP_COUNT - 1, next)));
+  }
+  useEffect(() => {
+    if (!focusHeadingOnStep.current) return;
+    focusHeadingOnStep.current = false;
+    headingRef.current?.focus();
+  }, [step]);
 
   function addRefFiles(files: FileList | null) {
     if (!files) return;
@@ -162,7 +176,15 @@ export default function NewShootForm({ userId }: { userId: string }) {
 
   async function handleNext() {
     const valid = await trigger(STEP_FIELDS[step]);
-    if (valid) setStep((s) => s + 1);
+    if (valid) goToStep(step + 1);
+  }
+
+  // Publishing validates every step. A restored draft can hide an invalid
+  // value on an earlier step (e.g. a date that has passed); show that step
+  // so the error is visible instead of the button silently doing nothing.
+  function onInvalid(fieldErrors: FieldErrors<CreateShootInput>) {
+    const first = STEP_FIELDS.findIndex((fields) => fields.some((f) => fieldErrors[f]));
+    if (first !== -1 && first !== step) goToStep(first);
   }
 
   async function onSubmit(values: CreateShootInput) {
@@ -235,7 +257,11 @@ export default function NewShootForm({ userId }: { userId: string }) {
       </div>
 
       {/* Step heading */}
-      <h1 className="mt-12 text-4xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-5xl">
+      <h1
+        ref={headingRef}
+        tabIndex={-1}
+        className="mt-12 text-4xl font-semibold leading-[1.05] tracking-tight text-ink outline-none sm:text-5xl"
+      >
         {stepHeadings[step]}
       </h1>
 
@@ -270,16 +296,19 @@ export default function NewShootForm({ userId }: { userId: string }) {
             e.preventDefault();
             return;
           }
-          return handleSubmit(onSubmit)(e);
+          return handleSubmit(onSubmit, onInvalid)(e);
         }}
         onKeyDown={(e) => {
-          // Enter advances the step (matching the last step's submit) instead of
-          // doing nothing; Shift+Enter / textareas keep their newline behaviour.
+          // Enter in a field advances the step (matching the last step's
+          // submit) instead of doing nothing; Shift+Enter / textareas keep
+          // their newline behaviour, and buttons keep Enter as a click.
+          const tag = (e.target as HTMLElement).tagName;
           if (
             e.key === "Enter" &&
             !e.shiftKey &&
             step < STEP_COUNT - 1 &&
-            (e.target as HTMLElement).tagName !== "TEXTAREA"
+            tag !== "TEXTAREA" &&
+            tag !== "BUTTON"
           ) {
             e.preventDefault();
             handleNext();
@@ -483,7 +512,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
           <button
             type="button"
             data-testid="shoot-back"
-            onClick={() => setStep((s) => s - 1)}
+            onClick={() => goToStep(step - 1)}
             disabled={step === 0}
             className="press text-sm font-medium text-mute transition-colors hover:text-ink disabled:invisible"
           >

@@ -13,7 +13,7 @@ test.describe("new-shoot wizard", () => {
   test("advancing never submits: step 3 opens clean, Back then Next stays on the form", async ({
     page,
   }) => {
-    await login(page, SEED.client.email, SEED.client.password);
+    await login(page, SEED.client2.email, SEED.client2.password);
     await page.goto("/de/shoots/new");
 
     // A draft left by an earlier run would restore a later step; start clean.
@@ -33,9 +33,11 @@ test.describe("new-shoot wizard", () => {
     const form = page.locator("form");
     const fieldErrors = form.locator("p.text-accent");
 
-    // Step 3 is open and untouched: no validation errors yet.
+    // Step 3 is open and untouched: no validation errors yet. Focus moved to
+    // the new step's heading (the clicked button no longer exists).
     await expect(page.getByTestId("shoot-title")).toBeVisible();
     await expect(fieldErrors).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
 
     // Back to step 2 and forward again: still the form, still no errors.
     await page.getByTestId("shoot-back").click();
@@ -47,12 +49,75 @@ test.describe("new-shoot wizard", () => {
     await expect(fieldErrors).toHaveCount(0);
   });
 
+  // "Weiter" and "Veröffentlichen" sit in the same spot, so the second click of
+  // a double-click on step 2 lands on Publish. With step 3 already filled (the
+  // user went Back to fix something) that published the shoot.
+  test("double-clicking Weiter on step 2 never publishes", async ({ page }) => {
+    await login(page, SEED.client2.email, SEED.client2.password);
+    await page.goto("/de/shoots/new");
+    const discard = page.getByTestId("shoot-draft-discard");
+    if (await discard.isVisible().catch(() => false)) await discard.click();
+
+    await page.getByTestId("shoot-type-portrait").click();
+    await page.getByTestId("shoot-next").click();
+    await page.getByTestId("shoot-city").fill("Basel");
+    await page.getByTestId("shoot-canton").selectOption("BS");
+    await page.getByTestId("shoot-date").fill(futureDate());
+    await page.getByTestId("shoot-duration").fill("2");
+    await page.getByTestId("shoot-next").click();
+    await page.getByTestId("shoot-title").fill("Doppelklick-Test");
+    await page.getByTestId("shoot-brief").fill("Dieser Auftrag darf nicht veröffentlicht werden.");
+    await page.getByTestId("shoot-budget-min").fill("300");
+    await page.getByTestId("shoot-budget-max").fill("600");
+
+    await page.getByTestId("shoot-back").click();
+    // A human double-click: two clicks on the same spot ~150 ms apart, so the
+    // second one lands on whatever button is there by then.
+    const box = (await page.getByTestId("shoot-next").boundingBox())!;
+    const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+    await page.mouse.click(x, y);
+    await page.waitForTimeout(150);
+    await page.mouse.click(x, y);
+    await page.waitForTimeout(1500);
+    await expect(page).toHaveURL(/\/de\/shoots\/new$/);
+    await expect(page.getByTestId("shoot-title")).toHaveValue("Doppelklick-Test");
+  });
+
+  // A draft restored on the last step can carry a value that is no longer
+  // valid (here: a date that has passed). Publishing used to do nothing
+  // visible, because the failing field sits on an earlier step.
+  test("publishing with an invalid earlier step jumps to that step and says why", async ({ page }) => {
+    await login(page, SEED.client2.email, SEED.client2.password);
+    await page.goto("/de/shoots/new");
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "rintakez:shoot-draft:a0000000-0000-0000-0000-000000000002",
+        JSON.stringify({
+          step: 2,
+          values: {
+            discipline: "photo", type: "portrait", locationCity: "Chur", canton: "GR",
+            shootDate: "2020-01-01", durationHours: 2, title: "Alter Entwurf",
+            brief: "Ein Entwurf mit einem Datum, das inzwischen vorbei ist.",
+            budgetMinChf: 300, budgetMaxChf: 600,
+          },
+        })
+      );
+    });
+    await page.reload();
+    await expect(page.getByTestId("shoot-title")).toHaveValue("Alter Entwurf");
+
+    await page.getByTestId("shoot-submit").click();
+    await expect(page.getByTestId("shoot-date")).toBeVisible();
+    await expect(page.getByText("Das Datum darf nicht in der Vergangenheit liegen.")).toBeVisible();
+    await expect(page).toHaveURL(/\/de\/shoots\/new$/);
+  });
+
   // Regression for review OPS-02: reference photos were uploaded as originals.
   // A current phone photo (5–8 MB) exceeded the upload limit, so the shoot was
   // created without it. They are now downscaled in the browser like every
   // other upload.
   test("a phone-sized reference photo (>5 MB) reaches the shoot", async ({ page }) => {
-    await login(page, SEED.client.email, SEED.client.password);
+    await login(page, SEED.client2.email, SEED.client2.password);
     await page.goto("/de/shoots/new");
     const discard = page.getByTestId("shoot-draft-discard");
     if (await discard.isVisible().catch(() => false)) await discard.click();

@@ -59,8 +59,13 @@ describe("validationErrorMap", () => {
       canton: "v:chooseOption",
       locationPostcode: "v:postcode",
       shootDate: "v:dateMustBeFuture",
-      durationHours: "v:number",
+      // An emptied number input reaches the schema as NaN (valueAsNumber).
+      durationHours: "v:required",
       title: "v:tooShort:3",
+    });
+    // A blank date is missing, not "in the past".
+    expect(messages(createShootSchema, { ...validShoot, shootDate: "" })).toEqual({
+      shootDate: "v:required",
     });
     // The cross-field rule runs once the fields themselves are valid.
     expect(messages(createShootSchema, { ...validShoot, budgetMinChf: 3000, budgetMaxChf: 2000 })).toEqual({
@@ -127,7 +132,8 @@ describe("validation copy", () => {
         const text = msgs.validation?.[key];
         expect(text, `${locale}.validation.${key}`).toBeTruthy();
         const takesLimit = ["tooShort", "tooLong", "numberMin", "numberMax"].includes(key);
-        expect(text!.includes("{n}"), `${locale}.validation.${key} uses {n}`).toBe(takesLimit);
+        // Limits are formatted for the locale (1'000'000, not 1000000).
+        expect(text!.includes("{n, number}"), `${locale}.validation.${key} uses {n, number}`).toBe(takesLimit);
       }
     }
   });
@@ -144,7 +150,10 @@ describe("form wiring", () => {
   const files = sourceFiles(join(process.cwd(), "src"));
 
   it("no form renders a raw validation message", () => {
-    const offenders = files.filter((f) => /\{\s*errors\.[\w.]+\??\.message\s*\}/.test(readFileSync(f, "utf8")));
+    // Any read of `.message` off react-hook-form's errors object, however
+    // written (errors.x.message, errors.x?.message ?? ..., errors["x"].message).
+    const raw = /\berrors(?:\??\.[\w]+|\[[^\]]+\])+\??\.message\b/;
+    const offenders = files.filter((f) => raw.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
 

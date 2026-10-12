@@ -11,7 +11,8 @@ export const createShootSchema = z
     // Empty or a four-digit Swiss postcode.
     locationPostcode: z.string().regex(/^([0-9]{4})?$/, "v:postcode").optional(),
     canton: z.enum(CANTONS),
-    shootDate: z.string().refine((d) => {
+    // A blank date is "required", not "in the past": stop at min(1).
+    shootDate: z.string().min(1, { abort: true }).refine((d) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const parsed = new Date(d + "T00:00:00");
