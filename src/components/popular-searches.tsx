@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { cantonName } from "@/lib/canton-names";
+import { cantonLocative } from "@/lib/canton-names";
 import type { CantonTypeCombo } from "@/lib/photographer-landing-combos";
 
 /**
@@ -41,7 +41,7 @@ export async function PopularSearches({
             href={`/photographers/${canton}/${type}`}
             className="rounded-full border border-line px-3 py-1.5 text-[13px] text-ink transition-colors hover:border-mute-2"
           >
-            {tSeo(`h1.${type}`, { canton: cantonName(canton, locale) })}
+            {tSeo(`h1.${type}`, { inCanton: cantonLocative(canton, locale) })}
           </Link>
         ))}
       </div>

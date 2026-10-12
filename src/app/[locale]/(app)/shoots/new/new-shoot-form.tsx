@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch, type FieldErrors } from "react-hook-form";
 import { localizedZodResolver } from "@/lib/validation/resolver";
 import { useValidationMessage } from "@/lib/validation/use-validation-message";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
-import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
+import { SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
@@ -19,6 +19,7 @@ import {
   isMeaningfulDraft,
   serializeDraft,
 } from "@/lib/shoot-draft";
+import { cantonOptions } from "@/lib/canton-names";
 
 const STEP_COUNT = 3;
 const MAX_REF_IMAGES = 6;
@@ -51,6 +52,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
   const tToast = useTranslations("toast");
+  const locale = useLocale();
   const { toast } = useToast();
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -407,8 +409,8 @@ export default function NewShootForm({ userId }: { userId: string }) {
               <label htmlFor="shoot-canton" className="label text-mute">{t("fieldCanton")}</label>
               <select id="shoot-canton" data-testid="shoot-canton" {...register("canton")} className={inputClass}>
                 <option value="" />
-                {CANTONS.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                {cantonOptions(locale).map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
                 ))}
               </select>
               {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}

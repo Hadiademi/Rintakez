@@ -30,6 +30,11 @@ export default async function AppLayout({
           >
             {children}
           </div>
+          {/* Search traffic lands on these pages (directory, profiles, canton
+              pages, pricing), so Impressum / Datenschutz / AGB must be
+              reachable here too. No mobile tab bar for visitors, so no
+              extra bottom padding. */}
+          <SiteFooter />
         </div>
       </ToasterProvider>
     );

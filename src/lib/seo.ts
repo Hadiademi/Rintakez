@@ -22,6 +22,7 @@ export function buildAlternates(
 
   return {
     canonical: getPathname({ locale, href }),
-    languages,
+    // x-default: where to send a searcher whose language we don't serve.
+    languages: { ...languages, "x-default": getPathname({ locale: routing.defaultLocale, href }) },
   };
 }

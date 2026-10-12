@@ -56,4 +56,10 @@ describe("i18n message catalogs", () => {
     }
     expect(offenders, `empty translations: ${offenders.join(", ")}`).toEqual([]);
   });
+
+  it("uses Swiss German spelling (ss, never ß)", () => {
+    // Swiss Standard German has no ß; "zu groß" / "Schließen" read as German
+    // German to a Swiss user.
+    expect(JSON.stringify(de).match(/ß/g) ?? []).toEqual([]);
+  });
 });

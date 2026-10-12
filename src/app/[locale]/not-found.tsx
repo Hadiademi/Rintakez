@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations({ locale: await getLocale(), namespace: "states" });
+  // The heading copy is a sentence ("Seite nicht gefunden."); a title has no full stop.
+  return { title: t("notFoundTitle").replace(/\.$/, "") };
+}
 
 export default async function NotFound() {
   const locale = await getLocale();

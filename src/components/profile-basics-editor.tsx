@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { CANTONS } from "@/lib/validation/photographer";
 import { updateProfileBasics } from "@/lib/actions/profile";
 import { errorKey } from "@/lib/error-messages";
 import { useToast } from "@/components/ui/toaster";
+import { cantonOptions } from "@/lib/canton-names";
 
 const inputClass =
   "w-full border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
@@ -24,6 +24,7 @@ export function ProfileBasicsEditor({
 }) {
   const t = useTranslations("profileBasics");
   const tErr = useTranslations("errors");
+  const locale = useLocale();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -135,10 +136,8 @@ export function ProfileBasicsEditor({
             className={inputClass}
           >
             <option value="">—</option>
-            {CANTONS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
+            {cantonOptions(locale).map(({ value, label }) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </select>
         </div>

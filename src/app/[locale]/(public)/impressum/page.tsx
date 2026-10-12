@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { buildAlternates } from "@/lib/seo";
 
 const EMAIL = "info@framly.ch";
 const PHONE_DISPLAY = "079 338 75 33";
@@ -12,7 +13,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "legal" });
-  return { title: t("impressumTitle") };
+  return { title: t("impressumTitle"), alternates: buildAlternates(locale, "/impressum") };
 }
 
 export default async function ImpressumPage() {

@@ -43,9 +43,14 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "landing" });
+  const [t, tMeta] = await Promise.all([
+    getTranslations({ locale, namespace: "landing" }),
+    getTranslations({ locale, namespace: "meta" }),
+  ]);
   return {
-    title: { absolute: t("title") },
+    // The hero headline (landing.title) is a slogan; the search title says
+    // what people search for, plus the brand.
+    title: { absolute: tMeta("homeTitle") },
     description: t("subtitle"),
     alternates: buildAlternates(locale, "/"),
   };

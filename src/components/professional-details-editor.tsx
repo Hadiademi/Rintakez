@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { ChipMultiSelect } from "@/components/chip-multi-select";
 import { savePhotographerDetails } from "@/lib/actions/photographer";
 import {
   SHOOT_TYPES,
-  CANTONS,
   DISCIPLINES,
 } from "@/lib/validation/photographer";
 import { errorKey } from "@/lib/error-messages";
 import { formatCHF } from "@/lib/format";
 import { useToast } from "@/components/ui/toaster";
+import { cantonOptions } from "@/lib/canton-names";
 
 const inputClass =
   "border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
@@ -49,6 +49,7 @@ export function ProfessionalDetailsEditor({
   const tBasics = useTranslations("profileBasics");
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
+  const locale = useLocale();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -262,7 +263,7 @@ export function ProfessionalDetailsEditor({
       <div id="pro-cantons" className="flex scroll-mt-24 flex-col gap-3">
         <label className="label text-mute">{tOnb("cantons")}</label>
         <ChipMultiSelect
-          options={CANTONS.map((v) => ({ value: v, label: v }))}
+          options={cantonOptions(locale)}
           value={cantons}
           onChange={setCantons}
           data-testid="pro-details-cantons"
