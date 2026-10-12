@@ -329,18 +329,16 @@ set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","
 
 -- ── 30: owner inserts an image on own open shoot ─────────────────────
 select lives_ok(
-  $$insert into public.shoot_images (id, shoot_id, storage_path)
-    values ('30000000-0000-0000-0000-000000000001',
-            '10000000-0000-0000-0000-000000000003',
+  $$insert into public.shoot_images (shoot_id, storage_path)
+    values ('10000000-0000-0000-0000-000000000003',
             '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg')$$,
   'owner attaches a reference image to own open shoot'
 );
 
 -- ── 31: owner inserts an image on own cancelled shoot ────────────────
 select lives_ok(
-  $$insert into public.shoot_images (id, shoot_id, storage_path)
-    values ('30000000-0000-0000-0000-000000000002',
-            '10000000-0000-0000-0000-000000000002',
+  $$insert into public.shoot_images (shoot_id, storage_path)
+    values ('10000000-0000-0000-0000-000000000002',
             '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000002/b.jpg')$$,
   'owner attaches a reference image to own cancelled shoot'
 );
@@ -389,12 +387,12 @@ select throws_ok(
 -- ── 36–37: non-owner delete is a no-op (RLS filters the row out) ──────
 select lives_ok(
   $$delete from public.shoot_images
-    where id = '30000000-0000-0000-0000-000000000001'$$,
+    where storage_path = '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg'$$,
   'non-owner delete runs but affects no rows'
 );
 select results_eq(
   $$select count(*)::int from public.shoot_images
-    where id = '30000000-0000-0000-0000-000000000001'$$,
+    where storage_path = '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg'$$,
   array[1],
   'owner image survives a non-owner delete attempt'
 );
@@ -405,12 +403,12 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}';
 select lives_ok(
   $$delete from public.shoot_images
-    where id = '30000000-0000-0000-0000-000000000001'$$,
+    where storage_path = '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg'$$,
   'owner deletes own reference image'
 );
 select results_eq(
   $$select count(*)::int from public.shoot_images
-    where id = '30000000-0000-0000-0000-000000000001'$$,
+    where storage_path = '00000000-0000-0000-0000-000000000001/10000000-0000-0000-0000-000000000003/a.jpg'$$,
   array[0],
   'deleted reference image is gone'
 );

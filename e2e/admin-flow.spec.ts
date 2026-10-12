@@ -35,6 +35,58 @@ test.describe("admin console", () => {
     await expect(page).toHaveURL(/\/de\/home/, { timeout: 20_000 });
   });
 
+  test("a non-admin receives no admin data, even when the layout is skipped", async ({
+    page,
+  }) => {
+    // Regression for the 2026-10-10 review: the (admin) layout was the only
+    // is_admin check, but Next renders the page segment independently of the
+    // layout (and skips layouts the client claims to have mounted). The page
+    // itself read every user's email through the service-role client.
+    const routerState = [
+      "",
+      {
+        children: [
+          // [param, cache key, dynamic type, static siblings]
+          ["locale", "de", "d", null],
+          { children: ["(admin)", { children: ["admin", { children: ["__PAGE__", {}] }] }] },
+        ],
+      },
+    ];
+    // A soft-navigation RSC request whose router state claims the (admin)
+    // layout is already mounted, so the server renders only the page. Next
+    // answers the first RSC request with a 307 that adds ?_rsc=; the request
+    // API follows it with the same headers.
+    const layoutSkippingRsc = () =>
+      page.request.get("/de/admin/users", {
+        headers: {
+          RSC: "1",
+          "Next-Router-State-Tree": encodeURIComponent(JSON.stringify(routerState)),
+        },
+      });
+
+    // Positive control: as an admin, the same request does render the user
+    // list, so the crafted router state really reaches the page segment.
+    await login(page, SEED.admin.email, SEED.admin.password);
+    const asAdmin = await layoutSkippingRsc();
+    expect(asAdmin.headers()["content-type"]).toContain("text/x-component");
+    expect(await asAdmin.text()).toContain(SEED.photographer.email);
+    await page.context().clearCookies();
+
+    await login(page, SEED.client.email, SEED.client.password);
+    const otherUsersEmails = [SEED.photographer.email, SEED.admin.email];
+    // 1. A plain document request (the old code leaked here too: the page
+    //    segment streamed after the layout's redirect).
+    const html = await (await page.request.get("/de/admin/users")).text();
+    // 2. The layout-skipping RSC request.
+    const asClient = await layoutSkippingRsc();
+    expect(asClient.headers()["content-type"]).toContain("text/x-component");
+    const rsc = await asClient.text();
+
+    for (const body of [rsc, html]) {
+      for (const email of otherUsersEmails) expect(body).not.toContain(email);
+    }
+  });
+
   test("admin navigation is reachable on a 390px viewport", async ({ page }) => {
     // login() asserts the desktop sign-out testid, which is CSS-hidden below
     // the `lg` breakpoint (the mobile nav's sign-out deliberately omits the

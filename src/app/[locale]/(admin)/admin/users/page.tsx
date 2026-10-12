@@ -1,7 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getProfile } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminPageClient, requireAdminProfile } from "@/lib/admin/guard";
 import { AdminUserRow } from "@/components/admin-user-row";
 import { AdminPageHeader } from "@/components/admin-page-header";
 
@@ -25,7 +24,7 @@ export default async function AdminUsersPage({
     : "all";
 
   const t = await getTranslations("admin");
-  const [me, admin] = await Promise.all([getProfile(), createAdminClient()]);
+  const [me, admin] = await Promise.all([requireAdminProfile(), adminPageClient()]);
   if (!admin) return <p className="text-mute">Service role key not configured.</p>;
 
   let query = admin

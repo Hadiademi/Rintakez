@@ -1,7 +1,9 @@
 -- Profile-view collection (20260701150000_profile_views.sql): insert-only
 -- counter feeding a future paid analytics dashboard. Covers the
 -- record_profile_view RPC (self-view skip, daily dedupe for logged-in
--- viewers), RLS (owner-only read), and the photographer_view_count seam.
+-- viewers), the absence of direct reads (raw rows name every signed-in viewer,
+-- so since 20261012120000 nobody but the SECURITY DEFINER readers sees them),
+-- and the photographer_view_count seam.
 begin;
 create extension if not exists pgtap;
 
@@ -82,23 +84,28 @@ select results_eq(
   'anon views (viewer_id null) are recorded and are not deduped'
 );
 
--- ── 5: photographer P can SELECT their own profile_views rows ───────
+-- ── 5: not even photographer P reads the raw rows (viewer identities) ─
+-- Free-tier P could otherwise see every named viewer, bypassing the Premium
+-- gate and premium_profile_viewers()' privacy rule.
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000f2","role":"authenticated"}';
-select ok(
-  (select count(*)::int from public.profile_views
-     where photographer_id = '00000000-0000-0000-0000-0000000000f2') >= 3,
-  'photographer P can select their own profile_views rows'
+select throws_ok(
+  $$select viewer_id from public.profile_views
+      where photographer_id = '00000000-0000-0000-0000-0000000000f2'$$,
+  '42501',
+  null,
+  'photographer P cannot read raw profile_views rows, not even their own'
 );
 reset role;
 
--- ── 6: a different user cannot read P's rows (0 rows) ────────────────
+-- ── 6: nor can any other signed-in user ──────────────────────────────
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000f3","role":"authenticated"}';
-select results_eq(
-  $$select count(*)::int from public.profile_views
+select throws_ok(
+  $$select count(*) from public.profile_views
       where photographer_id = '00000000-0000-0000-0000-0000000000f2'$$,
-  array[0],
+  '42501',
+  null,
   'a different user (O) cannot read photographer P''s profile_views rows'
 );
 reset role;
@@ -116,12 +123,16 @@ select throws_ok(
 reset role;
 
 -- ── 8: photographer_view_count returns the owner's count ─────────────
+-- The expected count is read as the table owner, before switching role.
+select set_config('test.pv_expected',
+  (select count(*)::text from public.profile_views
+     where photographer_id = '00000000-0000-0000-0000-0000000000f2'), true);
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000f2","role":"authenticated"}';
-select results_eq(
-  $$select photographer_view_count('00000000-0000-0000-0000-0000000000f2')$$,
-  $$select count(*)::int from public.profile_views
-      where photographer_id = '00000000-0000-0000-0000-0000000000f2'$$,
+select ok(
+  photographer_view_count('00000000-0000-0000-0000-0000000000f2')
+    = current_setting('test.pv_expected')::int
+  and current_setting('test.pv_expected')::int >= 3,
   'photographer_view_count returns the full count for the owner'
 );
 reset role;

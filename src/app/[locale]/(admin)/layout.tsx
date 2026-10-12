@@ -1,31 +1,22 @@
-import { getLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
-import { getProfile } from "@/lib/auth";
+import { requireAdminProfile } from "@/lib/admin/guard";
 import { SkipToContent } from "@/components/skip-to-content";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AdminTopbar } from "@/components/admin-topbar";
 import { AdminDrawer } from "@/components/admin-drawer";
-import { fetchAdminCounts } from "@/lib/admin/counts";
+import { fetchAdminCounts } from "@/lib/admin/fetch-counts";
 
 export const dynamic = "force-dynamic";
 
-// Central admin gate for every /admin/* route. Individual server actions also
-// re-check admin (defense-in-depth), so this is the UX gate, not the only one.
+// Admin shell. The is_admin check here is the UX gate only: Next renders each
+// page segment independently of this layout, so every admin page (and
+// fetchAdminCounts) runs the same requireAdminProfile() gate itself before
+// touching data, and every server action re-checks admin too.
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [profile, locale] = await Promise.all([getProfile(), getLocale()]);
-  if (!profile) {
-    redirect({ href: "/login", locale });
-    return null;
-  }
-  if (!profile.is_admin) {
-    redirect({ href: "/home", locale });
-    return null;
-  }
-
+  const profile = await requireAdminProfile();
   const counts = await fetchAdminCounts();
 
   return (
