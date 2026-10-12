@@ -6,7 +6,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Stars } from "@/components/stars";
 import { formatCHF } from "@/lib/format";
-import { acceptBidAction } from "@/lib/actions/shoots";
+import { acceptBidAction, declineBidAction } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
 import { sortBids, type BidSortMode } from "@/lib/bid-sort";
@@ -130,6 +130,23 @@ function CompareCard({
     });
   }
 
+  function onDecline() {
+    // Same confirmation and action as BidCard's decline: this view replaces
+    // the single cards once there are two or more offers.
+    if (typeof window !== "undefined" && !window.confirm(t("declineConfirm"))) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const res = await declineBidAction(item.id);
+      if (res.ok) {
+        router.refresh();
+      } else {
+        setError(tErr(errorKey(res.error)));
+      }
+    });
+  }
+
   const meta = [
     tProfile("memberSince", { year: p?.memberSinceYear ?? 0 }),
     item.completedShoots > 0
@@ -217,6 +234,15 @@ function CompareCard({
           className="press flex min-h-[44px] w-full items-center justify-center bg-ink px-4 label text-paper disabled:opacity-50"
         >
           {t("accept")}
+        </button>
+        <button
+          type="button"
+          data-testid={`bid-decline-${item.id}`}
+          onClick={onDecline}
+          disabled={isPending}
+          className="press flex min-h-[44px] w-full items-center justify-center border border-line px-4 label text-mute disabled:opacity-50"
+        >
+          {t("decline")}
         </button>
         <div className="flex items-center justify-between gap-3">
           {p ? (
