@@ -5,6 +5,10 @@ import { expect, type Page } from "@playwright/test";
 
 export const SEED = {
   client: { email: "lena@example.ch", password: "password123" },
+  // A second seeded client. Specs that only need "a client" use it so the
+  // suite stays under the per-email sign-in limit (Supabase + our own
+  // limiter count logins per address).
+  client2: { email: "vitra@example.ch", password: "password123" },
   photographer: { email: "marko@example.ch", password: "password123" },
   admin: { email: "admin@framly.ch", password: "gzOuYKoDplFbJWNqtdJyAa1!" },
 };

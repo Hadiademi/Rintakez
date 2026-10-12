@@ -638,7 +638,13 @@ export default async function ShootDetailPage({
       ) : null}
 
       {shoot.status === "assigned" ? (
-        <CompleteShootButton shootId={shoot.id} />
+        <div className="flex flex-col items-start gap-6">
+          <CompleteShootButton shootId={shoot.id} />
+          {/* A booked shoot can still fall through (postponed, ill). The
+              status guard allows assigned → cancelled and the photographer
+              is notified in-app and by email. */}
+          <CancelShootButton shootId={shoot.id} />
+        </div>
       ) : null}
 
       {clientCard}
