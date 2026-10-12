@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminPageClient } from "@/lib/admin/guard";
 import { AdminEmailRetry } from "@/components/admin-email-retry";
 import { AdminPageHeader } from "@/components/admin-page-header";
 
@@ -16,7 +16,7 @@ function Metric({ value, label }: { value: number; label: string }) {
 
 export default async function AdminEmailPage() {
   const t = await getTranslations("admin");
-  const admin = createAdminClient();
+  const admin = await adminPageClient();
   if (!admin) return <p className="text-mute">Service role key not configured.</p>;
 
   const head = { count: "exact" as const, head: true };

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminPageClient } from "@/lib/admin/guard";
 import { AdminReportRow } from "@/components/admin-report-row";
 import { AdminPageHeader } from "@/components/admin-page-header";
 
@@ -23,7 +23,7 @@ export default async function AdminReportsPage({
 
   const t = await getTranslations("admin");
   const tReport = await getTranslations("report");
-  const admin = createAdminClient();
+  const admin = await adminPageClient();
   if (!admin) return <p className="text-mute">Service role key not configured.</p>;
 
   const { data: reports } = await admin

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminPageClient } from "@/lib/admin/guard";
 import { AdminPageHeader } from "@/components/admin-page-header";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ function metaSummary(meta: unknown): string {
 
 export default async function AdminAuditPage() {
   const t = await getTranslations("admin");
-  const admin = createAdminClient();
+  const admin = await adminPageClient();
   if (!admin) return <p className="text-mute">Service role key not configured.</p>;
 
   const { data: rows } = await admin
