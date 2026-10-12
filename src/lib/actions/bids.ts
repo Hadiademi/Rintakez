@@ -1,6 +1,6 @@
 "use server";
 
-import { dbError } from "@/lib/action-error";
+import { dbError, isDbRefusal } from "@/lib/action-error";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser, getProfile } from "@/lib/auth";
@@ -75,10 +75,14 @@ export async function submitBidAction(shootId: string, raw: unknown): Promise<Ok
         .eq("photographer_id", profile.id)
         .eq("status", "withdrawn")
         .select("id");
+      if (isDbRefusal(reviveErr, "quota_reached")) return { ok: false, error: "quota_reached" };
       if (reviveErr) return { ok: false, error: dbError(reviveErr, "bids") };
       if (!revived || revived.length === 0)
         return { ok: false, error: "already_bid" };
       // Revived — fall through to the email + revalidate below.
+    } else if (isDbRefusal(error, "quota_reached")) {
+      // The DB enforces the quota too (concurrent submits, direct API use).
+      return { ok: false, error: "quota_reached" };
     } else if (error.code === "42501") {
       // RLS with-check refusal on this insert means the shoot stopped being
       // biddable in the window since the pre-check above — same user answer.

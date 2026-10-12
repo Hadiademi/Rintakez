@@ -7,6 +7,7 @@ import { getSessionUser, getProfile } from "@/lib/auth";
 import { createShootSchema } from "@/lib/validation/shoot";
 import { notifyEmail, type EmailKind } from "@/lib/email";
 import { rateLimit } from "@/lib/rate-limit";
+import { isAllowedImage } from "@/lib/uploads";
 
 type ErrResult = { ok: false; error: string };
 
@@ -152,9 +153,7 @@ export async function addShootImage(
   const file = formData.get("file");
   if (
     !(file instanceof File) ||
-    file.size === 0 ||
-    !file.type.startsWith("image/") ||
-    file.size > 5 * 1024 * 1024
+    !isAllowedImage(file)
   ) {
     return { ok: false, error: "invalid_file" };
   }

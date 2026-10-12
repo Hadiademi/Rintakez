@@ -10,6 +10,7 @@ import {
   portfolioCaptionSchema,
   type PhotographerDetailsInput,
 } from "@/lib/validation/photographer";
+import { isAllowedImage } from "@/lib/uploads";
 
 type OkResult<T extends object = object> = { ok: true } & T;
 type ErrResult = { ok: false; error: string };
@@ -114,9 +115,7 @@ export async function addPortfolioImage(
 
   if (
     !(file instanceof File) ||
-    file.size === 0 ||
-    !file.type.startsWith("image/") ||
-    file.size > 5 * 1024 * 1024
+    !isAllowedImage(file)
   ) {
     return { ok: false, error: "invalid_file" };
   }
@@ -211,9 +210,7 @@ export async function setCoverImage(
   const file = formData.get("file");
   if (
     !(file instanceof File) ||
-    file.size === 0 ||
-    !file.type.startsWith("image/") ||
-    file.size > 5 * 1024 * 1024
+    !isAllowedImage(file)
   ) {
     return { ok: false, error: "invalid_file" };
   }

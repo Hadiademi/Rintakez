@@ -1152,6 +1152,10 @@ export type Database = {
         Args: { p_photographer_id: string; p_since?: string }
         Returns: number
       }
+      my_verification_note: {
+        Args: never
+        Returns: string | null
+      }
       lifecycle_onboarding_candidates: {
         Args: { p_cutoff: string; p_limit: number }
         Returns: {

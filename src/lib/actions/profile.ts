@@ -9,6 +9,7 @@ import { getStripe } from "@/lib/stripe";
 import { captureError } from "@/lib/observability";
 import { getSessionUser } from "@/lib/auth";
 import { CANTONS } from "@/lib/validation/photographer";
+import { isAllowedImage } from "@/lib/uploads";
 
 type ErrResult = { ok: false; error: string };
 type Ok<T extends object = object> = { ok: true } & T;
@@ -118,9 +119,7 @@ export async function uploadAvatar(
   const file = formData.get("file");
   if (
     !(file instanceof File) ||
-    file.size === 0 ||
-    !file.type.startsWith("image/") ||
-    file.size > 5 * 1024 * 1024
+    !isAllowedImage(file)
   ) {
     return { ok: false, error: "invalid_file" };
   }

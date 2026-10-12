@@ -101,6 +101,41 @@ describe("submitBidAction quota gate", () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it("reports the database's quota refusal as quota_reached, not a generic error", async () => {
+    // Two submits can both pass the pre-check; the DB trigger
+    // (20261013120000) refuses the one that would exceed the cap.
+    getBidQuotaUsage.mockResolvedValue({ plan: "free", used: 0, limit: 1 });
+    const supabase = fakeSupabase({ error: { code: "P0001", message: "quota_reached" } });
+    createClient.mockResolvedValue(supabase);
+
+    const result = await submitBidAction("shoot-1", VALID_INPUT);
+
+    expect(result).toEqual({ ok: false, error: "quota_reached" });
+    expect(notifyEmail).not.toHaveBeenCalled();
+  });
+
+  it("reports the database's quota refusal on reviving a withdrawn bid", async () => {
+    // Insert hits the one-bid-per-shoot constraint, so the action revives the
+    // withdrawn row; the DB refuses that revival when the month is at the cap.
+    getBidQuotaUsage.mockResolvedValue({ plan: "free", used: 0, limit: 1 });
+    const supabase = fakeSupabase({ error: { code: "23505", message: "duplicate key" } });
+    const reviveSelect = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { code: "P0001", message: "quota_reached" } });
+    const chain = { eq: vi.fn(() => chain), select: reviveSelect };
+    const update = vi.fn(() => chain);
+    const baseFrom = supabase.from;
+    supabase.from = vi.fn((table: string) =>
+      table === "bids" ? { insert: supabase.insert, update } : baseFrom(table)
+    ) as typeof supabase.from;
+    createClient.mockResolvedValue(supabase);
+
+    const result = await submitBidAction("shoot-1", VALID_INPUT);
+
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ status: "pending" }));
+    expect(result).toEqual({ ok: false, error: "quota_reached" });
+  });
+
   it("rejects non-photographers as forbidden before the quota check", async () => {
     getProfile.mockResolvedValue({ id: "client-1", role: "client" });
 

@@ -41,6 +41,12 @@ values
   ('20000000-0000-0000-0000-0000000000b3', '10000000-0000-0000-0000-0000000000a3',
    '00000000-0000-0000-0000-0000000000f2', 800, 'Pending bid for accept test.');
 
+-- F2 is a paying photographer: this file tests suspension, and the bid above
+-- already uses a Free plan's one bid of the month (the DB enforces the
+-- monthly quota since 20261013120000).
+insert into public.subscriptions (user_id, plan, status, source, current_period_end)
+values ('00000000-0000-0000-0000-0000000000f2', 'standard', 'active', 'stripe', now() + interval '30 days');
+
 -- A conversation between the client and F1 (for the message test).
 insert into public.conversations (id, shoot_id, client_id, photographer_id)
 values
