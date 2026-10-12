@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(4);
+select plan(5);
 
 -- ── fixtures: 1 admin + 1 client + 1 photographer + 1 assigned shoot ────
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -69,7 +69,10 @@ select results_eq(
   'the reporting (non-admin) client does not receive an admin_alert'
 );
 
--- ── 3: opening a dispute enqueues a second admin_alert for the admin ──
+-- ── 3: while an alert is pending, a dispute adds no duplicate ────────
+-- The alert email is generic ("new item in the admin queue"), so one pending
+-- alert per admin is enough (20261013120000: a report flood used to enqueue
+-- one email per report and stall all transactional mail).
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}';
 insert into public.disputes (shoot_id, opened_by, reason)
@@ -81,8 +84,27 @@ select results_eq(
   $$select count(*)::int from public.email_outbox
       where recipient_id = '00000000-0000-0000-0000-0000000000e0'
         and kind = 'admin_alert'$$,
-  array[2],
-  'opening a dispute enqueues a second admin_alert row for the admin'
+  array[1],
+  'with an admin_alert still pending, opening a dispute adds no duplicate'
+);
+
+-- ── 3b: once that alert went out, the next event alerts again ─────────
+update public.email_outbox set status = 'sent', sent_at = now()
+  where recipient_id = '00000000-0000-0000-0000-0000000000e0' and kind = 'admin_alert';
+delete from public.disputes where shoot_id = '10000000-0000-0000-0000-0000000000e3';
+set local role authenticated;
+set local request.jwt.claims to '{"sub":"00000000-0000-0000-0000-0000000000e2","role":"authenticated"}';
+insert into public.disputes (shoot_id, opened_by, reason)
+values ('10000000-0000-0000-0000-0000000000e3',
+        '00000000-0000-0000-0000-0000000000e2', 'Client never showed up, again.');
+reset role;
+
+select results_eq(
+  $$select count(*)::int from public.email_outbox
+      where recipient_id = '00000000-0000-0000-0000-0000000000e0'
+        and kind = 'admin_alert' and status = 'pending'$$,
+  array[1],
+  'after the previous alert was sent, a new dispute enqueues a fresh one'
 );
 
 -- ── 4: the email_outbox stays service-role only (not readable by the admin) ──
