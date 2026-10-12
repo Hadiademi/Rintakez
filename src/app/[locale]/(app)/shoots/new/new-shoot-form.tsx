@@ -257,7 +257,16 @@ export default function NewShootForm({ userId }: { userId: string }) {
           functionality. */}
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(e) => {
+          // Only the last step may submit. Anything else (a click whose
+          // default action lands after the step flipped, a stray Enter) is
+          // swallowed, so advancing can never publish or validate early.
+          if (step < STEP_COUNT - 1) {
+            e.preventDefault();
+            return;
+          }
+          return handleSubmit(onSubmit)(e);
+        }}
         onKeyDown={(e) => {
           // Enter advances the step (matching the last step's submit) instead of
           // doing nothing; Shift+Enter / textareas keep their newline behaviour.
@@ -478,9 +487,16 @@ export default function NewShootForm({ userId }: { userId: string }) {
 
           {step < STEP_COUNT - 1 ? (
             <button
+              key="next"
               type="button"
               data-testid="shoot-next"
-              onClick={handleNext}
+              onClick={(e) => {
+                // The step flips before the click's default action runs; the
+                // distinct keys stop React reusing this node as the submit
+                // button, and preventDefault stops any activation outright.
+                e.preventDefault();
+                handleNext();
+              }}
               className="press inline-flex items-center gap-2 bg-ink px-7 py-3.5 text-sm font-medium text-paper"
             >
               {t("next")}
@@ -490,6 +506,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
             </button>
           ) : (
             <button
+              key="submit"
               type="submit"
               data-testid="shoot-submit"
               disabled={isSubmitting}
