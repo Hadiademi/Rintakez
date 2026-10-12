@@ -23,6 +23,11 @@ test.describe("new-shoot wizard", () => {
     await page.getByTestId("shoot-type-portrait").click();
     await page.getByTestId("shoot-next").click();
 
+    // Cantons are listed by name in the page's language, not by code.
+    const canton = page.getByTestId("shoot-canton");
+    await expect(canton.locator('option[value="VS"]')).toHaveText("Wallis");
+    await expect(canton.locator('option[value="GE"]')).toHaveText("Genf");
+
     await page.getByTestId("shoot-city").fill("Bern");
     await page.getByTestId("shoot-postcode").fill("3011");
     await page.getByTestId("shoot-canton").selectOption("BE");

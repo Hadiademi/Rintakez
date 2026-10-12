@@ -1,13 +1,15 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
+import { SHOOT_TYPES } from "@/lib/validation/photographer";
+import { cantonOptions } from "@/lib/canton-names";
 
 export function ShootFilters() {
   const t = useTranslations("browse");
   const tShoot = useTranslations("shoot");
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,11 +86,9 @@ export function ShootFilters() {
           className={`${selectClass} mt-3`}
         >
           <option value="">{t("all")}</option>
-          {CANTONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
+          {cantonOptions(locale).map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
         </select>
 
         <p className="label mt-6 text-mute-2">{t("filterDiscipline")}</p>
@@ -151,10 +151,8 @@ export function ShootFilters() {
             <label className="label text-mute">{t("filterCanton")}</label>
             <select value={canton} onChange={handleCanton} className={selectClass}>
               <option value="">{t("all")}</option>
-              {CANTONS.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+              {cantonOptions(locale).map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
               ))}
             </select>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { ChipMultiSelect } from "@/components/chip-multi-select";
 import {
@@ -9,9 +9,10 @@ import {
   addPortfolioImage,
   removePortfolioImage,
 } from "@/lib/actions/photographer";
-import { SHOOT_TYPES, CANTONS, DISCIPLINES } from "@/lib/validation/photographer";
+import { SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
+import { cantonOptions } from "@/lib/canton-names";
 
 type PortfolioItem = { id: string; url: string };
 
@@ -49,6 +50,7 @@ export default function OnboardingForm({
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const router = useRouter();
 
   const [specialties, setSpecialties] = useState<string[]>(initial.specialties);
@@ -71,7 +73,7 @@ export default function OnboardingForm({
     label: tShoot(`types.${v}`),
   }));
 
-  const cantonOptions = CANTONS.map((v) => ({ value: v, label: v }));
+  const cantonChoices = cantonOptions(locale);
 
   const disciplineOptions = DISCIPLINES.map((v) => ({
     value: v,
@@ -167,7 +169,7 @@ export default function OnboardingForm({
       <div className="flex flex-col gap-3">
         <label className="label text-mute">{t("cantons")}</label>
         <ChipMultiSelect
-          options={cantonOptions}
+          options={cantonChoices}
           value={cantons}
           onChange={setCantons}
           data-testid="onboarding-cantons"

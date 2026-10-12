@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { localizedZodResolver } from "@/lib/validation/resolver";
 import { useValidationMessage } from "@/lib/validation/use-validation-message";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
-import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
+import { SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { updateShootAction } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { useToast } from "@/components/ui/toaster";
+import { cantonOptions } from "@/lib/canton-names";
 
 const inputClass =
   "w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 transition-colors focus:border-ink focus:outline-none";
@@ -27,6 +28,7 @@ export function EditShootForm({
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
+  const locale = useLocale();
   const { toast } = useToast();
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -120,9 +122,9 @@ export function EditShootForm({
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-canton" className="label text-mute">{t("fieldCanton")}</label>
           <select id="e-canton" {...register("canton")} className={inputClass}>
-            {CANTONS.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
+            {cantonOptions(locale).map(({ value, label }) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
           </select>
           {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
         </div>

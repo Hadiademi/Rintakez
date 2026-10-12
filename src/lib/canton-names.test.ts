@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CANTONS } from "@/lib/validation/photographer";
-import { cantonLocative, cantonName } from "@/lib/canton-names";
+import { cantonLocative, cantonName, cantonOptions } from "@/lib/canton-names";
 
 // SEO landing pages read "Hochzeitsfotografen {inCanton}". "in {name}" is
 // wrong for cantons that take an article (im Wallis, en Valais, au Tessin),
@@ -33,3 +33,21 @@ describe("cantonLocative", () => {
     expect(cantonLocative("VS", "it")).toBe("im Wallis");
   });
 });
+
+describe("cantonOptions", () => {
+  // Dropdowns and chips showed the two-letter codes ("VS", "GR"); people
+  // know their canton by name, in their language.
+  it("labels every canton by its name in the given language, sorted by name", () => {
+    const fr = cantonOptions("fr");
+    expect(fr).toHaveLength(CANTONS.length);
+    expect(fr.find((o) => o.value === "VS")?.label).toBe("Valais");
+    expect(fr.find((o) => o.value === "GE")?.label).toBe("Genève");
+    const labels = fr.map((o) => o.label);
+    expect(labels).toEqual([...labels].sort((a, b) => a.localeCompare(b, "fr")));
+
+    const de = cantonOptions("de");
+    expect(de[0]).toEqual({ value: "AG", label: "Aargau" });
+    expect(de.find((o) => o.value === "VS")?.label).toBe("Wallis");
+  });
+});
+

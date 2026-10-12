@@ -85,3 +85,13 @@ export function cantonLocative(canton: Canton, locale: string): string {
   if (locale === "en") return `in ${cantonName(canton, "en")}`;
   return locale === "fr" ? entry.fr : entry.de;
 }
+
+/**
+ * Select / chip options for cantons: the code as value (what is stored), the
+ * localized name as label, sorted by that name in the given language.
+ */
+export function cantonOptions(locale: string): { value: Canton; label: string }[] {
+  return (Object.keys(CANTON_NAMES) as Canton[])
+    .map((c) => ({ value: c, label: cantonName(c, locale) }))
+    .sort((a, b) => a.label.localeCompare(b.label, locale));
+}
