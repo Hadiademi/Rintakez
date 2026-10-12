@@ -7,11 +7,12 @@ test.describe("seo", () => {
 
   test("an unknown URL shows the branded 404 in the page's language", async ({ page }) => {
     // Was Next's default English 404 with no lang attribute and no way back.
-    await page.goto("/fr/cette-page-nexiste-pas");
+    // It must stay a real 404 for crawlers (no Suspense boundary above the
+    // catch-all), not a 200 "soft 404".
+    const response = await page.goto("/fr/cette-page-nexiste-pas");
+    expect(response?.status()).toBe(404);
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    // Next streams the not-found UI, so the status stays 200; the page must
-    // carry noindex instead (every robots tag present says so).
     const robots = await page.locator('meta[name="robots"]').evaluateAll((els) =>
       els.map((e) => e.getAttribute("content"))
     );
@@ -33,7 +34,7 @@ test.describe("seo", () => {
   test("the home page has a search title and hreflang incl. x-default", async ({ page }) => {
     await page.goto("/de");
     await expect(page).toHaveTitle("Fotograf finden in der Schweiz – Offerten vergleichen | Framly");
-    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveCount(1);
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", /\/de$/);
     await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveCount(1);
   });
 

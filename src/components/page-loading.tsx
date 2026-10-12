@@ -1,4 +1,5 @@
-export default function Loading() {
+/** Generic page skeleton shown while a route segment loads. */
+export function PageLoading() {
   return (
     <main className="min-h-[60vh] flex flex-col items-center justify-center gap-3 px-6">
       <div className="w-48 h-4 rounded bg-chip animate-pulse" />
