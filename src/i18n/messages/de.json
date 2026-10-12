@@ -4,12 +4,12 @@
     "description": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
     "ogTitle": "Framly — Foto- & Video-Marktplatz Schweiz",
     "photographersTitle": "Fotografen & Videografen in der Schweiz",
-    "photographersDescription": "Entdecke verifizierte Fotograf:innen und Videograf:innen in der ganzen Schweiz und finde die passende Person für deinen Shoot.",
+    "photographersDescription": "Entdecke Fotograf:innen und Videograf:innen in der ganzen Schweiz, vergleiche Portfolios und Bewertungen und finde die passende Person für deinen Shoot.",
     "shootsTitle": "Offene Shoots in der Schweiz",
     "shootsDescription": "Entdecke offene Foto- und Video-Shoots von Kund:innen in der ganzen Schweiz und gib dein Angebot ab.",
     "shootFallbackTitle": "Shoot",
     "landingTitle": "{type} in {canton}",
-    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere verifizierte Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote.",
+    "landingDescription": "Finde und vergleiche {type} in {canton}. Durchstöbere Profile, Portfolios und Bewertungen und veröffentliche danach dein Shooting für Angebote.",
     "pricingTitle": "Preise — Framly",
     "pricingDescription": "Abo-Pläne für Fotograf:innen auf Framly."
   },
@@ -65,8 +65,8 @@
     "subtitle": "Beschreibe deinen Shoot und erhalte Angebote von professionellen Fotograf:innen und Videograf:innen aus deiner Region.",
     "title": "Foto & Video. Direkt. Schweizweit.",
     "trust1": "Direkter Kontakt — kein Mittelsmann bei deinem Shooting.",
-    "trust2": "Geprüfte Fotograf:innen mit echten, verifizierten Bewertungen.",
-    "trust3": "Schweizer Hosting, deine Daten bleiben in Zürich."
+    "trust2": "Bewertungen nur nach abgeschlossener Buchung — geprüfte Profile tragen das Verifiziert-Badge.",
+    "trust3": "Profil- und Auftragsdaten liegen in einer Datenbank in Zürich."
   },
   "auth": {
     "checkEmail": "Bestätige deine E-Mail-Adresse, um fortzufahren.",
@@ -147,7 +147,7 @@
     "cockpitWonNone": "Dein erstes Angebot wartet — schau dir die offenen Aufträge an.",
     "cockpitWonRate": "{pct} % deiner Angebote angenommen",
     "cockpitWonSum": "{amount} gesamt",
-    "ctaClientDesc": "Brief in wenigen Schritten. Erste Angebote meist innerhalb weniger Stunden.",
+    "ctaClientDesc": "Brief in wenigen Schritten. Wir benachrichtigen passende Fotograf:innen in deiner Region.",
     "ctaClientLabel": "NEUER AUFTRAG",
     "ctaClientTitle": "Neuen Auftrag erstellen",
     "ctaPhotographerDesc": "Filtere nach Kanton, Art und Budget und gib dein Angebot ab.",
@@ -342,7 +342,7 @@
     "decline": "Ablehnen",
     "declineConfirm": "Dieses Angebot ablehnen? Das kann nicht rückgängig gemacht werden.",
     "details": "Eckdaten",
-    "noOffers": "Noch keine Angebote. Die meisten Aufträge erhalten ihr erstes Angebot innerhalb weniger Stunden.",
+    "noOffers": "Noch keine Angebote. Wir benachrichtigen passende Fotograf:innen in deiner Region — du erhältst eine Nachricht, sobald das erste Angebot da ist.",
     "offers": "Angebote",
     "pastOffers": "{count, plural, one {# früheres Angebot nicht mehr aktiv} other {# frühere Angebote nicht mehr aktiv}}",
     "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}"
