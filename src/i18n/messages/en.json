@@ -615,6 +615,24 @@
     "stripe_not_configured": "Billing isn't available right now.",
     "unauthorized": "Please log in."
   },
+  "validation": {
+    "required": "Please fill in this field.",
+    "tooShort": "At least {n} characters.",
+    "tooLong": "At most {n} characters.",
+    "number": "Please enter a number.",
+    "wholeNumber": "Please enter a whole number.",
+    "numberMin": "At least {n}.",
+    "numberMax": "At most {n}.",
+    "numberPositive": "Please enter an amount above 0.",
+    "email": "Please enter a valid email address.",
+    "url": "Please enter a valid address (https://…).",
+    "postcode": "Please enter a four-digit postcode.",
+    "chooseOption": "Please choose an option.",
+    "dateMustBeFuture": "The date can't be in the past.",
+    "budgetRange": "The maximum budget must be at least the minimum.",
+    "acceptTerms": "Please accept the Terms and Privacy Policy.",
+    "generic": "Please check this entry."
+  },
   "theme": {
     "toggle": "Toggle theme",
     "light": "Light",

@@ -615,6 +615,24 @@
     "stripe_not_configured": "La facturation n'est pas disponible pour le moment.",
     "unauthorized": "Connecte-toi."
   },
+  "validation": {
+    "required": "Ce champ est obligatoire.",
+    "tooShort": "Au moins {n} caractères.",
+    "tooLong": "{n} caractères au maximum.",
+    "number": "Merci d'indiquer un nombre.",
+    "wholeNumber": "Merci d'indiquer un nombre entier.",
+    "numberMin": "Au minimum {n}.",
+    "numberMax": "Au maximum {n}.",
+    "numberPositive": "Merci d'indiquer un montant supérieur à 0.",
+    "email": "Merci d'indiquer une adresse e-mail valide.",
+    "url": "Merci d'indiquer une adresse valide (https://…).",
+    "postcode": "Merci d'indiquer un NPA à quatre chiffres.",
+    "chooseOption": "Merci de choisir une option.",
+    "dateMustBeFuture": "La date ne peut pas être dans le passé.",
+    "budgetRange": "Le budget maximum doit être au moins égal au minimum.",
+    "acceptTerms": "Merci d'accepter les CGU et la politique de confidentialité.",
+    "generic": "Merci de vérifier cette information."
+  },
   "theme": {
     "toggle": "Changer de thème",
     "light": "Clair",

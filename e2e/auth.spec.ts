@@ -52,9 +52,24 @@ test.describe("auth journey", () => {
     // A field-level validation message must appear next to the password input.
     // The input now sits inside a relative wrapper (show/hide-password toggle),
     // so the error <p> is a sibling of that wrapper, not of the input itself.
+    // ...in the page's language, not Zod's English default (review UI-02).
     await expect(
       page.locator("div:has(> #register-password) ~ p.text-accent")
-    ).toBeVisible();
+    ).toHaveText("Mindestens 8 Zeichen.");
+  });
+
+  test("validation messages follow the page language (fr)", async ({ page }) => {
+    await page.goto("/fr/register");
+    await page.getByTestId("register-displayName").fill("Test User");
+    await page.getByTestId("register-email").fill("pas-une-adresse");
+    await page.getByTestId("register-password").fill("short");
+    await page.getByTestId("register-submit").click();
+
+    await expect(page).toHaveURL(/\/fr\/register/);
+    await expect(
+      page.locator("div:has(> #register-password) ~ p.text-accent")
+    ).toHaveText("Au moins 8 caractères.");
+    await expect(page.getByText("Merci d'indiquer une adresse e-mail valide.")).toBeVisible();
   });
 
   test("register happy path (client, auto-confirmed) logs in", async ({

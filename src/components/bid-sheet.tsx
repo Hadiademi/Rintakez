@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createBidSchema, type CreateBidInput } from "@/lib/validation/bid";
@@ -21,6 +22,7 @@ export function BidSheet({
   quota: { used: number; limit: number | null }; // limit null = unlimited (premium)
 }) {
   const t = useTranslations("bidSheet");
+  const validationMessage = useValidationMessage();
   const reached = quota.limit !== null && quota.used >= quota.limit;
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
@@ -35,7 +37,7 @@ export function BidSheet({
     formState: { errors },
   } = useForm<CreateBidInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createBidSchema) as any,
+    resolver: localizedZodResolver(createBidSchema) as any,
   });
 
   function onSubmit(values: CreateBidInput) {
@@ -81,7 +83,7 @@ export function BidSheet({
             {t("clientBudget", { range: budgetRange })}
           </p>
           {errors.amountChf ? (
-            <p className="text-sm text-accent">{errors.amountChf.message}</p>
+            <p className="text-sm text-accent break-words">{validationMessage(errors.amountChf)}</p>
           ) : null}
         </div>
 
@@ -98,7 +100,7 @@ export function BidSheet({
             className="w-full border border-line bg-surface px-3.5 py-2.5 text-ink focus:border-ink focus:outline-none"
           />
           {errors.message ? (
-            <p className="text-sm text-accent">{errors.message.message}</p>
+            <p className="text-sm text-accent break-words">{validationMessage(errors.message)}</p>
           ) : null}
         </div>
 

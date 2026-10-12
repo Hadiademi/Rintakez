@@ -615,6 +615,24 @@
     "stripe_not_configured": "Abrechnung ist momentan nicht verfügbar.",
     "unauthorized": "Bitte melde dich an."
   },
+  "validation": {
+    "required": "Bitte ausfüllen.",
+    "tooShort": "Mindestens {n} Zeichen.",
+    "tooLong": "Höchstens {n} Zeichen.",
+    "number": "Bitte eine Zahl eingeben.",
+    "wholeNumber": "Bitte eine ganze Zahl eingeben.",
+    "numberMin": "Mindestens {n}.",
+    "numberMax": "Höchstens {n}.",
+    "numberPositive": "Bitte einen Betrag grösser als 0 eingeben.",
+    "email": "Bitte eine gültige E-Mail-Adresse eingeben.",
+    "url": "Bitte eine gültige Adresse eingeben (https://…).",
+    "postcode": "Bitte eine vierstellige PLZ eingeben.",
+    "chooseOption": "Bitte eine Option wählen.",
+    "dateMustBeFuture": "Das Datum darf nicht in der Vergangenheit liegen.",
+    "budgetRange": "Das Maximalbudget muss mindestens so hoch sein wie das Minimum.",
+    "acceptTerms": "Bitte akzeptiere die AGB und die Datenschutzerklärung.",
+    "generic": "Bitte überprüfe diese Angabe."
+  },
   "theme": {
     "toggle": "Theme wechseln",
     "light": "Hell",

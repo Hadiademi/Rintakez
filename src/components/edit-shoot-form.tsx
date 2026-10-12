@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
@@ -22,6 +23,7 @@ export function EditShootForm({
   initial: CreateShootInput;
 }) {
   const t = useTranslations("createShoot");
+  const validationMessage = useValidationMessage();
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
@@ -37,7 +39,7 @@ export function EditShootForm({
     formState: { errors, isSubmitting },
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createShootSchema) as any,
+    resolver: localizedZodResolver(createShootSchema) as any,
     defaultValues: initial,
   });
 
@@ -89,31 +91,31 @@ export function EditShootForm({
             <option key={v} value={v}>{tShoot(`types.${v}`)}</option>
           ))}
         </select>
-        {errors.type && <p className="text-[13px] text-accent">{errors.type.message}</p>}
+        {errors.type && <p className="text-[13px] text-accent break-words">{validationMessage(errors.type)}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="e-title" className="label text-mute">{t("fieldTitle")}</label>
         <input id="e-title" {...register("title")} className={inputClass} />
-        {errors.title && <p className="text-[13px] text-accent">{errors.title.message}</p>}
+        {errors.title && <p className="text-[13px] text-accent break-words">{validationMessage(errors.title)}</p>}
       </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="e-brief" className="label text-mute">{t("fieldBrief")}</label>
         <textarea id="e-brief" rows={5} {...register("brief")} className={`${inputClass} resize-y`} />
-        {errors.brief && <p className="text-[13px] text-accent">{errors.brief.message}</p>}
+        {errors.brief && <p className="text-[13px] text-accent break-words">{validationMessage(errors.brief)}</p>}
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-city" className="label text-mute">{t("fieldCity")}</label>
           <input id="e-city" {...register("locationCity")} className={inputClass} />
-          {errors.locationCity && <p className="text-[13px] text-accent">{errors.locationCity.message}</p>}
+          {errors.locationCity && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationCity)}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-postcode" className="label text-mute">{t("fieldPostcode")}</label>
           <input id="e-postcode" inputMode="numeric" maxLength={4} {...register("locationPostcode")} className={inputClass} />
-          {errors.locationPostcode && <p className="text-[13px] text-accent">{errors.locationPostcode.message}</p>}
+          {errors.locationPostcode && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationPostcode)}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-canton" className="label text-mute">{t("fieldCanton")}</label>
@@ -122,17 +124,17 @@ export function EditShootForm({
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          {errors.canton && <p className="text-[13px] text-accent">{errors.canton.message}</p>}
+          {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-date" className="label text-mute">{t("fieldDate")}</label>
           <input id="e-date" type="date" {...register("shootDate")} className={inputClass} />
-          {errors.shootDate && <p className="text-[13px] text-accent">{errors.shootDate.message}</p>}
+          {errors.shootDate && <p className="text-[13px] text-accent break-words">{validationMessage(errors.shootDate)}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-duration" className="label text-mute">{t("fieldDuration")}</label>
           <input id="e-duration" type="number" min={1} max={24} {...register("durationHours", { valueAsNumber: true })} className={inputClass} />
-          {errors.durationHours && <p className="text-[13px] text-accent">{errors.durationHours.message}</p>}
+          {errors.durationHours && <p className="text-[13px] text-accent break-words">{validationMessage(errors.durationHours)}</p>}
         </div>
       </div>
 
@@ -140,12 +142,12 @@ export function EditShootForm({
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-bmin" className="label text-mute">{t("fieldBudgetMin")}</label>
           <input id="e-bmin" type="number" min={1} {...register("budgetMinChf", { valueAsNumber: true })} className={inputClass} />
-          {errors.budgetMinChf && <p className="text-[13px] text-accent">{errors.budgetMinChf.message}</p>}
+          {errors.budgetMinChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMinChf)}</p>}
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="e-bmax" className="label text-mute">{t("fieldBudgetMax")}</label>
           <input id="e-bmax" type="number" min={1} {...register("budgetMaxChf", { valueAsNumber: true })} className={inputClass} />
-          {errors.budgetMaxChf && <p className="text-[13px] text-accent">{errors.budgetMaxChf.message}</p>}
+          {errors.budgetMaxChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMaxChf)}</p>}
         </div>
       </div>
 

@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/i18n/navigation";
 import { createShootSchema, type CreateShootInput } from "@/lib/validation/shoot";
@@ -44,6 +45,7 @@ const inputClass =
 
 export default function NewShootForm({ userId }: { userId: string }) {
   const t = useTranslations("createShoot");
+  const validationMessage = useValidationMessage();
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
@@ -92,7 +94,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
     formState: { errors, isSubmitting },
   } = useForm<CreateShootInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createShootSchema) as any,
+    resolver: localizedZodResolver(createShootSchema) as any,
     defaultValues: DEFAULT_VALUES,
     mode: "onTouched",
   });
@@ -349,7 +351,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
               })}
             </div>
             {errors.type && (
-              <p className="text-[13px] text-accent">{errors.type.message}</p>
+              <p className="text-[13px] text-accent break-words">{validationMessage(errors.type)}</p>
             )}
           </div>
         )}
@@ -360,13 +362,13 @@ export default function NewShootForm({ userId }: { userId: string }) {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-city" className="label text-mute">{t("fieldCity")}</label>
               <input id="shoot-city" data-testid="shoot-city" type="text" {...register("locationCity")} className={inputClass} />
-              {errors.locationCity && <p className="text-[13px] text-accent">{errors.locationCity.message}</p>}
+              {errors.locationCity && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationCity)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-postcode" className="label text-mute">{t("fieldPostcode")}</label>
               <input id="shoot-postcode" data-testid="shoot-postcode" type="text" inputMode="numeric" maxLength={4} {...register("locationPostcode")} className={inputClass} />
-              {errors.locationPostcode && <p className="text-[13px] text-accent">{errors.locationPostcode.message}</p>}
+              {errors.locationPostcode && <p className="text-[13px] text-accent break-words">{validationMessage(errors.locationPostcode)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -377,19 +379,19 @@ export default function NewShootForm({ userId }: { userId: string }) {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              {errors.canton && <p className="text-[13px] text-accent">{errors.canton.message}</p>}
+              {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-date" className="label text-mute">{t("fieldDate")}</label>
               <input id="shoot-date" data-testid="shoot-date" type="date" min={today} {...register("shootDate")} className={inputClass} />
-              {errors.shootDate && <p className="text-[13px] text-accent">{errors.shootDate.message}</p>}
+              {errors.shootDate && <p className="text-[13px] text-accent break-words">{validationMessage(errors.shootDate)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-duration" className="label text-mute">{t("fieldDuration")}</label>
               <input id="shoot-duration" data-testid="shoot-duration" type="number" min={1} max={24} {...register("durationHours", { valueAsNumber: true })} className={inputClass} />
-              {errors.durationHours && <p className="text-[13px] text-accent">{errors.durationHours.message}</p>}
+              {errors.durationHours && <p className="text-[13px] text-accent break-words">{validationMessage(errors.durationHours)}</p>}
             </div>
           </div>
         )}
@@ -400,25 +402,25 @@ export default function NewShootForm({ userId }: { userId: string }) {
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-title" className="label text-mute">{t("fieldTitle")}</label>
               <input id="shoot-title" data-testid="shoot-title" type="text" {...register("title")} className={inputClass} />
-              {errors.title && <p className="text-[13px] text-accent">{errors.title.message}</p>}
+              {errors.title && <p className="text-[13px] text-accent break-words">{validationMessage(errors.title)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-brief" className="label text-mute">{t("fieldBrief")}</label>
               <textarea id="shoot-brief" data-testid="shoot-brief" rows={5} placeholder={t("briefPlaceholder")} {...register("brief")} className={`${inputClass} resize-y`} />
-              {errors.brief && <p className="text-[13px] text-accent">{errors.brief.message}</p>}
+              {errors.brief && <p className="text-[13px] text-accent break-words">{validationMessage(errors.brief)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-budget-min" className="label text-mute">{t("fieldBudgetMin")}</label>
               <input id="shoot-budget-min" data-testid="shoot-budget-min" type="number" min={1} {...register("budgetMinChf", { valueAsNumber: true })} className={inputClass} />
-              {errors.budgetMinChf && <p className="text-[13px] text-accent">{errors.budgetMinChf.message}</p>}
+              {errors.budgetMinChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMinChf)}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label htmlFor="shoot-budget-max" className="label text-mute">{t("fieldBudgetMax")}</label>
               <input id="shoot-budget-max" data-testid="shoot-budget-max" type="number" min={1} {...register("budgetMaxChf", { valueAsNumber: true })} className={inputClass} />
-              {errors.budgetMaxChf && <p className="text-[13px] text-accent">{errors.budgetMaxChf.message}</p>}
+              {errors.budgetMaxChf && <p className="text-[13px] text-accent break-words">{validationMessage(errors.budgetMaxChf)}</p>}
             </div>
 
             {/* Reference images — optional */}

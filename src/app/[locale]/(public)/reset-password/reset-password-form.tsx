@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { localizedZodResolver } from "@/lib/validation/resolver";
+import { useValidationMessage } from "@/lib/validation/use-validation-message";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,6 +14,7 @@ import {
 
 export default function ResetPasswordForm() {
   const t = useTranslations("auth");
+  const validationMessage = useValidationMessage();
   const router = useRouter();
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export default function ResetPasswordForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
+    resolver: localizedZodResolver(resetPasswordSchema),
   });
 
   async function onSubmit(values: ResetPasswordInput) {
@@ -77,7 +79,7 @@ export default function ResetPasswordForm() {
           className="w-full border border-line bg-surface px-4 py-3 text-ink placeholder:text-mute-2 focus:border-ink focus:outline-none"
         />
         {errors.password && (
-          <p className="text-[12px] text-accent">{errors.password.message}</p>
+          <p className="text-[12px] text-accent break-words">{validationMessage(errors.password)}</p>
         )}
       </div>
 
