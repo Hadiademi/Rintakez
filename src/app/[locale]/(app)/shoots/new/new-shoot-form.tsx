@@ -11,6 +11,7 @@ import { CANTONS, SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer
 import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
+import { downscaleImage } from "@/lib/image-downscale";
 import { useToast } from "@/components/ui/toaster";
 import {
   draftKey,
@@ -189,7 +190,9 @@ export default function NewShootForm({ userId }: { userId: string }) {
     for (const { file } of refImages) {
       try {
         const fd = new FormData();
-        fd.append("file", file);
+        // Phone originals (5–8 MB) exceed the upload limit; send at most
+        // 2000px like every other uploader in the app.
+        fd.append("file", await downscaleImage(file), "reference.jpg");
         const r = await addShootImage(result.id, fd);
         if (!r.ok) failed++;
       } catch {

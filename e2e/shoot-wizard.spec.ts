@@ -46,4 +46,62 @@ test.describe("new-shoot wizard", () => {
     await expect(page).toHaveURL(/\/de\/shoots\/new$/);
     await expect(fieldErrors).toHaveCount(0);
   });
+
+  // Regression for review OPS-02: reference photos were uploaded as originals.
+  // A current phone photo (5–8 MB) exceeded the upload limit, so the shoot was
+  // created without it. They are now downscaled in the browser like every
+  // other upload.
+  test("a phone-sized reference photo (>5 MB) reaches the shoot", async ({ page }) => {
+    await login(page, SEED.client.email, SEED.client.password);
+    await page.goto("/de/shoots/new");
+    const discard = page.getByTestId("shoot-draft-discard");
+    if (await discard.isVisible().catch(() => false)) await discard.click();
+
+    await page.getByTestId("shoot-type-event").click();
+    await page.getByTestId("shoot-next").click();
+    await page.getByTestId("shoot-city").fill("Luzern");
+    await page.getByTestId("shoot-canton").selectOption("LU");
+    await page.getByTestId("shoot-date").fill(futureDate());
+    await page.getByTestId("shoot-duration").fill("3");
+    await page.getByTestId("shoot-next").click();
+    await page.getByTestId("shoot-title").fill(`E2E Grosses Foto ${Date.now()}`);
+    await page.getByTestId("shoot-brief").fill("Referenzbild direkt vom Handy, unverkleinert.");
+    await page.getByTestId("shoot-budget-min").fill("500");
+    await page.getByTestId("shoot-budget-max").fill("900");
+
+    // A noisy 3000×2250 JPEG compresses about as badly as a real 24 MP photo.
+    const base64 = await page.evaluate(async () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 3000;
+      canvas.height = 2250;
+      const ctx = canvas.getContext("2d")!;
+      const img = ctx.createImageData(canvas.width, canvas.height);
+      for (let i = 0; i < img.data.length; i += 4) {
+        img.data[i] = (Math.random() * 256) | 0;
+        img.data[i + 1] = (Math.random() * 256) | 0;
+        img.data[i + 2] = (Math.random() * 256) | 0;
+        img.data[i + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+      const blob = await new Promise<Blob>((r) => canvas.toBlob((b) => r(b!), "image/jpeg", 0.95));
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      }
+      return btoa(bin);
+    });
+    const photo = Buffer.from(base64, "base64");
+    expect(photo.length).toBeGreaterThan(5 * 1024 * 1024);
+    await page.getByTestId("shoot-references-input").setInputFiles({
+      name: "IMG_0001.jpg",
+      mimeType: "image/jpeg",
+      buffer: photo,
+    });
+
+    await page.getByTestId("shoot-submit").click();
+    await expect(page).toHaveURL(/\/de\/shoots\/[0-9a-f-]{36}$/, { timeout: 30_000 });
+    await expect(page.getByTestId("ref-upload-warning")).toHaveCount(0);
+    await expect(page.locator('img[src*="shoot-refs"]').first()).toBeVisible();
+  });
 });
