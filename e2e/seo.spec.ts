@@ -37,6 +37,19 @@ test.describe("seo", () => {
     await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveCount(1);
   });
 
+  // Review UI-04: logged-out visitors on the directory, shoot, profile,
+  // canton and pricing pages had no footer, so no Impressum / Datenschutz /
+  // AGB link on the pages search traffic lands on.
+  test("public marketplace pages show the legal footer to visitors", async ({ page }) => {
+    for (const path of ["/de/photographers", "/de/shoots", "/de/pricing", "/de/photographers/ZH/event"]) {
+      await page.goto(path);
+      const footer = page.locator("footer");
+      await expect(footer.getByRole("link", { name: "Impressum" }), path).toBeVisible();
+      await expect(footer.locator('a[href$="/datenschutz"]'), path).toHaveCount(1);
+      await expect(footer.locator('a[href$="/agb"]'), path).toHaveCount(1);
+    }
+  });
+
   test("the sitemap lists the contact page", async ({ request }) => {
     const xml = await (await request.get("/sitemap.xml")).text();
     expect(xml).toContain("/de/contact</loc>");
