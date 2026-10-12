@@ -410,8 +410,8 @@ export default function NewShootForm({ userId }: { userId: string }) {
               <select id="shoot-canton" data-testid="shoot-canton" {...register("canton")} className={inputClass}>
                 <option value="" />
                 {cantonOptions(locale).map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
+                  <option key={value} value={value}>{label}</option>
+                ))}
               </select>
               {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
             </div>

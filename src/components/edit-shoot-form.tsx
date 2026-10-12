@@ -123,8 +123,8 @@ export function EditShootForm({
           <label htmlFor="e-canton" className="label text-mute">{t("fieldCanton")}</label>
           <select id="e-canton" {...register("canton")} className={inputClass}>
             {cantonOptions(locale).map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
+              <option key={value} value={value}>{label}</option>
+            ))}
           </select>
           {errors.canton && <p className="text-[13px] text-accent break-words">{validationMessage(errors.canton)}</p>}
         </div>

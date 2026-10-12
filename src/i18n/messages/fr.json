@@ -968,7 +968,7 @@
     "browseAll": "Voir toutes les demandes"
   },
   "account": {
-    "suspendedBanner": "Ton compte a été suspendu. Tu ne peux temporairement pas créer de nouveau contenu."
+    "suspendedBanner": "Ton compte a été suspendu. Tu ne peux temporairement plus créer de contenu."
   },
   "dispute": {
     "open": "Signaler un problème",
@@ -988,8 +988,8 @@
     "h1": {
       "wedding": "Photographes de mariage {inCanton}",
       "portrait": "Photographes de portrait {inCanton}",
-      "commercial": "Photographes commerciaux {inCanton}",
-      "event": "Photographes d'événements {inCanton}",
+      "commercial": "Photographes publicitaires {inCanton}",
+      "event": "Photographes événementiels {inCanton}",
       "architecture": "Photographes d'architecture {inCanton}",
       "family": "Photographes de famille {inCanton}",
       "other": "Photographes {inCanton}"
@@ -997,8 +997,8 @@
     "intro": {
       "wedding": "Tu organises un mariage {inCanton}? Parcours les photographes de mariage locaux, compare portfolios et avis, puis invite tes favoris à faire une offre pour ton jour J.",
       "portrait": "Tu cherches une séance portrait {inCanton}? Compare les photographes de portrait locaux selon le style, le prix et la note avant de réserver.",
-      "commercial": "Besoin de photographie commerciale {inCanton}? Parcours les photographes expérimentés en produit, campagne et éditorial près de chez toi.",
-      "event": "Tu organises un événement {inCanton}? Trouve des photographes d'événements qui connaissent les lieux locaux et peuvent couvrir ton événement de A à Z.",
+      "commercial": "Besoin de photographie publicitaire {inCanton}? Parcours les photographes expérimentés en produit, campagne et éditorial près de chez toi.",
+      "event": "Tu organises un événement {inCanton}? Trouve des photographes événementiels qui connaissent les lieux locaux et peuvent couvrir ton événement de A à Z.",
       "architecture": "Besoin de photographie d'architecture {inCanton}? Parcours les photographes spécialisés en intérieur et extérieur près de chez toi.",
       "family": "Tu cherches une séance famille {inCanton}? Parcours des photographes de famille locaux et décontractés, et regarde leurs travaux récents avant de les contacter.",
       "other": "Parcours les photographes {inCanton} pour des projets qui ne rentrent pas dans une catégorie standard — décris ton projet et compare les offres."

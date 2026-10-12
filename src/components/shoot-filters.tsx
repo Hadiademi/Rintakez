@@ -87,8 +87,8 @@ export function ShootFilters() {
         >
           <option value="">{t("all")}</option>
           {cantonOptions(locale).map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
 
         <p className="label mt-6 text-mute-2">{t("filterDiscipline")}</p>

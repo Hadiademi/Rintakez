@@ -137,8 +137,8 @@ export function ProfileBasicsEditor({
           >
             <option value="">—</option>
             {cantonOptions(locale).map(({ value, label }) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
+              <option key={value} value={value}>{label}</option>
+            ))}
           </select>
         </div>
       </div>

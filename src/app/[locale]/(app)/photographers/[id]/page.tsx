@@ -17,6 +17,7 @@ import { RecordProfileView } from "@/components/record-profile-view";
 import { buildAlternates } from "@/lib/seo";
 import { safeJsonLd } from "@/lib/json-ld";
 import type { Plan } from "@/lib/billing/plans";
+import { cantonName } from "@/lib/canton-names";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ export default async function PhotographerProfilePage({
 }: {
   params: Promise<{ locale: string; id: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
 
   // All public, viewer-independent profile data is cached at the data layer
   // (revalidate 5 min + per-photographer tag) so repeat views don't re-query the
@@ -542,7 +543,7 @@ export default async function PhotographerProfilePage({
                       key={canton}
                       className="px-3 py-1 rounded-full bg-chip text-ink text-[13px]"
                     >
-                      {canton}
+                      {cantonName(canton as Parameters<typeof cantonName>[0], locale)}
                     </span>
                   ))}
                 </div>

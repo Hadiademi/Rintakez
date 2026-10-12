@@ -33,7 +33,7 @@ test.describe("seo", () => {
 
   test("the home page has a search title and hreflang incl. x-default", async ({ page }) => {
     await page.goto("/de");
-    await expect(page).toHaveTitle("Fotograf finden in der Schweiz – Offerten vergleichen | Framly");
+    await expect(page).toHaveTitle("Fotograf in der Schweiz finden – Offerten vergleichen | Framly");
     await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", /\/de$/);
     await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveCount(1);
   });
