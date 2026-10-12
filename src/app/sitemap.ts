@@ -6,6 +6,10 @@ import { getActiveCantonTypeCombos } from "@/lib/photographer-landing-combos";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+// Regenerate hourly, so new photographers and shoots appear (and suspended
+// ones disappear) without waiting for the next deploy.
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPaths = [
     "",
@@ -15,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/datenschutz",
     "/agb",
     "/pricing",
+    "/contact",
   ];
   const entries: MetadataRoute.Sitemap = [];
   for (const locale of routing.locales) {
@@ -40,13 +45,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Public photographer profiles. Uses the anon public client (no cookies) —
   // the sitemap is anonymous public data, and reading cookies would force the
   // route to render dynamically on every crawl and log a spurious
-  // dynamic-server-usage error through captureError.
+  // dynamic-server-usage error through captureError. Only profiles that
+  // actually render (onboarded, i.e. with photographer_details) and are not
+  // suspended: anything else is a dead URL in the index.
   try {
     const supabase = createPublicClient();
-    const { data } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("role", "photographer");
+    const { data: details, error: detailsError } = await supabase
+      .from("photographer_details")
+      .select("profile_id");
+    if (detailsError) throw detailsError;
+    const ids = (details ?? []).map((d) => d.profile_id);
+    const { data, error } = ids.length
+      ? await supabase
+          .from("profiles")
+          .select("id")
+          .in("id", ids)
+          .eq("role", "photographer")
+          .eq("is_suspended", false)
+      : { data: [] as { id: string }[], error: null };
+    if (error) throw error;
     for (const row of data ?? []) {
       for (const locale of routing.locales) {
         entries.push({
