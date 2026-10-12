@@ -10,18 +10,12 @@ import {
 } from "@/lib/actions/notifications";
 import { hrefFor } from "@/lib/notifications-href";
 import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
-import { formatMessageTime } from "@/lib/format";
+import { formatMessageTime, zurichDayKey } from "@/lib/format";
 import { EmptyState } from "@/components/ui/empty-state";
 import { NotificationTypeIcon } from "@/components/notification-type-icon";
 
 const PAGE_SIZE = 30;
 
-/** Local-date bucket key (YYYY-M-D) so day separators follow the viewer's
- *  timezone rather than the UTC calendar day the DB stored. Mirrors the chat. */
-function localDayKey(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
 
 export function NotificationsList({
   initialItems,
@@ -40,14 +34,14 @@ export function NotificationsList({
 
   // "Today"/"yesterday" local-day keys, seeded once at mount (mirrors the chat).
   const [{ todayKey, yesterdayKey }] = useState(() => ({
-    todayKey: localDayKey(new Date().toISOString()),
-    yesterdayKey: localDayKey(new Date(Date.now() - 86_400_000).toISOString()),
+    todayKey: zurichDayKey(new Date().toISOString()),
+    yesterdayKey: zurichDayKey(new Date(Date.now() - 86_400_000).toISOString()),
   }));
 
   const hasUnread = items.some((i) => !i.readAt);
 
   function dayLabel(iso: string): string {
-    const key = localDayKey(iso);
+    const key = zurichDayKey(iso);
     if (key === todayKey) return t("today");
     if (key === yesterdayKey) return t("yesterday");
     return format.dateTime(new Date(iso), {
@@ -120,7 +114,7 @@ export function NotificationsList({
               const prev = items[i - 1];
               const showDay =
                 !prev ||
-                localDayKey(prev.createdAt) !== localDayKey(item.createdAt);
+                zurichDayKey(prev.createdAt) !== zurichDayKey(item.createdAt);
               const unread = !item.readAt;
               return (
                 <li key={item.id}>

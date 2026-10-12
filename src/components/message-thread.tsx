@@ -24,6 +24,7 @@ import {
   type ThreadMessage,
 } from "@/lib/actions/messages";
 import { errorKey } from "@/lib/error-messages";
+import { formatClockTime, zurichDayKey } from "@/lib/format";
 
 /** A message as held in local state: a server row plus an optional optimistic
  *  status. `sending`/`failed` messages only ever originate from the local user
@@ -48,19 +49,6 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_DIM = 2000;
 const IMAGE_QUALITY = 0.85;
 
-function hhmm(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getHours()).padStart(2, "0")}:${String(
-    d.getMinutes()
-  ).padStart(2, "0")}`;
-}
-
-/** Local-date bucket key (YYYY-M-D) so day separators follow the viewer's
- *  timezone rather than the UTC calendar day the DB stored. */
-function localDayKey(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
 
 function newTempId(): string {
   return `temp-${
@@ -95,8 +83,8 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   // won't outlive a midnight rollover in practice). Lazy initializers are the
   // sanctioned place for the otherwise-impure `Date` reads.
   const [{ todayKey, yesterdayKey }] = useState(() => ({
-    todayKey: localDayKey(new Date().toISOString()),
-    yesterdayKey: localDayKey(new Date(Date.now() - 86_400_000).toISOString()),
+    todayKey: zurichDayKey(new Date().toISOString()),
+    yesterdayKey: zurichDayKey(new Date(Date.now() - 86_400_000).toISOString()),
   }));
 
   // The other party's last-read timestamp. Seeded from the initial load and
@@ -592,7 +580,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
   // Localized day-separator label: "Heute"/"Gestern" for the two most recent
   // local days (keys seeded at mount), otherwise a medium localized date.
   function formatDayLabel(iso: string): string {
-    const key = localDayKey(iso);
+    const key = zurichDayKey(iso);
     if (key === todayKey) return t("today");
     if (key === yesterdayKey) return t("yesterday");
     return format.dateTime(new Date(iso), {
@@ -608,7 +596,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
     return messages.map((m, i) => {
       const prev = messages[i - 1];
       const next = messages[i + 1];
-      const showDay = !prev || localDayKey(prev.createdAt) !== localDayKey(m.createdAt);
+      const showDay = !prev || zurichDayKey(prev.createdAt) !== zurichDayKey(m.createdAt);
       const prevSameGroup =
         !!prev &&
         !showDay &&
@@ -617,7 +605,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
           new Date(prev.createdAt).getTime() <
           GROUP_WINDOW_MS;
       const nextShowDay =
-        !!next && localDayKey(next.createdAt) !== localDayKey(m.createdAt);
+        !!next && zurichDayKey(next.createdAt) !== zurichDayKey(m.createdAt);
       const nextSameGroup =
         !!next &&
         !nextShowDay &&
@@ -833,7 +821,7 @@ export function MessageThread({ thread }: { thread: ThreadData }) {
                       isGroupEnd && (
                         <span className="mt-1 flex items-center gap-2 px-1 text-[11px] text-mute-2">
                           <span className="tabular tracking-[0.18em]">
-                            {hhmm(m.createdAt)}
+                            {formatClockTime(m.createdAt)}
                           </span>
                           {mine && !m.status && (
                             <span aria-hidden>{isRead ? "✓✓" : "✓"}</span>

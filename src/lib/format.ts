@@ -25,19 +25,46 @@ export function formatSwissDate(isoDate: string): string {
   return `${d}.${m}.${y}`;
 }
 
+// Times and day boundaries are computed in Swiss time, identically on the
+// server (Vercel runs in UTC) and in the browser; reading the runtime's own
+// zone made server-rendered times 1-2 h off and disagree with the client.
+const ZURICH_PARTS = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Zurich",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+function zurichParts(at: string | Date) {
+  const p = Object.fromEntries(
+    ZURICH_PARTS.formatToParts(new Date(at)).map((part) => [part.type, part.value])
+  );
+  return { y: p.year, m: p.month, d: p.day, h: p.hour === "24" ? "00" : p.hour, min: p.minute };
+}
+
+/** "HH:MM" in Swiss time. */
+export function formatClockTime(iso: string): string {
+  const z = zurichParts(iso);
+  return `${z.h}:${z.min}`;
+}
+
+/** Swiss calendar day ("YYYY-MM-DD") of an instant, for day separators. */
+export function zurichDayKey(iso: string): string {
+  const z = zurichParts(iso);
+  return `${z.y}-${z.m}-${z.d}`;
+}
+
 /**
- * Compact, locale-neutral timestamp for message/conversation lists:
- * same day -> "HH:MM", this year -> "dd.MM.", older -> "dd.MM.yy".
+ * Compact, locale-neutral timestamp for message/conversation lists, in
+ * Swiss time: same day -> "HH:MM", this year -> "dd.MM.", older -> "dd.MM.yy".
  */
-export function formatMessageTime(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  if (d.toDateString() === now.toDateString()) {
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
-  const dm = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`;
-  return d.getFullYear() === now.getFullYear()
-    ? dm
-    : `${dm}${String(d.getFullYear()).slice(2)}`;
+export function formatMessageTime(iso: string, now: Date = new Date()): string {
+  const z = zurichParts(iso);
+  const n = zurichParts(now);
+  if (z.y === n.y && z.m === n.m && z.d === n.d) return `${z.h}:${z.min}`;
+  const dm = `${z.d}.${z.m}.`;
+  return z.y === n.y ? dm : `${dm}${z.y.slice(2)}`;
 }
