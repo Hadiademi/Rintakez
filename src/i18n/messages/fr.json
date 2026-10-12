@@ -175,7 +175,7 @@
     "stepClient1Title": "Décris ta mission",
     "stepClient2Desc": "Les photographes répondent avec prix et approche.",
     "stepClient2Title": "Reçois des offres",
-    "stepClient3Desc": "Tu acceptes une offre et échangez vos contacts.",
+    "stepClient3Desc": "Tu acceptes une offre, puis vous échangez vos coordonnées.",
     "stepClient3Title": "Choisis ton/ta photographe",
     "stepPhotog1Desc": "Montre ton travail et tes spécialités.",
     "stepPhotog1Title": "Profil & portfolio",
@@ -963,12 +963,12 @@
     "status": "Page {page} sur {total}"
   },
   "marketplace": {
-    "loginToBid": "Connectez-vous pour faire une offre",
-    "loginToPost": "Connectez-vous pour publier une demande",
+    "loginToBid": "Connecte-toi pour faire une offre",
+    "loginToPost": "Connecte-toi pour publier une demande",
     "browseAll": "Voir toutes les demandes"
   },
   "account": {
-    "suspendedBanner": "Votre compte a été suspendu. Vous ne pouvez temporairement pas créer de nouveau contenu."
+    "suspendedBanner": "Ton compte a été suspendu. Tu ne peux temporairement pas créer de nouveau contenu."
   },
   "dispute": {
     "open": "Signaler un problème",
