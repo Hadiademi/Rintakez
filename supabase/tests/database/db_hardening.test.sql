@@ -11,7 +11,7 @@
 begin;
 create extension if not exists pgtap;
 
-select plan(22);
+select plan(31);
 
 -- ── fixtures ────────────────────────────────────────────────────────────
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
@@ -126,6 +126,58 @@ select throws_ok(
 );
 reset role;
 
+-- ── the quota never blocks what the app allows ──────────────────────────
+-- b1 is a Basic photographer at 5/5 this month.
+set local role authenticated;
+select pg_temp.act_as('b1');
+select lives_ok(
+  $$update public.bids set amount_chf = 450
+    where photographer_id = '00000000-0000-0000-0000-0000000000b1'
+      and shoot_id = '10000000-0000-0000-0000-000000000003'$$,
+  'at quota: editing the amount of a pending bid still works'
+);
+select lives_ok(
+  $$update public.bids set status = 'withdrawn'
+    where photographer_id = '00000000-0000-0000-0000-0000000000b1'
+      and shoot_id = '10000000-0000-0000-0000-000000000004'$$,
+  'at quota: withdrawing a bid still works'
+);
+select pg_temp.act_as('c1');
+select lives_ok(
+  $$select public.accept_bid((select id from public.bids
+      where photographer_id = '00000000-0000-0000-0000-0000000000b1'
+        and shoot_id = '10000000-0000-0000-0000-000000000001'))$$,
+  'at quota: the client can still accept the photographer''s bid (siblings get declined)'
+);
+select lives_ok(
+  $$select public.decline_bid((select id from public.bids
+      where photographer_id = '00000000-0000-0000-0000-0000000000b1'
+        and shoot_id = '10000000-0000-0000-0000-000000000002'))$$,
+  'at quota: the client can still decline the photographer''s bid'
+);
+select pg_temp.act_as('d1');
+select lives_ok(
+  $$update public.bids set status = 'withdrawn'
+    where photographer_id = '00000000-0000-0000-0000-0000000000d1'$$,
+  'below quota: withdraw works'
+);
+select lives_ok(
+  $$update public.bids set status = 'pending'
+    where photographer_id = '00000000-0000-0000-0000-0000000000d1'$$,
+  'below quota: reviving a withdrawn bid works'
+);
+reset role;
+insert into public.subscriptions (user_id, plan, status, source, current_period_end) values
+  ('00000000-0000-0000-0000-0000000000f2', 'basic', 'trialing', 'stripe', now() + interval '25 days');
+select is(
+  array[public.bid_quota_limit('00000000-0000-0000-0000-0000000000f2'),
+        public.bid_quota_limit('00000000-0000-0000-0000-0000000000f1'),
+        public.bid_quota_limit('00000000-0000-0000-0000-0000000000be'),
+        public.bid_quota_limit('00000000-0000-0000-0000-0000000000a1')],
+  array[5, 1, 1, null]::int[],
+  'limits: trialing keeps the plan; no row and expired fall to free; gift premium is unlimited'
+);
+
 -- ── 11: the quota helpers are not callable by app roles ─────────────────
 select ok(
   not has_function_privilege('anon', 'public.enforce_bid_quota()', 'EXECUTE')
@@ -166,6 +218,14 @@ select throws_ok(
     from generate_series(1, 500) g$$,
   'P0001', 'limit_reached',
   'a bulk insert of 500 reports is refused as a whole'
+);
+select pg_temp.act_as('f1');
+select throws_ok(
+  $$insert into public.reports (reporter_id, target_type, target_id, reason)
+    values ('00000000-0000-0000-0000-0000000000f2', 'shoot',
+            '10000000-0000-0000-0000-000000000012', 'Filed in someone else''s name.')$$,
+  '42501', null,
+  'a report in someone else''s name is refused by RLS, without revealing their report count'
 );
 reset role;
 select is(
@@ -208,6 +268,14 @@ select ok(
   and has_column_privilege('anon', 'public.photographer_details', 'verification_status', 'SELECT')
   and has_column_privilege('authenticated', 'public.photographer_details', 'plan_expires_at', 'SELECT'),
   'the public profile columns stay readable'
+);
+select is(
+  (select coalesce(string_agg(a.attname, ',' order by a.attname), '')
+   from pg_attribute a
+   where a.attrelid = 'public.photographer_details'::regclass and a.attnum > 0 and not a.attisdropped
+     and not has_column_privilege('authenticated', a.attrelid, a.attnum, 'SELECT')),
+  'verification_note',
+  'every photographer_details column but the note stays readable (a new column must be granted)'
 );
 set local role authenticated;
 select pg_temp.act_as('b1');

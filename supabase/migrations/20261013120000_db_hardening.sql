@@ -1,3 +1,6 @@
+-- Fail fast instead of queueing behind live traffic if a lock is contended.
+set local lock_timeout = '5s';
+
 -- DB hardening: limits that only the server actions enforced, now enforced by
 -- the database as well, so a signed-in user calling PostgREST directly gets
 -- the same answer as the app. From the 2026-10-10 review.
@@ -107,6 +110,11 @@ begin
   if current_setting('role', true) is distinct from 'authenticated' then
     return new;
   end if;
+  -- Someone else's reporter_id is refused by RLS; don't answer with a count
+  -- of that person's recent reports first.
+  if new.reporter_id is distinct from auth.uid() then
+    return new;
+  end if;
   perform pg_advisory_xact_lock(hashtextextended('report_rate:' || new.reporter_id::text, 0));
   select count(*) into v_recent
   from reports
@@ -122,6 +130,9 @@ $$;
 create trigger reports_enforce_rate
   before insert on public.reports
   for each row execute function public.enforce_report_rate();
+
+create index if not exists reports_reporter_created_idx
+  on public.reports (reporter_id, created_at desc);
 
 revoke all on function public.enforce_report_rate() from public, anon, authenticated;
 
@@ -166,11 +177,12 @@ $$;
 -- accepted 50 MB files of any type, e.g. HTML phishing pages in the public
 -- buckets. Limits match the actions (5 MB, image/*) and include the formats
 -- phones produce when the browser cannot re-encode (HEIC/HEIF/AVIF). SVG is
--- deliberately excluded (it can carry script).
+-- deliberately excluded (it can carry script). src/lib/uploads.ts is the
+-- app-side copy; uploads.test.ts fails if the two lists drift apart.
 update storage.buckets
 set file_size_limit = 5 * 1024 * 1024,
-    allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/gif',
-                               'image/heic', 'image/heif', 'image/avif']
+    allowed_mime_types = array['image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+                               'image/gif', 'image/heic', 'image/heif', 'image/avif']
 where id in ('avatars', 'portfolio', 'shoot-refs', 'message-images');
 
 -- ── 4. Verification evidence is private (SEC-06) ───────────────────────

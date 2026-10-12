@@ -8,6 +8,7 @@ import { getSessionUser } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { notifyEmail } from "@/lib/email";
 import { isConversationUnread } from "@/lib/conversation-unread";
+import { isAllowedImage } from "@/lib/uploads";
 
 type ErrResult = { ok: false; error: string };
 
@@ -19,10 +20,6 @@ const MESSAGE_IMAGE_BUCKET = "message-images";
 /** Signed-URL lifetime for chat images (seconds). Long enough to view a thread
  *  and open the lightbox; the thread re-signs on every load. */
 const MESSAGE_IMAGE_TTL = 3600;
-/** Post-compression upload ceiling — mirrors the client-side canvas downscale.
- *  Enforced server-side too so a crafted request can't smuggle a large file. */
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-
 /** A Supabase client as returned by our server helper. Compile-time only. */
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -475,9 +472,7 @@ export async function sendImageMessage(
   const file = formData.get("file");
   if (
     !(file instanceof File) ||
-    file.size === 0 ||
-    !file.type.startsWith("image/") ||
-    file.size > MAX_IMAGE_BYTES
+    !isAllowedImage(file)
   ) {
     return { ok: false, error: "invalid_file" };
   }
