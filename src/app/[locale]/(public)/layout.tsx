@@ -1,4 +1,5 @@
 import { SiteFooter } from "@/components/site-footer";
+import { FeedbackProvider } from "@/components/ui/feedback-provider";
 
 /**
  * Public group shell: appends the legal footer to every public page (login,
@@ -13,9 +14,11 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
-      <div className="flex flex-1 flex-col">{children}</div>
-      <SiteFooter />
-    </div>
+    <FeedbackProvider hasTabBar={false}>
+      <div className="flex min-h-screen flex-col bg-paper">
+        <div className="flex flex-1 flex-col">{children}</div>
+        <SiteFooter />
+      </div>
+    </FeedbackProvider>
   );
 }
