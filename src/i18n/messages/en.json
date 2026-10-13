@@ -22,7 +22,6 @@
     "save": "Save",
     "remove": "Remove",
     "close": "Close",
-    "removeConfirm": "Remove this? This can't be undone.",
     "languageAria": "Language",
     "loadingAria": "Loading",
     "skipToContent": "Skip to main content"
@@ -317,7 +316,6 @@
   },
   "shootDetail": {
     "accept": "Accept",
-    "acceptConfirm": "Accept this offer? The other offers will be declined.",
     "back": "Back",
     "brief": "Brief",
     "byPhotographer": "Photographer",
@@ -341,7 +339,6 @@
     "contactHint": "You're connected. Reach out directly.",
     "contactTitle": "Contact",
     "decline": "Decline",
-    "declineConfirm": "Decline this offer? This can't be undone.",
     "details": "Details",
     "noOffers": "No offers yet. We notify matching photographers in your region — you'll get a notification as soon as the first offer arrives.",
     "offers": "Offers",
@@ -413,7 +410,6 @@
     "dangerZone": "Delete account",
     "dataPrivacy": "Data & privacy",
     "deleteAccount": "Permanently delete account",
-    "deleteConfirm": "Really delete? This cannot be undone.",
     "deleteWarning": "Your account and your data (profile, shoots, offers, messages, photos, reviews) will be permanently deleted. A running subscription ends immediately; days already paid are not refunded.",
     "deleting": "Deleting …",
     "disciplines": "Discipline",
@@ -753,7 +749,6 @@
     "title": "Review",
     "markCompleted": "Mark as completed",
     "completedHint": "Shoot done? Mark it completed to review the photographer.",
-    "completeConfirm": "Mark this shoot as completed? This unlocks the review and can't be undone.",
     "leaveReview": "Review the photographer",
     "yourRating": "Your rating",
     "comment": "Comment (optional)",
@@ -1014,11 +1009,31 @@
     "dismiss": "Dismiss",
     "bidSubmitted": "Bid submitted",
     "bidWithdrawn": "Bid withdrawn",
-    "reviewSubmitted": "Review submitted",
     "replySubmitted": "Reply sent",
-    "shootCreated": "Shoot published",
     "shootUpdated": "Shoot updated",
-    "availabilitySaved": "Availability saved"
+    "availabilitySaved": "Availability saved",
+    "bidSubmittedDesc": "{name} has been notified.",
+    "bidQuotaLeft": "{count, plural, =0 {That uses up your bids for this month.} one {# bid left this month.} other {# bids left this month.}}",
+    "viewMyBids": "My bids",
+    "bidUpdated": "Bid updated",
+    "bidDeclined": "Offer declined",
+    "bidDeclinedDesc": "{name} has been told.",
+    "shootCancelled": "Shoot cancelled",
+    "shootCancelledAssignedDesc": "The booked photographer has been told.",
+    "shootCompleted": "Shoot completed",
+    "shootCompletedDesc": "Now leave a quick review – it takes a minute.",
+    "availabilityRemoved": "Day available again",
+    "avatarUpdated": "Profile photo updated",
+    "coverUpdated": "Cover image updated",
+    "verificationRequested": "Verification requested",
+    "verificationRequestedDesc": "We'll review your profile and let you know with a notification.",
+    "disputeOpened": "Dispute opened",
+    "disputeOpenedDesc": "Our team has been told and is looking into it.",
+    "passwordUpdated": "Password updated",
+    "emailConfirmed": "Email confirmed – welcome to Framly!",
+    "firstOffer": "Your first offer is in",
+    "firstOfferDesc": "Take your time – you decide when to accept.",
+    "saved": "Saved"
   },
   "checklist": {
     "title": "Complete your profile",
@@ -1053,5 +1068,104 @@
     "legalNote": "Operator details can be found in the legal notice.",
     "responseNote": "We usually reply within one business day.",
     "title": "Contact"
+  },
+  "confirm": {
+    "confirm": "Confirm",
+    "acceptTitle": "Accept {name}'s offer?",
+    "acceptBody": "All other open offers are declined automatically. You'll both see each other's contact details afterwards.",
+    "acceptAction": "Accept offer",
+    "declineTitle": "Decline {name}'s offer?",
+    "declineBody": "{name} will be told. This can't be undone.",
+    "declineAction": "Decline",
+    "withdrawTitle": "Withdraw your bid?",
+    "withdrawBody": "The client won't see your bid anymore. It still counts towards your monthly quota.",
+    "withdrawAction": "Withdraw",
+    "completeTitle": "Mark the shoot as completed?",
+    "completeBody": "This unlocks the review. It can't be undone.",
+    "completeAction": "Complete",
+    "deleteAccountTitle": "Delete your account for good?",
+    "deleteAccountAction": "Delete account",
+    "removeImageTitle": "Remove image?",
+    "removeImageBody": "This can't be undone.",
+    "removeAction": "Remove"
+  },
+  "moments": {
+    "booked": {
+      "eyebrow": "Booked",
+      "title": "{name} is taking on your shoot",
+      "body": "{name} has been notified. You can now both see each other's contact details.",
+      "date": "Date",
+      "price": "Price",
+      "stepsTitle": "What happens next",
+      "step1": "Message {name} to agree on the plan and your wishes.",
+      "step2": "After the shoot, mark it as completed.",
+      "step3": "Your review helps others choose.",
+      "message": "Message {name}",
+      "toShoot": "View shoot"
+    },
+    "won": {
+      "eyebrow": "Shoot won",
+      "title": "Congratulations – the shoot is yours!",
+      "body": "{client} accepted your offer. Get in touch now to sort out the details.",
+      "shoot": "Shoot",
+      "date": "Date",
+      "location": "Location",
+      "offer": "Your offer",
+      "message": "Message {client}",
+      "later": "Later"
+    },
+    "published": {
+      "eyebrow": "Shoot published",
+      "title": "Your shoot is live",
+      "bodyMatches": "{count, plural, one {# matching photographer {inCanton} can now send you an offer.} other {# matching photographers {inCanton} can now send you offers.}}",
+      "bodyNoMatch": "Your shoot is now visible to every photographer on Framly. Invite matching profiles directly to get offers sooner.",
+      "stepsTitle": "What happens next",
+      "step1": "You get a notification for every new offer.",
+      "step2": "Compare prices, portfolios and reviews.",
+      "step3": "Accept an offer – only then are contact details exchanged.",
+      "toShoot": "View shoot",
+      "invite": "Invite photographers directly",
+      "find": "Find photographers"
+    },
+    "welcome": {
+      "eyebrow": "Welcome to Framly",
+      "title": "Your profile is live",
+      "body": "Clients can now find you in the directory. Matching new shoots show up in your notifications right away.",
+      "browse": "See open shoots",
+      "overview": "Go to overview"
+    },
+    "profileComplete": {
+      "eyebrow": "Profile complete",
+      "title": "Your profile is complete",
+      "body": "Clients now see everything they need to make their choice.",
+      "view": "View profile"
+    },
+    "verified": {
+      "eyebrow": "Verified",
+      "title": "Your profile is verified",
+      "body": "The badge shows clients that we've checked your profile.",
+      "view": "View profile"
+    },
+    "reviewed": {
+      "eyebrow": "Review sent",
+      "title": "Thanks for your review",
+      "body": "You're helping others choose – and helping good work get seen.",
+      "newShoot": "Post a new shoot"
+    },
+    "planActive": {
+      "eyebrow": "Subscription active",
+      "title": "Welcome to {plan}",
+      "body": "Thanks for your trust. Your new benefits apply right away.",
+      "quota": "Bids per month",
+      "unlimited": "Unlimited",
+      "browse": "See shoots"
+    },
+    "planPending": {
+      "eyebrow": "Subscribed",
+      "title": "Thank you! Your plan is being activated",
+      "body": "This usually takes just a few seconds. Reload the page if your new plan isn't showing yet.",
+      "reload": "Reload page"
+    },
+    "close": "Close"
   }
 }

@@ -7,6 +7,7 @@ import { formatCHF } from "@/lib/format";
 import { updateBidAction, withdrawBidAction } from "@/lib/actions/bids";
 import { errorKey } from "@/lib/error-messages";
 import { useToast } from "@/components/ui/toaster";
+import { useConfirm } from "@/components/ui/confirm";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -31,6 +32,8 @@ export function MyBidPanel({
   const tErr = useTranslations("errors");
   const tToast = useTranslations("toast");
   const { toast } = useToast();
+  const { confirm } = useConfirm();
+  const tc = useTranslations("confirm");
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState(String(bid.amount_chf));
@@ -74,6 +77,7 @@ export function MyBidPanel({
       });
       if (res.ok) {
         setEditing(false);
+        toast(tToast("bidUpdated"));
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));
@@ -88,10 +92,14 @@ export function MyBidPanel({
     setEditing(false);
   }
 
-  function onWithdraw() {
-    if (typeof window !== "undefined" && !window.confirm(t("withdraw") + "?")) {
-      return;
-    }
+  async function onWithdraw() {
+    const ok = await confirm({
+      title: tc("withdrawTitle"),
+      body: tc("withdrawBody"),
+      confirmLabel: tc("withdrawAction"),
+      tone: "danger",
+    });
+    if (!ok) return;
     setError(null);
     startTransition(async () => {
       const res = await withdrawBidAction(bid.id);

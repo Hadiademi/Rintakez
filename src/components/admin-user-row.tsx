@@ -6,6 +6,8 @@ import { useRouter, Link } from "@/i18n/navigation";
 import { setUserSuspension, setUserAdmin, grantComp, revokeComp } from "@/lib/actions/admin";
 import { errorKey } from "@/lib/error-messages";
 import { formatSwissDate } from "@/lib/format";
+import { useConfirm } from "@/components/ui/confirm";
+import { useToast } from "@/components/ui/toaster";
 
 export function AdminUserRow({
   id,
@@ -28,6 +30,10 @@ export function AdminUserRow({
 }) {
   const t = useTranslations("admin");
   const tErr = useTranslations("errors");
+  const tc = useTranslations("confirm");
+  const tToast = useTranslations("toast");
+  const { confirm } = useConfirm();
+  const { toast } = useToast();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [note, setNote] = useState("");
@@ -39,12 +45,15 @@ export function AdminUserRow({
   );
   const [compMonths, setCompMonths] = useState(1);
 
-  function toggleSuspend() {
+  async function toggleSuspend() {
     // High blast radius — confirm the destructive direction, name-interpolated.
     if (
       !suspended &&
-      typeof window !== "undefined" &&
-      !window.confirm(t("confirmSuspend", { name }))
+      !(await confirm({
+        title: t("confirmSuspend", { name }),
+        confirmLabel: tc("confirm"),
+        tone: "danger",
+      }))
     ) {
       return;
     }
@@ -53,15 +62,19 @@ export function AdminUserRow({
       const r = await setUserSuspension(id, !suspended, note);
       if (r.ok) {
         setSuspended((v) => !v);
+        toast(tToast("saved"));
         router.refresh();
       } else setError(tErr(errorKey(r.error)));
     });
   }
 
-  function toggleAdmin() {
+  async function toggleAdmin() {
     if (
-      typeof window !== "undefined" &&
-      !window.confirm(t(admin ? "confirmRevokeAdmin" : "confirmMakeAdmin", { name }))
+      !(await confirm({
+        title: t(admin ? "confirmRevokeAdmin" : "confirmMakeAdmin", { name }),
+        confirmLabel: tc("confirm"),
+        tone: admin ? "danger" : "default",
+      }))
     ) {
       return;
     }
@@ -70,6 +83,7 @@ export function AdminUserRow({
       const r = await setUserAdmin(id, !admin);
       if (r.ok) {
         setAdminState((v) => !v);
+        toast(tToast("saved"));
         router.refresh();
       } else setError(tErr(errorKey(r.error)));
     });
@@ -79,22 +93,31 @@ export function AdminUserRow({
     setError(null);
     start(async () => {
       const r = await grantComp(id, compPlan, compMonths);
-      if (r.ok) router.refresh();
+      if (r.ok) {
+        toast(tToast("saved"));
+        router.refresh();
+      }
       else setError(tErr(errorKey(r.error)));
     });
   }
 
-  function handleRevokeComp() {
+  async function handleRevokeComp() {
     if (
-      typeof window !== "undefined" &&
-      !window.confirm(t("confirmRevokeComp", { name }))
+      !(await confirm({
+        title: t("confirmRevokeComp", { name }),
+        confirmLabel: tc("confirm"),
+        tone: "danger",
+      }))
     ) {
       return;
     }
     setError(null);
     start(async () => {
       const r = await revokeComp(id);
-      if (r.ok) router.refresh();
+      if (r.ok) {
+        toast(tToast("saved"));
+        router.refresh();
+      }
       else setError(tErr(errorKey(r.error)));
     });
   }

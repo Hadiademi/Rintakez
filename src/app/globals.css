@@ -74,11 +74,114 @@ body {
 .press { transition: transform 80ms ease, opacity 80ms ease; }
 .press:active { transform: scale(0.985); opacity: 0.92; }
 
-/* Toast entrance — gated behind motion-safe: at the call site, and also
+/* Toast entrance (also used by the PWA install prompt, behind motion-safe:);
    neutralised by the global reduced-motion rule below. */
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Feedback: toasts, sheets, moments ─────────────────────────────
+   All of it is decoration on top of content that is already readable without
+   motion; the global reduced-motion rule below shortens every animation to
+   ~0 ms, and `animationend` (which the dialogs and toasts wait for) still
+   fires. */
+.toast { animation: toast-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.toast[data-leaving] { animation: toast-out 160ms ease-in forwards; }
+@keyframes toast-out {
+  to { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
+.toast-timer {
+  background: var(--accent);
+  opacity: 0.85;
+  animation-name: toast-timer;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+.toast[data-variant="error"] .toast-timer { background: #ef4444; }
+@keyframes toast-timer {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.toast-check path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 320ms 120ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+/* Bottom sheet on phones, centred card from 640px. */
+.sheet-dialog { animation: sheet-in 360ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+.sheet-dialog[data-closing] { animation: sheet-out 220ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.sheet-dialog::backdrop { animation: fade-in 260ms ease-out; }
+/* The backdrop must finish fading no later than the box: the dialog closes
+   (and the backdrop vanishes) when the box's exit animation ends. */
+.sheet-dialog[data-closing]::backdrop { animation: fade-out 200ms ease-in forwards; }
+@media (min-width: 640px) {
+  .sheet-dialog { animation: dialog-in 280ms cubic-bezier(0.2, 0.9, 0.25, 1); }
+  .sheet-dialog[data-closing] { animation: dialog-out 160ms ease-in forwards; }
+  .sheet-dialog[data-closing]::backdrop { animation-duration: 150ms; }
+}
+@keyframes sheet-in { from { transform: translateY(100%); } }
+@keyframes sheet-out { to { transform: translateY(100%); } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(14px) scale(0.97); } }
+@keyframes dialog-out { to { opacity: 0; transform: translateY(8px) scale(0.98); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+
+/* Moment: emblem pops, the glyph draws itself, the text rises in sequence. */
+.moment-emblem { animation: emblem-pop 560ms 60ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.moment-ring { opacity: 0; animation: ring-out 1100ms 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.moment-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 520ms 380ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.moment-draw-late { animation-delay: 760ms; }
+.moment-rise { animation: rise 520ms var(--d, 0ms) cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes emblem-pop {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes ring-out {
+  0% { opacity: 0.55; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+
+/* Confetti: rises fast, then falls and fades (two-segment easing). */
+.confetti-piece {
+  position: absolute;
+  left: -3px;
+  top: -5px;
+  width: 6px;
+  height: 10px;
+  opacity: 0;
+  animation-name: confetti-burst;
+  animation-fill-mode: both;
+}
+.confetti-piece[data-shape="dot"] { width: 7px; height: 7px; border-radius: 9999px; }
+.confetti-piece[data-shape="strip"] { width: 3px; height: 13px; }
+.confetti-piece[data-c="0"] { background: var(--accent); }
+.confetti-piece[data-c="1"] { background: var(--ink); }
+.confetti-piece[data-c="2"] { background: #e9b949; }
+.confetti-piece[data-c="3"] { background: var(--line-strong); }
+.confetti-piece[data-c="4"] { background: rgb(var(--accent-rgb) / 0.55); }
+@keyframes confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.5);
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.3, 1);
+  }
+  32% {
+    opacity: 1;
+    transform: translate(calc(var(--x) * 0.75), var(--peak)) rotate(calc(var(--r) * 0.4)) scale(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--fall)) rotate(var(--r)) scale(0.9);
+  }
 }
 
 html, body {

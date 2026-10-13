@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { MAX_TOASTS, toastReducer, type Toast } from "./toast-queue";
+import { MAX_TOASTS, toastDuration, toastReducer, type Toast } from "./toast-queue";
 
-const t = (id: string, message: string): Toast => ({ id, message });
+const t = (id: string, message: string, extra: Partial<Toast> = {}): Toast => ({
+  id,
+  message,
+  variant: "success",
+  ...extra,
+});
 
 describe("toastReducer", () => {
   it("appends an added toast to the queue", () => {
@@ -14,6 +19,15 @@ describe("toastReducer", () => {
     const next = toastReducer(state, { type: "add", toast: t("2", "Saved") });
     expect(next).toEqual([t("1", "Saved")]);
     expect(next).toBe(state); // unchanged reference — no re-render churn
+  });
+
+  it("keeps the same text when the variant differs (an error is not a dup of a success)", () => {
+    const state = [t("1", "Saved")];
+    const next = toastReducer(state, {
+      type: "add",
+      toast: t("2", "Saved", { variant: "error" }),
+    });
+    expect(next).toHaveLength(2);
   });
 
   it("keeps distinct messages", () => {
@@ -43,5 +57,22 @@ describe("toastReducer", () => {
     const state = [t("1", "A")];
     const next = toastReducer(state, { type: "dismiss", id: "nope" });
     expect(next).toEqual([t("1", "A")]);
+  });
+});
+
+describe("toastDuration", () => {
+  it("gives a plain confirmation a few seconds", () => {
+    expect(toastDuration(t("1", "Saved"))).toBe(4000);
+  });
+
+  it("gives errors and toasts with a follow-up action time to be read and used", () => {
+    expect(toastDuration(t("1", "Failed", { variant: "error" }))).toBe(6000);
+    expect(
+      toastDuration(t("1", "Sent", { action: { label: "View", href: "/x" } }))
+    ).toBe(6000);
+  });
+
+  it("gives a longer text more time", () => {
+    expect(toastDuration(t("1", "Sent", { description: "The client was notified." }))).toBe(6000);
   });
 });

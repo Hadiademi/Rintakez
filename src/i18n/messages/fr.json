@@ -22,7 +22,6 @@
     "save": "Enregistrer",
     "remove": "Supprimer",
     "close": "Fermer",
-    "removeConfirm": "Supprimer ceci ? Cette action est irréversible.",
     "languageAria": "Langue",
     "loadingAria": "Chargement",
     "skipToContent": "Aller au contenu principal"
@@ -317,7 +316,6 @@
   },
   "shootDetail": {
     "accept": "Accepter",
-    "acceptConfirm": "Accepter cette offre ? Les autres offres seront refusées.",
     "back": "Retour",
     "brief": "Brief",
     "byPhotographer": "Photographe",
@@ -341,7 +339,6 @@
     "contactHint": "Vous êtes connectés. Contactez-vous directement.",
     "contactTitle": "Contact",
     "decline": "Refuser",
-    "declineConfirm": "Refuser cette offre ? Cette action est irréversible.",
     "details": "Détails",
     "noOffers": "Pas encore d'offres. Nous prévenons les photographes adaptés de ta région — tu recevras une notification dès la première offre.",
     "offers": "Offres",
@@ -413,7 +410,6 @@
     "dangerZone": "Supprimer le compte",
     "dataPrivacy": "Données & confidentialité",
     "deleteAccount": "Supprimer définitivement le compte",
-    "deleteConfirm": "Vraiment supprimer ? Action irréversible.",
     "deleteWarning": "Ton compte et tes données (profil, missions, offres, messages, photos, avis) seront supprimés définitivement. Un abonnement en cours prend fin immédiatement, sans remboursement des jours déjà payés.",
     "deleting": "Suppression …",
     "disciplines": "Discipline",
@@ -753,7 +749,6 @@
     "title": "Évaluation",
     "markCompleted": "Marquer comme terminé",
     "completedHint": "Shooting terminé ? Marque-le comme terminé pour évaluer le/la photographe.",
-    "completeConfirm": "Marquer ce shooting comme terminé ? Cela débloque l'évaluation et est irréversible.",
     "leaveReview": "Évaluer le/la photographe",
     "yourRating": "Ton évaluation",
     "comment": "Commentaire (optionnel)",
@@ -1014,11 +1009,31 @@
     "dismiss": "Fermer",
     "bidSubmitted": "Offre envoyée",
     "bidWithdrawn": "Offre retirée",
-    "reviewSubmitted": "Avis envoyé",
     "replySubmitted": "Réponse envoyée",
-    "shootCreated": "Mission publiée",
     "shootUpdated": "Mission mise à jour",
-    "availabilitySaved": "Disponibilité enregistrée"
+    "availabilitySaved": "Disponibilité enregistrée",
+    "bidSubmittedDesc": "{name} a reçu une notification.",
+    "bidQuotaLeft": "{count, plural, =0 {Tu as utilisé toutes tes offres du mois.} one {Encore # offre ce mois-ci.} other {Encore # offres ce mois-ci.}}",
+    "viewMyBids": "Mes offres",
+    "bidUpdated": "Offre mise à jour",
+    "bidDeclined": "Offre refusée",
+    "bidDeclinedDesc": "{name} a été informé·e.",
+    "shootCancelled": "Mission annulée",
+    "shootCancelledAssignedDesc": "Le ou la photographe réservé·e a été informé·e.",
+    "shootCompleted": "Mission terminée",
+    "shootCompletedDesc": "Il ne reste plus qu'à laisser un avis – ça prend une minute.",
+    "availabilityRemoved": "Jour à nouveau disponible",
+    "avatarUpdated": "Photo de profil mise à jour",
+    "coverUpdated": "Image de couverture mise à jour",
+    "verificationRequested": "Vérification demandée",
+    "verificationRequestedDesc": "Nous vérifions ton profil et te répondons par notification.",
+    "disputeOpened": "Litige ouvert",
+    "disputeOpenedDesc": "Notre équipe a été informée et examine le cas.",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "emailConfirmed": "E-mail confirmé – bienvenue sur Framly !",
+    "firstOffer": "Ta première offre est arrivée",
+    "firstOfferDesc": "Prends le temps de la regarder – c'est toi qui décides quand accepter.",
+    "saved": "Enregistré"
   },
   "checklist": {
     "title": "Complète ton profil",
@@ -1053,5 +1068,104 @@
     "legalNote": "Les informations sur l'exploitant figurent dans les mentions légales.",
     "responseNote": "Nous répondons en général dans un délai d'un jour ouvrable.",
     "title": "Contact"
+  },
+  "confirm": {
+    "confirm": "Confirmer",
+    "acceptTitle": "Accepter l'offre de {name} ?",
+    "acceptBody": "Toutes les autres offres ouvertes seront refusées automatiquement. Vous verrez ensuite chacun·e les coordonnées de l'autre.",
+    "acceptAction": "Accepter l'offre",
+    "declineTitle": "Refuser l'offre de {name} ?",
+    "declineBody": "{name} sera informé·e. Cette action est irréversible.",
+    "declineAction": "Refuser",
+    "withdrawTitle": "Retirer ton offre ?",
+    "withdrawBody": "Le ou la client·e ne verra plus ton offre. Elle compte toujours dans ton quota mensuel.",
+    "withdrawAction": "Retirer",
+    "completeTitle": "Marquer la mission comme terminée ?",
+    "completeBody": "Cela débloque l'évaluation. Cette action est irréversible.",
+    "completeAction": "Terminer",
+    "deleteAccountTitle": "Supprimer définitivement ton compte ?",
+    "deleteAccountAction": "Supprimer le compte",
+    "removeImageTitle": "Supprimer l'image ?",
+    "removeImageBody": "Cette action est irréversible.",
+    "removeAction": "Supprimer"
+  },
+  "moments": {
+    "booked": {
+      "eyebrow": "Réservé",
+      "title": "{name} prend en charge ta mission",
+      "body": "{name} a reçu une notification. Vous voyez maintenant chacun·e les coordonnées de l'autre.",
+      "date": "Date",
+      "price": "Prix",
+      "stepsTitle": "La suite",
+      "step1": "Écris à {name} pour régler le déroulement et tes souhaits.",
+      "step2": "Après le shooting, marque la mission comme terminée.",
+      "step3": "Ton avis aide les autres à choisir.",
+      "message": "Écrire à {name}",
+      "toShoot": "Voir la mission"
+    },
+    "won": {
+      "eyebrow": "Mission décrochée",
+      "title": "Bravo – la mission est à toi !",
+      "body": "{client} a accepté ton offre. Prends contact maintenant pour régler les détails.",
+      "shoot": "Mission",
+      "date": "Date",
+      "location": "Lieu",
+      "offer": "Ton offre",
+      "message": "Écrire à {client}",
+      "later": "Plus tard"
+    },
+    "published": {
+      "eyebrow": "Mission publiée",
+      "title": "Ta mission est en ligne",
+      "bodyMatches": "{count, plural, one {# photographe adapté·e {inCanton} peut désormais t'envoyer une offre.} other {# photographes adapté·es {inCanton} peuvent désormais t'envoyer des offres.}}",
+      "bodyNoMatch": "Ta mission est maintenant visible par tou·tes les photographes sur Framly. Invite directement des profils adaptés pour recevoir des offres plus vite.",
+      "stepsTitle": "La suite",
+      "step1": "Tu reçois une notification à chaque nouvelle offre.",
+      "step2": "Compare les prix, les portfolios et les avis.",
+      "step3": "Accepte une offre – c'est seulement alors que les coordonnées sont échangées.",
+      "toShoot": "Voir la mission",
+      "invite": "Inviter des photographes",
+      "find": "Trouver des photographes"
+    },
+    "welcome": {
+      "eyebrow": "Bienvenue sur Framly",
+      "title": "Ton profil est en ligne",
+      "body": "Les clients te trouvent désormais dans l'annuaire. Les nouvelles missions adaptées apparaissent aussitôt dans tes notifications.",
+      "browse": "Voir les missions ouvertes",
+      "overview": "Vers l'accueil"
+    },
+    "profileComplete": {
+      "eyebrow": "Profil complet",
+      "title": "Ton profil est complet",
+      "body": "Les client·e·s voient désormais tout ce qu'il leur faut pour faire leur choix.",
+      "view": "Voir le profil"
+    },
+    "verified": {
+      "eyebrow": "Vérifié",
+      "title": "Ton profil est vérifié",
+      "body": "Le badge montre aux clients que nous avons vérifié ton profil.",
+      "view": "Voir le profil"
+    },
+    "reviewed": {
+      "eyebrow": "Avis envoyé",
+      "title": "Merci pour ton avis",
+      "body": "Tu aides ainsi les autres à choisir – et le bon travail à être vu.",
+      "newShoot": "Créer une nouvelle mission"
+    },
+    "planActive": {
+      "eyebrow": "Abonnement actif",
+      "title": "Bienvenue dans {plan}",
+      "body": "Merci de ta confiance. Tes nouveaux avantages sont actifs dès maintenant.",
+      "quota": "Offres par mois",
+      "unlimited": "Illimitées",
+      "browse": "Voir les missions"
+    },
+    "planPending": {
+      "eyebrow": "Abonnement souscrit",
+      "title": "Merci ! Ton abonnement s'active",
+      "body": "Cela ne prend généralement que quelques secondes. Recharge la page si ton nouveau plan ne s'affiche pas encore.",
+      "reload": "Recharger la page"
+    },
+    "close": "Fermer"
   }
 }

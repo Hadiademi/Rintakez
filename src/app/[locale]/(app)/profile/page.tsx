@@ -20,6 +20,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { DataExportButton } from "@/components/data-export-button";
 import { DeleteAccountButton } from "@/components/delete-account-button";
 import { BillingPortalButton } from "@/components/billing-portal-button";
+import { CheckoutReturnMoment } from "@/components/checkout-return-moment";
 import { ProfileTabs, ProfileTabPanel } from "@/components/profile-tabs";
 import { ProfileHubRow } from "@/components/profile-hub-row";
 import { ProfileChecklist } from "@/components/profile-checklist";
@@ -516,7 +517,7 @@ export default async function ProfilePage() {
           <ProfileTabPanel id="profile" label={t("publicProfileTitle")}>
             {completeness && (
               <div className="mb-8">
-                <ProfileChecklist result={completeness} />
+                <ProfileChecklist result={completeness} userId={profile.id} />
               </div>
             )}
             <section id="profile" className="scroll-mt-24 space-y-6">
@@ -621,6 +622,12 @@ export default async function ProfilePage() {
         )}
 
         {/* Billing (photographer) */}
+        {isPhotographer && entitlement && (
+          <CheckoutReturnMoment
+            plan={entitlement.plan}
+            active={entitlement.isActive && entitlement.source === "stripe"}
+          />
+        )}
         {isPhotographer && entitlement && (
           <ProfileTabPanel id="billing" label={t("billingTitle")}>
             <SettingsCard

@@ -7,10 +7,13 @@ import { setCoverImage, removeCover } from "@/lib/actions/photographer";
 import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { useToast } from "@/components/ui/toaster";
 
 export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
   const t = useTranslations("profile");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [busy, setBusy] = useState(false);
@@ -30,6 +33,7 @@ export function CoverUploader({ initialUrl }: { initialUrl: string | null }) {
     const res = await setCoverImage(fd);
     if (res.ok) {
       setUrl(res.url);
+      toast(tToast("coverUpdated"));
       router.refresh();
     } else {
       setError(tErr(errorKey(res.error)));

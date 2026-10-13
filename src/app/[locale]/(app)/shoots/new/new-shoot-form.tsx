@@ -12,7 +12,7 @@ import { createShootAction, addShootImage } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
 import { track } from "@/lib/track";
 import { downscaleImage } from "@/lib/image-downscale";
-import { useToast } from "@/components/ui/toaster";
+import { Spinner } from "@/components/ui/spinner";
 import {
   draftKey,
   deserializeDraft,
@@ -51,9 +51,7 @@ export default function NewShootForm({ userId }: { userId: string }) {
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
-  const tToast = useTranslations("toast");
   const locale = useLocale();
-  const { toast } = useToast();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -203,9 +201,6 @@ export default function NewShootForm({ userId }: { userId: string }) {
     } catch {
       // ignore
     }
-    // The ToasterProvider lives in the (app) layout, which persists across the
-    // client-side navigation below, so this confirmation survives the push.
-    toast(tToast("shootCreated"));
     // Upload reference images now that we have the shoot id. Failures are
     // non-fatal (the shoot already exists), but must not be silently swallowed
     // or let an exception strand the user on the form — count them and tell the
@@ -223,7 +218,9 @@ export default function NewShootForm({ userId }: { userId: string }) {
         failed++;
       }
     }
-    const query = failed > 0 ? `?imgFailed=${failed}` : "";
+    // ?published=1 makes the detail page show the "your shoot is live"
+    // moment, with how many matching photographers can now send offers.
+    const query = failed > 0 ? `?published=1&imgFailed=${failed}` : "?published=1";
     router.push(`/shoots/${result.id}${query}`);
     router.refresh();
   }
@@ -546,12 +543,19 @@ export default function NewShootForm({ userId }: { userId: string }) {
               type="submit"
               data-testid="shoot-submit"
               disabled={isSubmitting}
+              aria-busy={isSubmitting || undefined}
               className="press inline-flex items-center gap-2 bg-ink px-7 py-3.5 text-sm font-medium text-paper disabled:opacity-50"
             >
               {t("submit")}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              {isSubmitting ? (
+                // Publishing + uploading reference photos can take a few
+                // seconds on a phone connection — show it's working.
+                <Spinner className="h-[18px] w-[18px]" />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              )}
             </button>
           )}
         </div>

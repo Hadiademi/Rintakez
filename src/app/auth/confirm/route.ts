@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { safeLocale, safeRedirectTarget } from "@/lib/safe-redirect";
+import { flashForOtpType, withFlash } from "@/lib/flash";
 
 /**
  * Email-link confirmation via token_hash + verifyOtp — the SSR-safe flow for
@@ -35,7 +36,11 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) return NextResponse.redirect(target);
+    if (!error) {
+      // A confirmed address gets a "welcome" toast where the user lands.
+      const flash = flashForOtpType(type);
+      return NextResponse.redirect(flash ? withFlash(target, flash) : target);
+    }
   }
 
   // Expired or already-used link: land the user somewhere they can ACT —

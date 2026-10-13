@@ -13,6 +13,8 @@ import { SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
 import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { cantonOptions } from "@/lib/canton-names";
+import { useMoment } from "@/components/ui/moment";
+import { useToast } from "@/components/ui/toaster";
 
 type PortfolioItem = { id: string; url: string };
 
@@ -50,6 +52,10 @@ export default function OnboardingForm({
   const tShoot = useTranslations("shoot");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
+  const tWelcome = useTranslations("moments.welcome");
+  const tToast = useTranslations("toast");
+  const { celebrate } = useMoment();
+  const { toast } = useToast();
   const locale = useLocale();
   const router = useRouter();
 
@@ -131,6 +137,20 @@ export default function OnboardingForm({
     });
     setSaving(false);
     if (result.ok) {
+      if (isEdit) {
+        toast(tToast("saved"));
+      } else {
+        // First run: the photographer just went live. The moment lives in
+        // the layout, so it stays up across the push to /home.
+        celebrate({
+          emblem: "spark",
+          eyebrow: tWelcome("eyebrow"),
+          title: tWelcome("title"),
+          body: tWelcome("body"),
+          primary: { label: tWelcome("browse"), href: "/shoots" },
+          secondary: { label: tWelcome("overview") },
+        });
+      }
       router.push(isEdit ? "/profile" : "/home");
       router.refresh();
     } else {

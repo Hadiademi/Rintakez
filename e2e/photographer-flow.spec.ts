@@ -9,6 +9,7 @@
 //     canton VD, which makes the canton filter assertion deterministic.
 //   my-bids assertion uses the same shoot title after the bid is submitted.
 import { test, expect, type Page } from "@playwright/test";
+import { confirmDialog } from "./helpers";
 
 const SEED_PHOTOGRAPHER_EMAIL = "claire@example.ch";
 const PASSWORD = "password123";
@@ -105,13 +106,13 @@ test.describe("photographer flow", () => {
     // withdrawBidAction sets status='withdrawn'. The redesigned shoot detail
     // then swaps MyBidPanel for the BidSheet form again — a withdrawn bidder
     // may re-bid on a still-open shoot — so the panel disappears and the bid
-    // form returns. window.confirm is used — auto-accept before clicking.
-    page.on("dialog", (d) => d.accept());
+    // form returns. Confirmed in the branded confirmation sheet.
 
     await expect(page.getByTestId("mybid-withdraw")).toBeVisible({
       timeout: 20_000,
     });
     await page.getByTestId("mybid-withdraw").click();
+    await confirmDialog(page);
 
     await expect(page.getByTestId("mybid-status")).toBeHidden({
       timeout: 20_000,

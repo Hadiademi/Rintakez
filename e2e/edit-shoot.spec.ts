@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { SEED, login, futureDate } from "./helpers";
+import { SEED, closeMoment, login, futureDate } from "./helpers";
 
 test.describe("edit shoot (P4 core loop)", () => {
   test.setTimeout(90_000);
@@ -34,6 +34,7 @@ test.describe("edit shoot (P4 core loop)", () => {
     await expect(page).toHaveURL(/\/de\/shoots\/[0-9a-f-]{36}$/, {
       timeout: 20_000,
     });
+    await closeMoment(page, "Dein Auftrag ist online");
 
     // Edit it.
     const newTitle = `${title} EDITED`;

@@ -5,12 +5,15 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { requestVerification } from "@/lib/actions/photographer";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
 type Status = "unverified" | "pending" | "verified" | "rejected";
 
 export function VerificationRequest({ status }: { status: Status }) {
   const t = useTranslations("profile");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
@@ -20,8 +23,12 @@ export function VerificationRequest({ status }: { status: Status }) {
     setError(null);
     startTransition(async () => {
       const res = await requestVerification(note);
-      if (res.ok) router.refresh();
-      else setError(tErr(errorKey(res.error)));
+      if (res.ok) {
+        toast(tToast("verificationRequested"), {
+          description: tToast("verificationRequestedDesc"),
+        });
+        router.refresh();
+      } else setError(tErr(errorKey(res.error)));
     });
   }
 

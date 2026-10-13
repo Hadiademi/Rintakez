@@ -81,7 +81,7 @@ export function NotificationPrefs({
         setBids(notifyBids);
         setShoots(notifyShootUpdates);
         setMsgs(notifyMessages);
-        toast(tErr("generic"));
+        toast(tErr("generic"), { variant: "error" });
       }
     });
   }

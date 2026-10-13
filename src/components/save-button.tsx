@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toggleFavorite } from "@/lib/actions/favorites";
+import { useToast } from "@/components/ui/toaster";
 
 export function SaveButton({
   photographerId,
@@ -12,6 +13,8 @@ export function SaveButton({
   initialSaved: boolean;
 }) {
   const t = useTranslations("profile");
+  const tErr = useTranslations("errors");
+  const { toast } = useToast();
   const [saved, setSaved] = useState(initialSaved);
   const [isPending, startTransition] = useTransition();
 
@@ -21,8 +24,11 @@ export function SaveButton({
     setSaved(next);
     startTransition(async () => {
       const res = await toggleFavorite(photographerId);
-      if (!res.ok) setSaved(!next);
-      else setSaved(res.favorited);
+      if (!res.ok) {
+        // Revert AND say so — a silent revert looked like a missed tap.
+        setSaved(!next);
+        toast(tErr("generic"), { variant: "error" });
+      } else setSaved(res.favorited);
     });
   }
 

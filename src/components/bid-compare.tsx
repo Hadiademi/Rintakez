@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Spinner } from "@/components/ui/spinner";
 import { Stars } from "@/components/stars";
 import { formatCHF } from "@/lib/format";
-import { acceptBidAction, declineBidAction } from "@/lib/actions/shoots";
-import { errorKey } from "@/lib/error-messages";
-import { track } from "@/lib/track";
 import { sortBids, type BidSortMode } from "@/lib/bid-sort";
+import { useBidDecision } from "@/components/use-bid-decision";
 
 export type BidCompareItem = {
   id: string;
@@ -37,10 +36,16 @@ const CLAMP_THRESHOLD = 160;
  * when there are ≥2 to weigh. Cards only (tables break at 390px); nothing is
  * highlighted as "recommended" — the owner picks the axis to sort by.
  *
- * Accepting reuses the SAME server action and confirmation as the single-bid
- * BidCard, so the accept flow is behaviourally identical.
+ * Accepting and declining go through the same useBidDecision hook as the
+ * single-bid BidCard, so both flows are behaviourally identical.
  */
-export function BidCompare({ bids }: { bids: BidCompareItem[] }) {
+export function BidCompare({
+  bids,
+  shootDateLabel,
+}: {
+  bids: BidCompareItem[];
+  shootDateLabel: string;
+}) {
   const t = useTranslations("shootDetail");
   const tc = useTranslations("shootDetail.compare");
   const [mode, setMode] = useState<BidSortMode>("newest");
@@ -84,7 +89,13 @@ export function BidCompare({ bids }: { bids: BidCompareItem[] }) {
         className="grid gap-4 sm:grid-cols-2"
       >
         {sorted.map((item) => (
-          <CompareCard key={item.id} item={item} t={t} tc={tc} />
+          <CompareCard
+            key={item.id}
+            item={item}
+            t={t}
+            tc={tc}
+            shootDateLabel={shootDateLabel}
+          />
         ))}
       </div>
     </div>
@@ -95,57 +106,27 @@ function CompareCard({
   item,
   t,
   tc,
+  shootDateLabel,
 }: {
   item: BidCompareItem;
   t: ReturnType<typeof useTranslations>;
   tc: ReturnType<typeof useTranslations>;
+  shootDateLabel: string;
 }) {
   const tReview = useTranslations("review");
   const tProfile = useTranslations("profile");
-  const tErr = useTranslations("errors");
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const { accept, decline, isPending, error } = useBidDecision({
+    bidId: item.id,
+    photographerName: item.photographer?.display_name ?? null,
+    amountChf: item.amount_chf,
+    shootDateLabel,
+  });
 
   const p = item.photographer;
   const name = p?.display_name ?? t("byPhotographer");
   const rated = item.rating.count > 0;
   const clampable = item.message.length > CLAMP_THRESHOLD;
-
-  function onAccept() {
-    // Identical confirmation + action as the single-bid BidCard.
-    if (typeof window !== "undefined" && !window.confirm(t("acceptConfirm"))) {
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const res = await acceptBidAction(item.id);
-      if (res.ok) {
-        track("accept_bid");
-        router.refresh();
-      } else {
-        setError(tErr(errorKey(res.error)));
-      }
-    });
-  }
-
-  function onDecline() {
-    // Same confirmation and action as BidCard's decline: this view replaces
-    // the single cards once there are two or more offers.
-    if (typeof window !== "undefined" && !window.confirm(t("declineConfirm"))) {
-      return;
-    }
-    setError(null);
-    startTransition(async () => {
-      const res = await declineBidAction(item.id);
-      if (res.ok) {
-        router.refresh();
-      } else {
-        setError(tErr(errorKey(res.error)));
-      }
-    });
-  }
 
   const meta = [
     tProfile("memberSince", { year: p?.memberSinceYear ?? 0 }),
@@ -229,16 +210,18 @@ function CompareCard({
         <button
           type="button"
           data-testid={`bid-accept-${item.id}`}
-          onClick={onAccept}
+          onClick={accept}
           disabled={isPending}
-          className="press flex min-h-[44px] w-full items-center justify-center bg-ink px-4 label text-paper disabled:opacity-50"
+          aria-busy={isPending || undefined}
+          className="press flex min-h-[44px] w-full items-center justify-center gap-2 bg-ink px-4 label text-paper disabled:opacity-50"
         >
+          {isPending ? <Spinner className="h-3.5 w-3.5" /> : null}
           {t("accept")}
         </button>
         <button
           type="button"
           data-testid={`bid-decline-${item.id}`}
-          onClick={onDecline}
+          onClick={decline}
           disabled={isPending}
           className="press flex min-h-[44px] w-full items-center justify-center border border-line px-4 label text-mute disabled:opacity-50"
         >

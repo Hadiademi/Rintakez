@@ -1,6 +1,6 @@
 // Precondition: run `npx supabase db reset` for clean seed state.
 import { test, expect } from "@playwright/test";
-import { SEED, login } from "./helpers";
+import { SEED, confirmDialog, login } from "./helpers";
 
 // The shoot owner compares offers side by side once there are at least two
 // (BidCompare existed and was unit-tested but was never rendered).
@@ -47,8 +47,9 @@ test.describe("bid comparison", () => {
 
     // Declining stays possible in the comparison view (it replaced the cards
     // that had the decline button). With one offer left, the single card shows.
-    page.once("dialog", (d) => d.accept());
     await cards.filter({ hasText: /7.200/ }).locator('[data-testid^="bid-decline-"]').click();
+    await confirmDialog(page);
+    await expect(page.getByText("Angebot abgelehnt")).toBeVisible();
     await expect(compare).toHaveCount(0, { timeout: 20_000 });
     await expect(page.getByTestId("bids-list")).toContainText(/5.600/);
   });

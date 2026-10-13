@@ -16,13 +16,13 @@ async function emailBidOutcome(
   supabase: Awaited<ReturnType<typeof createClient>>,
   bidId: string,
   kind: EmailKind
-) {
+): Promise<{ shootId: string } | null> {
   const { data: bid } = await supabase
     .from("bids")
     .select("photographer_id, shoot_id")
     .eq("id", bidId)
     .maybeSingle();
-  if (!bid) return;
+  if (!bid) return null;
   const { data: shoot } = await supabase
     .from("shoots")
     .select("title")
@@ -34,6 +34,7 @@ async function emailBidOutcome(
     shootId: bid.shoot_id,
     shootTitle: shoot?.title ?? null,
   });
+  return { shootId: bid.shoot_id };
 }
 
 const MAX_SHOOT_IMAGES = 6;
@@ -242,7 +243,7 @@ export async function removeShootImage(
 
 export async function acceptBidAction(
   bidId: string
-): Promise<{ ok: true } | ErrResult> {
+): Promise<{ ok: true; conversationId: string | null } | ErrResult> {
   const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthorized" };
 
@@ -268,11 +269,21 @@ export async function acceptBidAction(
     return { ok: false, error: dbError(error, "shoots") };
   }
 
-  await emailBidOutcome(supabase, bidId, "bid_accepted");
+  const outcome = await emailBidOutcome(supabase, bidId, "bid_accepted");
+
+  // The assign trigger opened the conversation; hand its id back so the
+  // booking moment can offer "Message <photographer>" right away.
+  const { data: conversation } = outcome
+    ? await supabase
+        .from("conversations")
+        .select("id")
+        .eq("shoot_id", outcome.shootId)
+        .maybeSingle()
+    : { data: null };
 
   revalidatePath("/[locale]/(app)/shoots/[id]", "page");
   revalidatePath("/[locale]/(app)/my-shoots", "page");
-  return { ok: true };
+  return { ok: true, conversationId: conversation?.id ?? null };
 }
 
 export async function declineBidAction(

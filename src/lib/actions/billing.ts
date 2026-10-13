@@ -112,7 +112,8 @@ export async function createCheckoutSession(
           ...(trialPeriodDays ? { trial_period_days: trialPeriodDays } : {}),
         },
         metadata: { user_id: profile.id },
-        success_url: `${SITE_URL}/${profile.locale}/profile#billing`,
+        // ?checkout=success → the profile page thanks them (CheckoutReturnMoment).
+        success_url: `${SITE_URL}/${profile.locale}/profile?checkout=success#billing`,
         cancel_url: `${SITE_URL}/${profile.locale}/pricing`,
       },
       // Double-click protection: the same (user, plan, interval) triple maps

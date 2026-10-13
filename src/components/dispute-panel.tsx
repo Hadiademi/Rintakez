@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { openDispute } from "@/lib/actions/disputes";
+import { useToast } from "@/components/ui/toaster";
 
 export function DisputePanel({
   shootId,
@@ -13,6 +14,8 @@ export function DisputePanel({
   existingStatus: "open" | "resolved" | "dismissed" | null;
 }) {
   const t = useTranslations("dispute");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [reason, setReason] = useState("");
@@ -34,6 +37,9 @@ export function DisputePanel({
       if (r.ok) {
         setShow(false);
         setReason("");
+        toast(tToast("disputeOpened"), {
+          description: tToast("disputeOpenedDesc"),
+        });
         router.refresh();
       } else {
         setError(t("error"));

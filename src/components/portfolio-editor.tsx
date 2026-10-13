@@ -12,6 +12,7 @@ import { errorKey } from "@/lib/error-messages";
 import { downscaleImage } from "@/lib/image-downscale";
 import { moveItem } from "@/lib/reorder";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { useConfirm } from "@/components/ui/confirm";
 
 type Item = { id: string; url: string; caption: string | null };
 
@@ -25,6 +26,8 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
   const tOnb = useTranslations("onboarding");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
+  const tc = useTranslations("confirm");
+  const { confirm } = useConfirm();
   const [items, setItems] = useState<Item[]>(initial);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,12 +76,13 @@ export function PortfolioEditor({ initial }: { initial: Item[] }) {
   }
 
   async function onRemove(id: string) {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(tCommon("removeConfirm"))
-    ) {
-      return;
-    }
+    const ok = await confirm({
+      title: tc("removeImageTitle"),
+      body: tc("removeImageBody"),
+      confirmLabel: tc("removeAction"),
+      tone: "danger",
+    });
+    if (!ok) return;
     setError(null);
     setRemovingId(id);
     const result = await removePortfolioImage(id);

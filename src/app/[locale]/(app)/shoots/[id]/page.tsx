@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createPublicClient } from "@/lib/supabase/public";
-import { formatCHFRange, formatSwissDate } from "@/lib/format";
+import { formatCHF, formatCHFRange, formatSwissDate } from "@/lib/format";
 import { getBidQuotaUsage } from "@/lib/billing/entitlements";
 import { shootImage } from "@/lib/shoot-image";
 import { buildAlternates } from "@/lib/seo";
@@ -25,6 +25,10 @@ import { BidSheet } from "@/components/bid-sheet";
 import { MyBidPanel } from "@/components/my-bid-panel";
 import { ReportButton } from "@/components/report-button";
 import { DisputePanel } from "@/components/dispute-panel";
+import { ShowMomentOnce } from "@/components/ui/moment";
+import { ShowToastOnce } from "@/components/ui/toaster";
+import { cantonLocative } from "@/lib/canton-names";
+import type { CANTONS } from "@/lib/validation/photographer";
 
 export const dynamic = "force-dynamic";
 
@@ -77,11 +81,12 @@ export default async function ShootDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ imgFailed?: string }>;
+  searchParams: Promise<{ imgFailed?: string; published?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
   const imgFailed = sp?.imgFailed ? parseInt(sp.imgFailed, 10) : 0;
+  const justPublished = sp?.published === "1";
   // Public read-only access for anonymous visitors; actions require login.
   const profile = await getProfile();
 
@@ -446,6 +451,7 @@ export default async function ShootDetailPage({
         <BidSheet
           shootId={id}
           budgetRange={budgetRange}
+          clientName={clientProfile?.display_name ?? null}
           quota={{ used, limit: Number.isFinite(limit) ? limit : null }}
         />
       ) : myBid ? (
@@ -462,8 +468,38 @@ export default async function ShootDetailPage({
       (shoot.status === "assigned" || shoot.status === "completed") &&
       myBid?.status === "accepted";
 
+    // The photographer usually learns of the win by opening this page (from
+    // the bell or the email), so the moment fires here, once per device —
+    // and only while the shoot is still ahead, never for an old booking.
+    const tWon = await getTranslations("moments.won");
+    const clientName = clientProfile?.display_name ?? t("client");
+    const wonMoment =
+      myBid && shoot.status === "assigned" && myBid.status === "accepted" &&
+      shoot.shoot_date >= zurichDateString(new Date()) ? (
+        <ShowMomentOnce
+          id={`won:${myBid.id}`}
+          moment={{
+            eyebrow: tWon("eyebrow"),
+            title: tWon("title"),
+            body: tWon("body", { client: clientName }),
+            details: [
+              { label: tWon("shoot"), value: shoot.title },
+              { label: tWon("date"), value: formatSwissDate(shoot.shoot_date) },
+              { label: tWon("location"), value: shoot.location_city },
+              { label: tWon("offer"), value: formatCHF(myBid.amount_chf) },
+            ],
+            primary: {
+              label: tWon("message", { client: clientName }),
+              href: conversation ? `/messages/${conversation.id}` : "/messages",
+            },
+            secondary: { label: tWon("later") },
+          }}
+        />
+      ) : null;
+
     return shell(
       <>
+        {wonMoment}
         {backLink}
         {summary}
         {clientCard}
@@ -645,8 +681,63 @@ export default async function ShootDetailPage({
 
   const tReview = await getTranslations("review");
 
+  // "Your shoot is live" — right after the wizard, with the number of
+  // photographers who can actually send an offer (same coverage/discipline
+  // match as the notification trigger), so the wait feels populated.
+  let publishedMoment: React.ReactNode = null;
+  if (justPublished && shoot.status === "open") {
+    const tPub = await getTranslations("moments.published");
+    const matches = await countMatchingPhotographers(supabase, shoot);
+    // Same filters as the count, so the list shows the photographers counted.
+    const findHref = `/photographers?canton=${shoot.canton}&discipline=${shoot.discipline}`;
+    const inCanton = cantonLocative(
+      shoot.canton as (typeof CANTONS)[number],
+      await getLocale()
+    );
+    publishedMoment = (
+      <ShowMomentOnce
+        id={`published:${shoot.id}`}
+        clearParam="published"
+        moment={{
+          emblem: "spark",
+          eyebrow: tPub("eyebrow"),
+          title: tPub("title"),
+          body:
+            matches > 0
+              ? tPub("bodyMatches", { count: matches, inCanton })
+              : tPub("bodyNoMatch"),
+          stepsTitle: tPub("stepsTitle"),
+          steps: [tPub("step1"), tPub("step2"), tPub("step3")],
+          primary:
+            matches > 0
+              ? { label: tPub("toShoot") }
+              : { label: tPub("find"), href: findHref },
+          secondary:
+            matches > 0
+              ? { label: tPub("invite"), href: findHref }
+              : { label: tPub("toShoot") },
+        }}
+      />
+    );
+  }
+
+  // The first offer is the moment a posted shoot comes alive — mark it once,
+  // and only while it really is the only one (an owner who returns to three
+  // offers sees them; "your first offer" would be wrong).
+  const tToast = await getTranslations("toast");
+  const firstOfferToast =
+    shoot.status === "open" && bidList.length === 1 && visibleBids.length === 1 ? (
+      <ShowToastOnce
+        id={`first-offer:${shoot.id}`}
+        message={tToast("firstOffer")}
+        options={{ description: tToast("firstOfferDesc") }}
+      />
+    ) : null;
+
   return shell(
     <>
+      {publishedMoment}
+      {firstOfferToast}
       {backLink}
 
       {imgFailed > 0 ? (
@@ -680,7 +771,7 @@ export default async function ShootDetailPage({
               is completed or disputed (rule enforced in the DB too). The
               photographer is notified in-app and by email. */}
           {shoot.shoot_date > zurichDateString(new Date()) && disputeStatus !== "open" ? (
-            <CancelShootButton shootId={shoot.id} />
+            <CancelShootButton shootId={shoot.id} booked />
           ) : null}
         </div>
       ) : null}
@@ -752,10 +843,18 @@ export default async function ShootDetailPage({
         ) : (
           <div data-testid="bids-list" className="space-y-4">
             {compareItems ? (
-              <BidCompare bids={compareItems} />
+              <BidCompare
+                bids={compareItems}
+                shootDateLabel={formatSwissDate(shoot.shoot_date)}
+              />
             ) : (
               bidCards.map((bid) => (
-                <BidCard key={bid.id} bid={bid} canManage={canManageBids} />
+                <BidCard
+                  key={bid.id}
+                  bid={bid}
+                  canManage={canManageBids}
+                  shootDateLabel={formatSwissDate(shoot.shoot_date)}
+                />
               ))
             )}
             {hiddenBidCount > 0 ? (
@@ -768,4 +867,30 @@ export default async function ShootDetailPage({
       </section>
     </>
   );
+}
+
+/**
+ * Photographers who can send an offer on this shoot: coverage includes the
+ * canton, disciplines include the shoot's, not suspended, not the poster —
+ * the same match public.notify_matching_photographers() alerts.
+ */
+async function countMatchingPhotographers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  shoot: { canton: string; discipline: string; client_id: string }
+): Promise<number> {
+  const { data: details } = await supabase
+    .from("photographer_details")
+    .select("profile_id")
+    .contains("coverage_cantons", [shoot.canton])
+    .contains("disciplines", [shoot.discipline]);
+  const ids = (details ?? [])
+    .map((d) => d.profile_id)
+    .filter((pid) => pid !== shoot.client_id);
+  if (ids.length === 0) return 0;
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .in("id", ids)
+    .eq("is_suspended", false);
+  return count ?? 0;
 }

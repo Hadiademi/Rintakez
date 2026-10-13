@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { SiteFooter } from "@/components/site-footer";
 import { AppNav } from "@/components/app-nav";
 import { PublicNav } from "@/components/public-nav";
-import { ToasterProvider } from "@/components/ui/toaster";
+import { FeedbackProvider } from "@/components/ui/feedback-provider";
+import { FlashToast } from "@/components/flash-toast";
 import { SkipToContent } from "@/components/skip-to-content";
 
 export default async function AppLayout({
@@ -20,7 +21,7 @@ export default async function AppLayout({
   // are gated by middleware, so an anon request never reaches them here.
   if (!profile) {
     return (
-      <ToasterProvider>
+      <FeedbackProvider hasTabBar={false}>
         <div className="min-h-screen bg-paper">
           <SkipToContent />
           <PublicNav />
@@ -36,7 +37,7 @@ export default async function AppLayout({
               extra bottom padding. */}
           <SiteFooter />
         </div>
-      </ToasterProvider>
+      </FeedbackProvider>
     );
   }
 
@@ -62,7 +63,8 @@ export default async function AppLayout({
   }
 
   return (
-    <ToasterProvider>
+    <FeedbackProvider>
+      <FlashToast />
       <div className="min-h-screen bg-paper">
         <SkipToContent />
         <AppNav
@@ -91,6 +93,6 @@ export default async function AppLayout({
           <SiteFooter />
         </div>
       </div>
-    </ToasterProvider>
+    </FeedbackProvider>
   );
 }
