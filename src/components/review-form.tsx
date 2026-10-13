@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { submitReviewAction } from "@/lib/actions/reviews";
 import { errorKey } from "@/lib/error-messages";
-import { useToast } from "@/components/ui/toaster";
+import { useMoment } from "@/components/ui/moment";
 
 export function ReviewForm({ shootId }: { shootId: string }) {
   const t = useTranslations("review");
   const tErr = useTranslations("errors");
-  const tToast = useTranslations("toast");
-  const { toast } = useToast();
+  const tm = useTranslations("moments.reviewed");
+  const tMoments = useTranslations("moments");
+  const { celebrate } = useMoment();
   const router = useRouter();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
@@ -28,7 +29,17 @@ export function ReviewForm({ shootId }: { shootId: string }) {
         comment: comment.trim() || undefined,
       });
       if (res.ok) {
-        toast(tToast("reviewSubmitted"));
+        // The last step of the whole journey (posted → booked → done →
+        // reviewed): a quiet thank-you, no confetti.
+        celebrate({
+          tone: "calm",
+          emblem: "star",
+          eyebrow: tm("eyebrow"),
+          title: tm("title"),
+          body: tm("body"),
+          primary: { label: tm("newShoot"), href: "/shoots/new" },
+          secondary: { label: tMoments("close") },
+        });
         router.refresh();
       } else setError(tErr(errorKey(res.error)));
     });

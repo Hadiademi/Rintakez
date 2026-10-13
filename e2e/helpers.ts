@@ -30,3 +30,27 @@ export function futureDate(): string {
   const year = new Date().getFullYear() + 1;
   return `${year}-09-15`;
 }
+
+/**
+ * Confirms the branded confirmation sheet (it replaced window.confirm, so
+ * Playwright's "dialog" event no longer fires).
+ */
+export async function confirmDialog(page: Page): Promise<void> {
+  const dialog = page.getByTestId("confirm-dialog");
+  await expect(dialog).toBeVisible({ timeout: 20_000 });
+  await dialog.getByTestId("confirm-ok").click();
+  await expect(dialog).toBeHidden({ timeout: 20_000 });
+}
+
+/**
+ * Waits for a celebration moment (optionally checking its text) and closes it
+ * with Escape — it is modal, so the page behind can't be clicked until then.
+ */
+export async function closeMoment(page: Page, text?: string | RegExp): Promise<void> {
+  const moment = page.getByTestId("moment");
+  await expect(moment).toBeVisible({ timeout: 20_000 });
+  if (text) await expect(moment).toContainText(text);
+  await page.keyboard.press("Escape");
+  await expect(moment).toBeHidden({ timeout: 20_000 });
+}
+

@@ -1,6 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useMoment } from "@/components/ui/moment";
+import {
+  browserMomentStorage,
+  markMomentSeen,
+  shouldCelebrateCompletion,
+} from "@/lib/moment-once";
 import { Link } from "@/i18n/navigation";
 import type { ProfileCompleteness } from "@/lib/profile-completeness";
 
@@ -11,11 +18,20 @@ import type { ProfileCompleteness } from "@/lib/profile-completeness";
  * Renders nothing at 100% (the profile is complete, so the nudge is noise).
  * Photographer-only — clients have no equivalent profile.
  */
-export function ProfileChecklist({ result }: { result: ProfileCompleteness }) {
+export function ProfileChecklist({
+  result,
+  userId,
+}: {
+  result: ProfileCompleteness;
+  userId: string;
+}) {
   const t = useTranslations("checklist");
 
-  // Auto-hide once the profile is fully complete.
-  if (result.score >= 100) return null;
+  // Auto-hide once the profile is fully complete — after celebrating the
+  // moment it got there (see CompletionMoment).
+  if (result.score >= 100) {
+    return <CompletionMoment userId={userId} score={result.score} />;
+  }
 
   const missing = result.items.filter((i) => !i.done).slice(0, 3);
 
@@ -24,6 +40,7 @@ export function ProfileChecklist({ result }: { result: ProfileCompleteness }) {
       aria-label={t("title")}
       className="border border-line bg-surface p-5 sm:p-6"
     >
+      <CompletionMoment userId={userId} score={result.score} />
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-lg font-semibold tracking-tight text-ink">
           {t("title")}
@@ -88,4 +105,30 @@ export function ProfileChecklist({ result }: { result: ProfileCompleteness }) {
       )}
     </section>
   );
+}
+
+/**
+ * Celebrates the step to 100% once, on a device that saw the profile
+ * incomplete (so long-complete profiles never get a surprise party). Mounted
+ * on both sides of the threshold: below 100 it only records that fact.
+ */
+function CompletionMoment({ userId, score }: { userId: string; score: number }) {
+  const tm = useTranslations("moments.profileComplete");
+  const tMoments = useTranslations("moments");
+  const { celebrate } = useMoment();
+  useEffect(() => {
+    const storage = browserMomentStorage();
+    if (!shouldCelebrateCompletion(storage, userId, score)) return;
+    markMomentSeen(storage, `profile-complete:${userId}`);
+    celebrate({
+      eyebrow: tm("eyebrow"),
+      title: tm("title"),
+      body: tm("body"),
+      primary: { label: tm("view"), href: `/photographers/${userId}` },
+      secondary: { label: tMoments("close") },
+    });
+    // tm/tMoments are stable per locale; the threshold is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, score, celebrate]);
+  return null;
 }

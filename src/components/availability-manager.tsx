@@ -34,7 +34,7 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
         // Revert AND say so — a silent revert means the photographer believes
         // the date is blocked while accept_bid will happily book them on it.
         setDates((prev) => prev.filter((d) => d !== date));
-        toast(tErr("generic"));
+        toast(tErr("generic"), { variant: "error" });
       } else {
         toast(tToast("availabilitySaved"));
         router.refresh();
@@ -48,8 +48,11 @@ export function AvailabilityManager({ initial }: { initial: string[] }) {
       const res = await removeUnavailableDate(date);
       if (!res.ok) {
         setDates((prev) => [...prev, date].sort());
-        toast(tErr("generic"));
-      } else router.refresh();
+        toast(tErr("generic"), { variant: "error" });
+      } else {
+        toast(tToast("availabilityRemoved"));
+        router.refresh();
+      }
     });
   }
 

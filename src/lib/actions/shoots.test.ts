@@ -14,7 +14,7 @@ vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/observability", () => ({ captureError: vi.fn() }));
 
-import { cancelShootAction } from "./shoots";
+import { acceptBidAction, cancelShootAction } from "./shoots";
 
 function fakeUpdate(result: { data: unknown; error: unknown }) {
   const select = vi.fn().mockResolvedValue(result);
@@ -42,5 +42,39 @@ describe("cancelShootAction", () => {
   it("keeps other database errors generic", async () => {
     fakeUpdate({ data: null, error: { code: "XX000", message: "boom" } });
     await expect(cancelShootAction("shoot-1")).resolves.toEqual({ ok: false, error: "generic" });
+  });
+});
+
+// After accepting, the client is offered "Message <photographer>" straight
+// away; the conversation is opened by the assign trigger, so the action looks
+// it up and hands its id back.
+function fakeAccept(rows: Record<string, unknown>) {
+  createClient.mockResolvedValue({
+    rpc: vi.fn().mockResolvedValue({ error: null }),
+    from: vi.fn((table: string) => {
+      const chain = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        maybeSingle: vi.fn().mockResolvedValue({ data: rows[table] ?? null }),
+      };
+      return chain;
+    }),
+  });
+}
+
+describe("acceptBidAction", () => {
+  it("returns the conversation the booking opened", async () => {
+    fakeAccept({
+      bids: { photographer_id: "photog-1", shoot_id: "shoot-1" },
+      shoots: { title: "Hochzeit" },
+      conversations: { id: "conv-1" },
+    });
+    await expect(acceptBidAction("bid-1")).resolves.toEqual({ ok: true, conversationId: "conv-1" });
+    expect(notifyEmail).toHaveBeenCalledWith(expect.objectContaining({ kind: "bid_accepted", shootId: "shoot-1" }));
+  });
+
+  it("still reports success when the conversation can't be found", async () => {
+    fakeAccept({ bids: { photographer_id: "photog-1", shoot_id: "shoot-1" } });
+    await expect(acceptBidAction("bid-1")).resolves.toEqual({ ok: true, conversationId: null });
   });
 });

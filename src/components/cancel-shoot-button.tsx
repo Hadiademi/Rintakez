@@ -5,11 +5,21 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { cancelShootAction } from "@/lib/actions/shoots";
 import { errorKey } from "@/lib/error-messages";
+import { useToast } from "@/components/ui/toaster";
 
-export function CancelShootButton({ shootId }: { shootId: string }) {
+export function CancelShootButton({
+  shootId,
+  booked = false,
+}: {
+  shootId: string;
+  /** A booking: the photographer is notified (in-app + email). */
+  booked?: boolean;
+}) {
   const t = useTranslations("shootDetail");
   const tErr = useTranslations("errors");
   const tCommon = useTranslations("common");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -20,8 +30,12 @@ export function CancelShootButton({ shootId }: { shootId: string }) {
     setError(null);
     startTransition(async () => {
       const res = await cancelShootAction(shootId, reason);
-      if (res.ok) router.refresh();
-      else setError(tErr(errorKey(res.error)));
+      if (res.ok) {
+        toast(tToast("shootCancelled"), {
+          description: booked ? tToast("shootCancelledAssignedDesc") : undefined,
+        });
+        router.refresh();
+      } else setError(tErr(errorKey(res.error)));
     });
   }
 

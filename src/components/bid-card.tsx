@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Spinner } from "@/components/ui/spinner";
 import { Stars } from "@/components/stars";
 import { formatCHF } from "@/lib/format";
-import { acceptBidAction, declineBidAction } from "@/lib/actions/shoots";
-import { errorKey } from "@/lib/error-messages";
-import { track } from "@/lib/track";
+import { useBidDecision } from "@/components/use-bid-decision";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -32,17 +30,22 @@ export type BidCardData = {
 export function BidCard({
   bid,
   canManage,
+  shootDateLabel,
 }: {
   bid: BidCardData;
   canManage: boolean;
+  /** Swiss-formatted shoot date, shown in the booking moment. */
+  shootDateLabel: string;
 }) {
   const t = useTranslations("shootDetail");
   const tBid = useTranslations("bid");
   const tProfile = useTranslations("profile");
-  const tErr = useTranslations("errors");
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const { accept, decline, isPending, error } = useBidDecision({
+    bidId: bid.id,
+    photographerName: bid.photographer?.display_name ?? null,
+    amountChf: bid.amount_chf,
+    shootDateLabel,
+  });
 
   const photographer = bid.photographer;
   const location =
@@ -50,41 +53,6 @@ export function BidCard({
       ? `${photographer.city}, ${photographer.canton}`
       : photographer?.city || photographer?.canton || null;
   const rated = !!bid.rating && bid.rating.count > 0;
-
-  function run(
-    action: () => Promise<{ ok: true } | { ok: false; error: string }>,
-    onOk?: () => void
-  ) {
-    setError(null);
-    startTransition(async () => {
-      const res = await action();
-      if (res.ok) {
-        onOk?.();
-        router.refresh();
-      } else {
-        setError(tErr(errorKey(res.error)));
-      }
-    });
-  }
-
-  function onAccept() {
-    if (typeof window !== "undefined" && !window.confirm(t("acceptConfirm"))) {
-      return;
-    }
-    run(
-      () => acceptBidAction(bid.id),
-      () => track("accept_bid")
-    );
-  }
-
-  function onDecline() {
-    // Decline is irreversible and emails the photographer — confirm first, like
-    // accept (the two buttons sit side by side and a mis-tap is easy on mobile).
-    if (typeof window !== "undefined" && !window.confirm(t("declineConfirm"))) {
-      return;
-    }
-    run(() => declineBidAction(bid.id));
-  }
 
   const nameNode = photographer ? (
     <Link
@@ -165,7 +133,7 @@ export function BidCard({
             <button
               type="button"
               data-testid={`bid-decline-${bid.id}`}
-              onClick={onDecline}
+              onClick={decline}
               disabled={isPending}
               className="press border border-line px-4 py-2 label text-mute disabled:opacity-50"
             >
@@ -174,10 +142,12 @@ export function BidCard({
             <button
               type="button"
               data-testid={`bid-accept-${bid.id}`}
-              onClick={onAccept}
+              onClick={accept}
               disabled={isPending}
-              className="press bg-ink px-4 py-2 label text-paper disabled:opacity-50"
+              aria-busy={isPending || undefined}
+              className="press inline-flex items-center gap-2 bg-ink px-4 py-2 label text-paper disabled:opacity-50"
             >
+              {isPending ? <Spinner className="h-3.5 w-3.5" /> : null}
               {t("accept")}
             </button>
           </div>

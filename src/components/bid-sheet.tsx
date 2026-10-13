@@ -15,10 +15,13 @@ import { useToast } from "@/components/ui/toaster";
 export function BidSheet({
   shootId,
   budgetRange,
+  clientName,
   quota,
 }: {
   shootId: string;
   budgetRange: string;
+  /** Who gets notified — named in the confirmation. */
+  clientName: string | null;
   quota: { used: number; limit: number | null }; // limit null = unlimited (premium)
 }) {
   const t = useTranslations("bidSheet");
@@ -46,7 +49,20 @@ export function BidSheet({
       const res = await submitBidAction(shootId, values);
       if (res.ok) {
         track("bid");
-        toast(tToast("bidSubmitted"));
+        // Who was told, and what the offer cost from the monthly quota.
+        const notified = clientName
+          ? tToast("bidSubmittedDesc", { name: clientName })
+          : null;
+        const left =
+          quota.limit !== null
+            ? tToast("bidQuotaLeft", {
+                count: Math.max(0, quota.limit - quota.used - 1),
+              })
+            : null;
+        toast(tToast("bidSubmitted"), {
+          description: [notified, left].filter(Boolean).join(" ") || undefined,
+          action: { label: tToast("viewMyBids"), href: "/my-bids" },
+        });
         router.refresh();
       } else {
         setError(tErr(errorKey(res.error)));

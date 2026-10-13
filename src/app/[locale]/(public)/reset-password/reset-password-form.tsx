@@ -47,8 +47,10 @@ export default function ResetPasswordForm() {
       return;
     }
     // The recovery session is now a normal authenticated session — send the
-    // user straight into the app rather than forcing a re-login.
-    router.push("/home");
+    // user straight into the app rather than forcing a re-login. The toast
+    // provider there is a different layout's, so the confirmation rides along
+    // as ?flash= (see FlashToast).
+    router.push("/home?flash=passwordUpdated");
     router.refresh();
   }
 

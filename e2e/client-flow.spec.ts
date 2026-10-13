@@ -1,5 +1,6 @@
 // Precondition: run `npx supabase db reset` for clean seed state (CI e2e job does this).
 import { test, expect, type Page } from "@playwright/test";
+import { SEED, closeMoment, confirmDialog, login as loginAs } from "./helpers";
 
 const SEED_CLIENT_EMAIL = "lena@example.ch";
 const PASSWORD = "password123";
@@ -54,10 +55,13 @@ test.describe("client flow", () => {
     await page.getByTestId("shoot-budget-max").fill("3000");
     await page.getByTestId("shoot-submit").click();
 
-    // Lands on the new shoot detail page (UUID in URL).
+    // Lands on the new shoot detail page (UUID in URL) with the "your shoot
+    // is live" moment, which drops its one-shot ?published flag from the URL.
     await expect(page).toHaveURL(/\/de\/shoots\/[0-9a-f-]{36}/, {
       timeout: 20_000,
     });
+    await closeMoment(page, "Dein Auftrag ist online");
+    await expect(page).toHaveURL(/\/de\/shoots\/[0-9a-f-]{36}$/);
     await expect(
       page.getByRole("heading", { name: uniqueTitle })
     ).toBeVisible();
@@ -90,14 +94,23 @@ test.describe("client flow", () => {
       timeout: 20_000,
     });
 
-    // BidCard.onAccept uses window.confirm — auto-accept the dialog.
-    page.on("dialog", (d) => d.accept());
-
+    const shootUrl = page.url();
     const acceptButton = page
       .locator('[data-testid^="bid-accept-"]')
       .first();
     await expect(acceptButton).toBeVisible({ timeout: 20_000 });
     await acceptButton.click();
+    await confirmDialog(page);
+
+    // The booking moment names the photographer and offers to message them
+    // in the conversation the booking just opened.
+    const moment = page.getByTestId("moment");
+    await expect(moment).toContainText("übernimmt deinen Auftrag", { timeout: 20_000 });
+    await expect(moment.getByRole("link", { name: /Nachricht an/ })).toHaveAttribute(
+      "href",
+      /\/de\/messages\/[0-9a-f-]{36}$/
+    );
+    await closeMoment(page);
 
     // Status flips to "Vergeben" and the contact card with a mailto/email appears.
     await expect(
@@ -108,5 +121,16 @@ test.describe("client flow", () => {
       "href",
       /^mailto:.+@.+/
     );
+
+    // The winning photographer learns of it by opening the shoot: the won
+    // moment shows once, and not again on the next visit.
+    await page.context().clearCookies();
+    await loginAs(page, SEED.photographer.email, SEED.photographer.password);
+    await page.goto(shootUrl);
+    await closeMoment(page, "der Auftrag gehört dir");
+    await page.reload();
+    await expect(page.getByTestId("contact-reveal")).toBeVisible({ timeout: 20_000 });
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("moment")).toHaveCount(0);
   });
 });

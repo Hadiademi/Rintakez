@@ -5,18 +5,25 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { deleteAccount } from "@/lib/actions/profile";
 import { errorKey } from "@/lib/error-messages";
+import { useConfirm } from "@/components/ui/confirm";
 
 export function DeleteAccountButton() {
   const t = useTranslations("profile");
   const tErr = useTranslations("errors");
+  const tc = useTranslations("confirm");
+  const { confirm } = useConfirm();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function onDelete() {
-    if (typeof window !== "undefined" && !window.confirm(t("deleteConfirm"))) {
-      return;
-    }
+  async function onDelete() {
+    const ok = await confirm({
+      title: tc("deleteAccountTitle"),
+      body: t("deleteWarning"),
+      confirmLabel: tc("deleteAccountAction"),
+      tone: "danger",
+    });
+    if (!ok) return;
     setError(null);
     startTransition(async () => {
       const res = await deleteAccount();

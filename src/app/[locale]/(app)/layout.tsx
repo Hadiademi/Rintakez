@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { AppNav } from "@/components/app-nav";
 import { PublicNav } from "@/components/public-nav";
 import { FeedbackProvider } from "@/components/ui/feedback-provider";
+import { FlashToast } from "@/components/flash-toast";
 import { SkipToContent } from "@/components/skip-to-content";
 
 export default async function AppLayout({
@@ -63,6 +64,7 @@ export default async function AppLayout({
 
   return (
     <FeedbackProvider>
+      <FlashToast />
       <div className="min-h-screen bg-paper">
         <SkipToContent />
         <AppNav

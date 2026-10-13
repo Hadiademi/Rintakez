@@ -22,7 +22,6 @@
     "save": "Speichern",
     "remove": "Entfernen",
     "close": "Schliessen",
-    "removeConfirm": "Wirklich entfernen? Das kann nicht rückgängig gemacht werden.",
     "languageAria": "Sprache",
     "loadingAria": "Wird geladen",
     "skipToContent": "Zum Inhalt springen"
@@ -317,7 +316,6 @@
   },
   "shootDetail": {
     "accept": "Annehmen",
-    "acceptConfirm": "Dieses Angebot annehmen? Die anderen Angebote werden abgelehnt.",
     "back": "Zurück",
     "brief": "Briefing",
     "byPhotographer": "Fotograf:in",
@@ -341,7 +339,6 @@
     "contactHint": "Ihr seid verbunden. Nehmt direkt Kontakt auf.",
     "contactTitle": "Kontakt",
     "decline": "Ablehnen",
-    "declineConfirm": "Dieses Angebot ablehnen? Das kann nicht rückgängig gemacht werden.",
     "details": "Eckdaten",
     "noOffers": "Noch keine Angebote. Wir benachrichtigen passende Fotograf:innen in deiner Region — du erhältst eine Benachrichtigung, sobald das erste Angebot da ist.",
     "offers": "Angebote",
@@ -413,7 +410,6 @@
     "dangerZone": "Konto löschen",
     "dataPrivacy": "Daten & Datenschutz",
     "deleteAccount": "Konto endgültig löschen",
-    "deleteConfirm": "Wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
     "deleteWarning": "Dein Konto und deine Daten (Profil, Aufträge, Angebote, Nachrichten, Fotos, Bewertungen) werden unwiderruflich gelöscht. Ein laufendes Abo endet sofort, bereits bezahlte Tage werden nicht erstattet.",
     "deleting": "Wird gelöscht …",
     "disciplines": "Disziplin",
@@ -753,7 +749,6 @@
     "title": "Bewertung",
     "markCompleted": "Als abgeschlossen markieren",
     "completedHint": "Shooting fertig? Markiere es als abgeschlossen, um die Fotograf:in zu bewerten.",
-    "completeConfirm": "Dieses Shooting als abgeschlossen markieren? Das schaltet die Bewertung frei und kann nicht rückgängig gemacht werden.",
     "leaveReview": "Fotograf:in bewerten",
     "yourRating": "Deine Bewertung",
     "comment": "Kommentar (optional)",
@@ -1014,11 +1009,31 @@
     "dismiss": "Schliessen",
     "bidSubmitted": "Angebot gesendet",
     "bidWithdrawn": "Angebot zurückgezogen",
-    "reviewSubmitted": "Bewertung gesendet",
     "replySubmitted": "Antwort gesendet",
-    "shootCreated": "Auftrag veröffentlicht",
     "shootUpdated": "Auftrag aktualisiert",
-    "availabilitySaved": "Verfügbarkeit gespeichert"
+    "availabilitySaved": "Verfügbarkeit gespeichert",
+    "bidSubmittedDesc": "{name} wurde benachrichtigt.",
+    "bidQuotaLeft": "{count, plural, =0 {Damit ist dein Monatskontingent aufgebraucht.} one {Noch # Angebot diesen Monat.} other {Noch # Angebote diesen Monat.}}",
+    "viewMyBids": "Meine Angebote",
+    "bidUpdated": "Angebot aktualisiert",
+    "bidDeclined": "Angebot abgelehnt",
+    "bidDeclinedDesc": "{name} wurde informiert.",
+    "shootCancelled": "Auftrag storniert",
+    "shootCancelledAssignedDesc": "Die gebuchte Fotograf:in wurde informiert.",
+    "shootCompleted": "Auftrag abgeschlossen",
+    "shootCompletedDesc": "Jetzt noch kurz bewerten – das dauert eine Minute.",
+    "availabilityRemoved": "Tag wieder freigegeben",
+    "avatarUpdated": "Profilbild aktualisiert",
+    "coverUpdated": "Titelbild aktualisiert",
+    "verificationRequested": "Verifizierung angefragt",
+    "verificationRequestedDesc": "Wir prüfen dein Profil und melden uns mit einer Benachrichtigung.",
+    "disputeOpened": "Streitfall eröffnet",
+    "disputeOpenedDesc": "Unser Team wurde informiert und prüft den Fall.",
+    "passwordUpdated": "Passwort aktualisiert",
+    "emailConfirmed": "E-Mail bestätigt – willkommen bei Framly!",
+    "firstOffer": "Dein erstes Angebot ist da",
+    "firstOfferDesc": "Schau es dir in Ruhe an – du entscheidest, wann du annimmst.",
+    "saved": "Gespeichert"
   },
   "checklist": {
     "title": "Profil vervollständigen",
@@ -1053,5 +1068,104 @@
     "legalNote": "Angaben zum Betreiber findest du im Impressum.",
     "responseNote": "Wir antworten in der Regel innerhalb eines Werktags.",
     "title": "Kontakt"
+  },
+  "confirm": {
+    "confirm": "Bestätigen",
+    "acceptTitle": "Angebot von {name} annehmen?",
+    "acceptBody": "Alle anderen offenen Angebote werden automatisch abgelehnt. Danach seht ihr beide eure Kontaktdaten.",
+    "acceptAction": "Angebot annehmen",
+    "declineTitle": "Angebot von {name} ablehnen?",
+    "declineBody": "{name} wird informiert. Das lässt sich nicht rückgängig machen.",
+    "declineAction": "Ablehnen",
+    "withdrawTitle": "Angebot zurückziehen?",
+    "withdrawBody": "Die Auftraggeber:in sieht dein Angebot danach nicht mehr. Es zählt weiterhin zu deinem Monatskontingent.",
+    "withdrawAction": "Zurückziehen",
+    "completeTitle": "Auftrag als abgeschlossen markieren?",
+    "completeBody": "Damit schaltest du die Bewertung frei. Das lässt sich nicht rückgängig machen.",
+    "completeAction": "Abschliessen",
+    "deleteAccountTitle": "Konto endgültig löschen?",
+    "deleteAccountAction": "Konto löschen",
+    "removeImageTitle": "Bild entfernen?",
+    "removeImageBody": "Das lässt sich nicht rückgängig machen.",
+    "removeAction": "Entfernen"
+  },
+  "moments": {
+    "booked": {
+      "eyebrow": "Gebucht",
+      "title": "{name} übernimmt deinen Auftrag",
+      "body": "{name} wurde benachrichtigt. Ab jetzt seht ihr beide eure Kontaktdaten.",
+      "date": "Datum",
+      "price": "Preis",
+      "stepsTitle": "So geht's weiter",
+      "step1": "Schreib {name} und klärt Ablauf und Wünsche.",
+      "step2": "Nach dem Shooting markierst du den Auftrag als abgeschlossen.",
+      "step3": "Deine Bewertung hilft anderen bei der Wahl.",
+      "message": "Nachricht an {name}",
+      "toShoot": "Zum Auftrag"
+    },
+    "won": {
+      "eyebrow": "Auftrag gewonnen",
+      "title": "Glückwunsch – der Auftrag gehört dir!",
+      "body": "{client} hat dein Angebot angenommen. Nimm jetzt Kontakt auf und klärt die Details.",
+      "shoot": "Auftrag",
+      "date": "Datum",
+      "location": "Ort",
+      "offer": "Dein Angebot",
+      "message": "Nachricht an {client}",
+      "later": "Später"
+    },
+    "published": {
+      "eyebrow": "Auftrag veröffentlicht",
+      "title": "Dein Auftrag ist online",
+      "bodyMatches": "{count, plural, one {# passende Fotograf:in {inCanton} kann dir ab jetzt ein Angebot senden.} other {# passende Fotograf:innen {inCanton} können dir ab jetzt Angebote senden.}}",
+      "bodyNoMatch": "Dein Auftrag ist jetzt für alle Fotograf:innen auf Framly sichtbar. Lade passende Profile direkt ein, um schneller Angebote zu bekommen.",
+      "stepsTitle": "So geht's weiter",
+      "step1": "Bei jedem neuen Angebot bekommst du eine Benachrichtigung.",
+      "step2": "Vergleiche Preise, Portfolios und Bewertungen.",
+      "step3": "Nimm ein Angebot an – erst dann werden Kontaktdaten ausgetauscht.",
+      "toShoot": "Zum Auftrag",
+      "invite": "Fotograf:innen direkt einladen",
+      "find": "Fotograf:innen finden"
+    },
+    "welcome": {
+      "eyebrow": "Willkommen bei Framly",
+      "title": "Dein Profil ist live",
+      "body": "Auftraggeber:innen finden dich ab jetzt im Verzeichnis. Passende neue Aufträge erscheinen sofort in deinen Benachrichtigungen.",
+      "browse": "Offene Aufträge ansehen",
+      "overview": "Zur Übersicht"
+    },
+    "profileComplete": {
+      "eyebrow": "Profil vollständig",
+      "title": "Dein Profil ist komplett",
+      "body": "Auftraggeber:innen sehen jetzt alles, was sie für ihre Wahl brauchen.",
+      "view": "Profil ansehen"
+    },
+    "verified": {
+      "eyebrow": "Verifiziert",
+      "title": "Dein Profil ist verifiziert",
+      "body": "Das Abzeichen zeigt Auftraggeber:innen, dass wir dein Profil geprüft haben.",
+      "view": "Profil ansehen"
+    },
+    "reviewed": {
+      "eyebrow": "Bewertung gesendet",
+      "title": "Danke für deine Bewertung",
+      "body": "Damit hilfst du anderen bei der Wahl – und guter Arbeit, gesehen zu werden.",
+      "newShoot": "Neuen Auftrag erstellen"
+    },
+    "planActive": {
+      "eyebrow": "Abo aktiv",
+      "title": "Willkommen bei {plan}",
+      "body": "Danke für dein Vertrauen. Deine neuen Vorteile gelten ab sofort.",
+      "quota": "Angebote pro Monat",
+      "unlimited": "Unbegrenzt",
+      "browse": "Aufträge ansehen"
+    },
+    "planPending": {
+      "eyebrow": "Abo abgeschlossen",
+      "title": "Danke! Dein Abo wird aktiviert",
+      "body": "Das dauert meist nur wenige Sekunden. Lade die Seite neu, falls dein neuer Plan noch nicht angezeigt wird.",
+      "reload": "Seite neu laden"
+    },
+    "close": "Schliessen"
   }
 }

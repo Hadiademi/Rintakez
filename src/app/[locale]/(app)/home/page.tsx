@@ -12,6 +12,7 @@ import { RecommendedPhotographers } from "@/components/recommended-photographers
 import { getBidQuotaUsage } from "@/lib/billing/entitlements";
 import { PhotographerCockpit } from "@/components/photographer-cockpit";
 import { ProfileChecklist } from "@/components/profile-checklist";
+import { ShowMomentOnce } from "@/components/ui/moment";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
@@ -358,6 +359,39 @@ export default async function HomePage() {
     verificationStatus: details?.verification_status ?? "unverified",
   });
 
+  // Verification is decided by an admin while the photographer is away; the
+  // bell says so, and the first home visit after a recent approval marks it.
+  let verifiedMoment: React.ReactNode = null;
+  if (details?.verification_status === "verified") {
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const { data: approval } = await supabase
+      .from("notifications")
+      .select("id")
+      .eq("user_id", profile.id)
+      .eq("type", "verification_approved")
+      .gte("created_at", since.toISOString())
+      .limit(1)
+      .maybeSingle();
+    if (approval) {
+      const tv = await getTranslations("moments.verified");
+      const tMoments = await getTranslations("moments");
+      verifiedMoment = (
+        <ShowMomentOnce
+          id={`verified:${approval.id}`}
+          moment={{
+            emblem: "shield",
+            eyebrow: tv("eyebrow"),
+            title: tv("title"),
+            body: tv("body"),
+            primary: { label: tv("view"), href: `/photographers/${profile.id}` },
+            secondary: { label: tMoments("close") },
+          }}
+        />
+      );
+    }
+  }
+
   let personalizedQuery = supabase
     .from("shoots")
     .select(OPEN_SHOOTS_COLUMNS)
@@ -486,7 +520,8 @@ export default async function HomePage() {
         }
       />
 
-      <ProfileChecklist result={completeness} />
+      {verifiedMoment}
+      <ProfileChecklist result={completeness} userId={profile.id} />
 
       <PhotographerCockpit
         tier={tier}

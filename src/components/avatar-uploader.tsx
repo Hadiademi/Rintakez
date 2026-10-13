@@ -6,6 +6,7 @@ import { uploadAvatar } from "@/lib/actions/profile";
 import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { ImageLightbox } from "@/components/ui/image-lightbox";
+import { useToast } from "@/components/ui/toaster";
 
 export function AvatarUploader({
   initialUrl,
@@ -16,6 +17,8 @@ export function AvatarUploader({
 }) {
   const t = useTranslations("profile");
   const tErr = useTranslations("errors");
+  const tToast = useTranslations("toast");
+  const { toast } = useToast();
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +46,7 @@ export function AvatarUploader({
     if (result.ok) {
       // cache-bust so the <img> refreshes even if the URL host is the same
       setUrl(`${result.url}?t=${Date.now()}`);
+      toast(tToast("avatarUpdated"));
     } else {
       setError(tErr(errorKey(result.error)));
     }
