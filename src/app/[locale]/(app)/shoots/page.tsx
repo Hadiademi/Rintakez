@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CANTONS, SHOOT_TYPES } from "@/lib/validation/photographer";
 import { ShootCard } from "@/components/shoot-card";
+import { isNewShoot } from "@/lib/live-updates";
 import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { ShootFilters } from "@/components/shoot-filters";
 import { PageHeading } from "@/components/section-label";
@@ -63,7 +64,7 @@ export default async function BrowseShootsPage({
   let query = supabase
     .from("shoots")
     .select(
-      "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf",
+      "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf,created_at",
       { count: "exact" }
     )
     .eq("status", "open")
@@ -99,10 +100,25 @@ export default async function BrowseShootsPage({
 
   const { data: shoots, count } = await query;
   const list = shoots ?? [];
-  // Each card prefers the shoot's own uploaded photo over the stock art.
-  const covers = await getPublicShootCoverUrlsCached(list.map((s) => s.id));
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  // Each card prefers the shoot's own uploaded photo over the stock art. A
+  // photographer also sees at a glance which shoots already have their offer
+  // (withdrawn ones don't count — they can bid again) and which are new.
+  const [covers, { data: myBids }] = await Promise.all([
+    getPublicShootCoverUrlsCached(list.map((s) => s.id)),
+    profile?.role === "photographer" && list.length
+      ? supabase
+          .from("bids")
+          .select("shoot_id")
+          .eq("photographer_id", profile.id)
+          .neq("status", "withdrawn")
+          .in("shoot_id", list.map((s) => s.id))
+      : Promise.resolve({ data: [] as { shoot_id: string }[] }),
+  ]);
+  const bidOn = new Set((myBids ?? []).map((b) => b.shoot_id));
+  const now = new Date();
 
   return (
     <div className="space-y-10">
@@ -156,7 +172,12 @@ export default async function BrowseShootsPage({
             >
               {list.map((s) => (
                 <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
-                  <ShootCard shoot={s} coverUrl={covers.get(s.id)} />
+                  <ShootCard
+                    shoot={s}
+                    coverUrl={covers.get(s.id)}
+                    isNew={isNewShoot(s.created_at, now)}
+                    bidSent={bidOn.has(s.id)}
+                  />
                 </Link>
               ))}
             </div>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { formatCHFRange, formatSwissDate } from "@/lib/format";
 import { shootImage } from "@/lib/shoot-image";
+import { NewBadge } from "@/components/new-badge";
 
 export type ShootCardData = {
   id: string;
@@ -22,11 +23,17 @@ export async function ShootCard({
   shoot,
   offersCount,
   coverUrl,
+  isNew = false,
+  bidSent = false,
 }: {
   shoot: ShootCardData;
   offersCount?: number;
   /** Signed URL of the shoot's own uploaded image; stock art when absent. */
   coverUrl?: string | null;
+  /** Posted in the last 48 hours (see isNewShoot). */
+  isNew?: boolean;
+  /** The viewing photographer already sent an offer. */
+  bidSent?: boolean;
 }) {
   const tShoot = await getTranslations("shoot");
 
@@ -52,6 +59,25 @@ export async function ShootCard({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover grayscale transition-[filter,transform] duration-500 group-hover:grayscale-0 group-hover:scale-[1.02]"
         />
+        {(bidSent || isNew) && (
+          <div className="absolute left-3 top-3 flex gap-1.5">
+            {bidSent ? (
+              <span
+                data-testid="shoot-card-bid-sent"
+                className="label inline-flex items-center gap-1 bg-ink px-2 py-1 text-paper"
+              >
+                <span aria-hidden="true">✓</span>
+                {tShoot("badgeBidSent")}
+              </span>
+            ) : (
+              <NewBadge
+                label={tShoot("badgeNew")}
+                testId="shoot-card-new"
+                className="px-2 py-1"
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <div className="mt-3">

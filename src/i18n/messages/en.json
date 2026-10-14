@@ -274,7 +274,9 @@
     },
     "edit": "Edit",
     "addToCalendar": "Add to calendar",
-    "findPhotographersCta": "Find & invite photographers"
+    "findPhotographersCta": "Find & invite photographers",
+    "badgeNew": "New",
+    "badgeBidSent": "Bid sent"
   },
   "shootStepper": {
     "aria": "Shoot status",

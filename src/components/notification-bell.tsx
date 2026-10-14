@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { getRealtimeClient } from "@/lib/supabase/realtime";
 import {
@@ -12,6 +12,50 @@ import {
 import { hrefFor } from "@/lib/notifications-href";
 import { NotificationTypeIcon } from "@/components/notification-type-icon";
 import { NOTIFICATIONS_READ_EVENT } from "@/lib/notifications-events";
+import {
+  applyCountPrefix,
+  pageShowsIt,
+  shouldRefreshFor,
+} from "@/lib/live-updates";
+import { useToast, type ToastOptions } from "@/components/ui/toaster";
+
+/** Good news gets the check; everything else (a review can be 1★) is info. */
+const SUCCESS_TYPES = new Set<NotificationItem["type"]>([
+  "bid_accepted",
+  "verification_approved",
+]);
+
+type Details = Pick<NotificationItem, "title" | "conversationId">;
+
+// Both bells (desktop + mobile) receive every row; they share one lookup per
+// notification instead of querying twice.
+const detailsCache = new Map<string, Promise<Details>>();
+
+/** The realtime row carries ids only: resolve the shoot title (and, for a
+ *  message, its conversation) so the list and the toast can name it. */
+function lookupDetails(item: NotificationItem): Promise<Details> {
+  const hit = detailsCache.get(item.id);
+  if (hit) return hit;
+  const shootId = item.shootId;
+  const pending: Promise<Details> = shootId
+    ? (async () => {
+        const supabase = createBrowserClient();
+        const [{ data: shoot }, { data: conv }] = await Promise.all([
+          supabase.from("shoots").select("title").eq("id", shootId).maybeSingle(),
+          item.type === "message_received"
+            ? supabase
+                .from("conversations")
+                .select("id")
+                .eq("shoot_id", shootId)
+                .maybeSingle()
+            : Promise.resolve({ data: null }),
+        ]);
+        return { title: shoot?.title ?? null, conversationId: conv?.id ?? null };
+      })()
+    : Promise.resolve({ title: null, conversationId: null });
+  detailsCache.set(item.id, pending);
+  return pending;
+}
 
 function BellIcon() {
   return (
@@ -36,14 +80,23 @@ export function NotificationBell({
   userId,
   initialItems,
   initialUnread,
+  announce = false,
 }: {
   userId: string;
   initialItems: NotificationItem[];
   initialUnread: number;
+  /**
+   * The nav renders a bell for each breakpoint; exactly one announces —
+   * toasts the live notification, refreshes the page it makes stale and puts
+   * the unread count in the tab title — so nothing happens twice.
+   */
+  announce?: boolean;
 }) {
   const t = useTranslations("notifications");
-  const tCommon = useTranslations("common");
   const format = useFormatter();
+  const { toast } = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
   const [items, setItems] = useState<NotificationItem[]>(initialItems);
   const [unread, setUnread] = useState(initialUnread);
   const [open, setOpen] = useState(false);
@@ -51,9 +104,15 @@ export function NotificationBell({
   // back to the current instant on every render (which crashes next-intl's
   // ENVIRONMENT_FALLBACK guard when `now` is omitted).
   const [now] = useState(() => new Date());
-  const [toast, setToast] = useState<NotificationItem | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The realtime handler is set up once per user; it reads the latest
+  // page / translator / toast through refs instead of re-subscribing.
+  const live = useRef({ announce, pathname, router, toast, t });
+  useEffect(() => {
+    live.current = { announce, pathname, router, toast, t };
+  });
 
   // ── Realtime: live notifications for this user ─────────────────────
   useEffect(() => {
@@ -61,6 +120,7 @@ export function NotificationBell({
     // token in the module. RLS on `notifications` filters by auth.uid(), which
     // requires the user token, not the anon key.
     const rt = getRealtimeClient();
+    let cancelled = false;
 
     function onInsert(payload: { new: Record<string, unknown> }) {
       const row = payload.new as {
@@ -82,9 +142,41 @@ export function NotificationBell({
       };
       setItems((prev) => [item, ...prev].slice(0, 15));
       setUnread((u) => u + 1);
-      setToast(item);
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-      toastTimer.current = setTimeout(() => setToast(null), 5000);
+      void enrichAndAnnounce(item);
+    }
+
+    async function enrichAndAnnounce(item: NotificationItem) {
+      const details = await lookupDetails(item);
+      if (cancelled) return;
+      const enriched = { ...item, ...details };
+      // Merge only the looked-up fields: the bell may have marked the row
+      // read while the lookup ran.
+      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, ...details } : i)));
+
+      const { announce, pathname, toast, t } = live.current;
+      if (!announce) return;
+      // No toast when the page already says it: reading the messages, or on
+      // the page the refresh below updates with its own feedback (the offer
+      // appears marked "new", the won / verified moment opens).
+      const reading =
+        enriched.type === "message_received" && pathname.startsWith("/messages");
+      if (!reading && !pageShowsIt(pathname, enriched.type, enriched.shootId)) {
+        const options: ToastOptions = {
+          variant: SUCCESS_TYPES.has(enriched.type) ? "success" : "info",
+          description: enriched.title ?? undefined,
+          action: { label: t("view"), href: hrefFor(enriched) },
+        };
+        toast(t(enriched.type), options);
+      }
+      // Bring the open page up to date — debounced for bursts, and checked
+      // again when it fires, in case the user moved on to a form meanwhile.
+      if (shouldRefreshFor(pathname, enriched.shootId)) {
+        if (refreshTimer.current) clearTimeout(refreshTimer.current);
+        refreshTimer.current = setTimeout(() => {
+          const now = live.current;
+          if (shouldRefreshFor(now.pathname, enriched.shootId)) now.router.refresh();
+        }, 400);
+      }
     }
 
     const channel = rt.channel(`notif:${userId}`).on(
@@ -98,7 +190,6 @@ export function NotificationBell({
       onInsert
     );
 
-    let cancelled = false;
     (async () => {
       const { data } = await createBrowserClient().auth.getSession();
       if (cancelled || !data.session) return;
@@ -111,9 +202,38 @@ export function NotificationBell({
       // Remove only THIS channel — never disconnect the shared socket, which
       // other components' channels multiplex over.
       rt.removeChannel(channel);
-      if (toastTimer.current) clearTimeout(toastTimer.current);
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
     };
   }, [userId]);
+
+  // Unread count in the tab title — "(2) Framly" — and on the installed
+  // app's icon. Next rewrites <title> on navigation, so re-apply whenever the
+  // head changes (idempotent, so it never loops).
+  const titlePrefix = useRef("");
+  useEffect(() => {
+    if (!announce) return;
+    const apply = () => {
+      const next = applyCountPrefix(document.title, titlePrefix.current, unread);
+      titlePrefix.current = next.prefix;
+      if (document.title !== next.title) document.title = next.title;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true });
+    const nav = appBadgeNavigator();
+    (unread > 0 ? nav.setAppBadge?.(unread) : nav.clearAppBadge?.())?.catch(() => {});
+    return () => observer.disconnect();
+  }, [announce, unread]);
+
+  // Leaving the app shell (sign-out): take the count off the title and icon.
+  useEffect(() => {
+    if (!announce) return;
+    return () => {
+      document.title = applyCountPrefix(document.title, titlePrefix.current, 0).title;
+      titlePrefix.current = "";
+      appBadgeNavigator().clearAppBadge?.()?.catch(() => {});
+    };
+  }, [announce]);
 
   // ── Close dropdown on outside click or Escape ──────────────────────
   useEffect(() => {
@@ -158,6 +278,9 @@ export function NotificationBell({
       setItems((prev) =>
         prev.map((i) => (i.readAt ? i : { ...i, readAt: new Date().toISOString() }))
       );
+      // The other breakpoint's bell (which may be the one announcing the
+      // count in the tab title) must zero too.
+      window.dispatchEvent(new Event(NOTIFICATIONS_READ_EVENT));
       await markNotificationsRead();
     }
   }
@@ -269,33 +392,14 @@ export function NotificationBell({
           </Link>
         </div>
       )}
-
-      {/* Realtime toast — the whole card navigates; a ✕ dismisses it. */}
-      {toast && (
-        <div
-          data-testid="notification-toast"
-          className="fixed right-5 top-20 z-[60] w-72 border border-line bg-ink text-paper shadow-xl"
-        >
-          <Link
-            href={hrefFor(toast)}
-            onClick={() => setToast(null)}
-            className="press block px-4 py-3 pr-9"
-          >
-            <span className="label block text-paper/60">{t("title")}</span>
-            <span className="mt-1 block text-[14px] font-medium">
-              {t(toast.type)}
-            </span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setToast(null)}
-            aria-label={tCommon("close")}
-            className="press absolute right-1 top-1 flex h-7 w-7 items-center justify-center text-paper/70 hover:text-paper"
-          >
-            ✕
-          </button>
-        </div>
-      )}
     </div>
   );
+}
+
+/** Badging API (installed PWA icon); absent in most desktop browsers. */
+function appBadgeNavigator() {
+  return navigator as Navigator & {
+    setAppBadge?: (n?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
 }

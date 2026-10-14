@@ -27,6 +27,7 @@ import { ReportButton } from "@/components/report-button";
 import { DisputePanel } from "@/components/dispute-panel";
 import { ShowMomentOnce } from "@/components/ui/moment";
 import { ShowToastOnce } from "@/components/ui/toaster";
+import { OffersSeenProvider } from "@/components/offers-seen";
 import { cantonLocative } from "@/lib/canton-names";
 import type { CANTONS } from "@/lib/validation/photographer";
 
@@ -635,6 +636,7 @@ export default async function ShootDetailPage({
     verified: b.photographer
       ? (verifiedBy.get(b.photographer.id) ?? false)
       : false,
+    createdAt: b.created_at,
   }));
 
   // With two or more open offers the owner gets the side-by-side comparison
@@ -816,55 +818,58 @@ export default async function ShootDetailPage({
         </div>
       ) : null}
 
-      <section className="space-y-4">
-        <SectionLabel
-          index={String(bidList.length).padStart(2, "0")}
-          title={t("offers")}
-        />
-        {bidList.length === 0 ? (
-          <div className="space-y-4">
-            <p className="text-mute">{t("noOffers")}</p>
-            {shoot.status === "open" ? (
-              <Link
-                href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
-                data-testid="find-photographers-cta"
-                className="press inline-flex items-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper"
-              >
-                {tShoot("findPhotographersCta")}
-              </Link>
-            ) : null}
-          </div>
-        ) : visibleBids.length === 0 ? (
-          <p className="text-mute">
-            {hiddenBidCount > 0
-              ? t("pastOffers", { count: hiddenBidCount })
-              : t("noOffers")}
-          </p>
-        ) : (
-          <div data-testid="bids-list" className="space-y-4">
-            {compareItems ? (
-              <BidCompare
-                bids={compareItems}
-                shootDateLabel={formatSwissDate(shoot.shoot_date)}
-              />
-            ) : (
-              bidCards.map((bid) => (
-                <BidCard
-                  key={bid.id}
-                  bid={bid}
-                  canManage={canManageBids}
+      {/* Records this visit, so offers that arrive later read as new. */}
+      <OffersSeenProvider shootId={shoot.id} visitAt={new Date().toISOString()}>
+        <section className="space-y-4">
+          <SectionLabel
+            index={String(bidList.length).padStart(2, "0")}
+            title={t("offers")}
+          />
+          {bidList.length === 0 ? (
+            <div className="space-y-4">
+              <p className="text-mute">{t("noOffers")}</p>
+              {shoot.status === "open" ? (
+                <Link
+                  href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
+                  data-testid="find-photographers-cta"
+                  className="press inline-flex items-center gap-2 bg-ink px-5 py-3 text-sm font-medium text-paper"
+                >
+                  {tShoot("findPhotographersCta")}
+                </Link>
+              ) : null}
+            </div>
+          ) : visibleBids.length === 0 ? (
+            <p className="text-mute">
+              {hiddenBidCount > 0
+                ? t("pastOffers", { count: hiddenBidCount })
+                : t("noOffers")}
+            </p>
+          ) : (
+            <div data-testid="bids-list" className="space-y-4">
+              {compareItems ? (
+                <BidCompare
+                  bids={compareItems}
                   shootDateLabel={formatSwissDate(shoot.shoot_date)}
                 />
-              ))
-            )}
-            {hiddenBidCount > 0 ? (
-              <p className="text-[13px] text-mute-2">
-                {t("pastOffers", { count: hiddenBidCount })}
-              </p>
-            ) : null}
-          </div>
-        )}
-      </section>
+              ) : (
+                bidCards.map((bid) => (
+                  <BidCard
+                    key={bid.id}
+                    bid={bid}
+                    canManage={canManageBids}
+                    shootDateLabel={formatSwissDate(shoot.shoot_date)}
+                  />
+                ))
+              )}
+              {hiddenBidCount > 0 ? (
+                <p className="text-[13px] text-mute-2">
+                  {t("pastOffers", { count: hiddenBidCount })}
+                </p>
+              ) : null}
+            </div>
+          )}
+        </section>
+      </OffersSeenProvider>
     </>
   );
 }

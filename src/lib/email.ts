@@ -160,6 +160,7 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
     path = `/${locale}/shoots`;
   } else if (
     (kind === "bid_received" ||
+      kind === "bid_accepted" ||
       kind === "shoot_cancelled" ||
       kind === "shoot_invitation" ||
       kind === "shoot_match" ||
@@ -185,9 +186,9 @@ export const COPY: Record<
     en: { subject: "New offer for your shoot", lead: "You received a new offer", cta: "View offer" },
   },
   bid_accepted: {
-    de: { subject: "Dein Angebot wurde angenommen", lead: "Glückwunsch — dein Angebot wurde angenommen", cta: "Zu meinen Angeboten" },
-    fr: { subject: "Ton offre a été acceptée", lead: "Félicitations — ton offre a été acceptée", cta: "Mes offres" },
-    en: { subject: "Your offer was accepted", lead: "Congratulations — your offer was accepted", cta: "Go to my offers" },
+    de: { subject: "Dein Angebot wurde angenommen", lead: "Glückwunsch — dein Angebot wurde angenommen", cta: "Zum Auftrag" },
+    fr: { subject: "Ton offre a été acceptée", lead: "Félicitations — ton offre a été acceptée", cta: "Voir la mission" },
+    en: { subject: "Your offer was accepted", lead: "Congratulations — your offer was accepted", cta: "View the shoot" },
   },
   bid_declined: {
     de: { subject: "Update zu deinem Angebot", lead: "Dein Angebot wurde leider abgelehnt", cta: "Zu meinen Angeboten" },

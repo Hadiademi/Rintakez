@@ -7,7 +7,8 @@ import type { NotificationItem } from "@/lib/actions/notifications";
  * New message → the conversation (or the inbox if it can't be resolved).
  * Review / verification outcomes → the photographer's own profile.
  * Client bid / cancellation / invitation / match → the shoot.
- * Photographer bid outcomes (accepted/declined) → their bids.
+ * Accepted offer → the won shoot (its moment and the client's contact).
+ * Declined offer → their bids.
  */
 export function hrefFor(item: NotificationItem): string {
   if (item.type === "message_received")
@@ -22,6 +23,7 @@ export function hrefFor(item: NotificationItem): string {
     return "/profile";
   if (
     (item.type === "bid_received" ||
+      item.type === "bid_accepted" ||
       item.type === "shoot_cancelled" ||
       item.type === "shoot_reopened" ||
       item.type === "shoot_invitation" ||

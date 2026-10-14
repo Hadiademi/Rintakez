@@ -274,7 +274,9 @@
     },
     "edit": "Bearbeiten",
     "addToCalendar": "Zum Kalender hinzufügen",
-    "findPhotographersCta": "Fotograf:innen finden & einladen"
+    "findPhotographersCta": "Fotograf:innen finden & einladen",
+    "badgeNew": "Neu",
+    "badgeBidSent": "Angebot gesendet"
   },
   "shootStepper": {
     "aria": "Auftragsstatus",

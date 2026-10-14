@@ -274,7 +274,9 @@
     },
     "edit": "Modifier",
     "addToCalendar": "Ajouter au calendrier",
-    "findPhotographersCta": "Trouver & inviter des photographes"
+    "findPhotographersCta": "Trouver & inviter des photographes",
+    "badgeNew": "Nouvelle",
+    "badgeBidSent": "Offre envoyée"
   },
   "shootStepper": {
     "aria": "Statut de la mission",
