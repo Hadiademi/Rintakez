@@ -31,13 +31,14 @@ type Filter = "all" | BidStatus;
 
 const FILTER_ORDER: BidStatus[] = ["pending", "accepted", "declined", "withdrawn"];
 
-// For the winning bid, the shoot's terminal state is the truth: an accepted
-// bid on a cancelled/completed shoot must not keep reading as a live
-// "Accepted" (mirrors the previous page's dot-status logic).
+// The shoot's terminal state is the truth: an accepted bid on a cancelled/
+// completed shoot must not keep reading as a live "Accepted", nor a pending
+// offer on a cancelled shoot as "Pending" (mirrors MyBidPanel).
 function isTerminalOverride(row: MyBidRow): boolean {
   return (
-    row.status === "accepted" &&
-    (row.shootStatus === "cancelled" || row.shootStatus === "completed")
+    (row.status === "accepted" &&
+      (row.shootStatus === "cancelled" || row.shootStatus === "completed")) ||
+    (row.status === "pending" && row.shootStatus === "cancelled")
   );
 }
 

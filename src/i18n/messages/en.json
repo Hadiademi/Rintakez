@@ -345,7 +345,10 @@
     "noOffers": "No offers yet. We notify matching photographers in your region — you'll get a notification as soon as the first offer arrives.",
     "offers": "Offers",
     "pastOffers": "{count, plural, one {# earlier offer no longer active} other {# earlier offers no longer active}}",
-    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}"
+    "refUploadFailed": "{count, plural, one {# reference image could not be uploaded.} other {# reference images could not be uploaded.}}",
+    "expiredNotice": "This shoot's date has passed – it no longer takes offers.",
+    "expiredCta": "Post a new shoot",
+    "expiredChangeDate": "Change the date"
   },
   "myBids": {
     "title": "My bids",
@@ -740,6 +743,13 @@
     "verification_rejected": "Your verification request was declined",
     "shoot_invitation": "You were invited to a shoot",
     "shoot_match": "A new shoot matches your profile",
+    "bid_withdrawn": "An offer was withdrawn",
+    "bid_updated": "An offer was changed",
+    "shoot_updated": "A shoot you made an offer on was changed",
+    "shoot_completed": "A shoot was marked as completed",
+    "dispute_opened": "A dispute was opened on a shoot",
+    "dispute_resolved": "A dispute was closed",
+    "shoot_expired": "Your shoot has expired – the date has passed",
     "heading": "Notifications",
     "markAllRead": "Mark all read",
     "loadMore": "Load more",

@@ -374,8 +374,21 @@ async function filterByNotifyShootUpdates(
 }
 
 /**
- * Run all four lifecycle scans and enqueue outbox rows for newly-eligible
- * subjects. No-op without a configured service role (same graceful
+ * Open shoots whose date passed (in the last week) without a booking: tell
+ * the client once, in-app. Selection, de-duplication and the insert all live
+ * in lifecycle_notify_expired_shoots (20261014120000, service role only).
+ */
+async function scanExpiredShoots(admin: AdminClient): Promise<number> {
+  const { data, error } = await admin.rpc("lifecycle_notify_expired_shoots", {
+    p_today: zurichDateString(new Date()),
+  });
+  if (error) throw error;
+  return data ?? 0;
+}
+
+/**
+ * Run all lifecycle scans and enqueue outbox rows (or, for expired shoots,
+ * in-app notifications) for newly-eligible subjects. No-op without a configured service role (same graceful
  * degradation as the rest of the email pipeline). Never throws into the
  * caller — failures are captured and reported as zero for that scan.
  */
@@ -384,23 +397,17 @@ export async function runLifecycleScans(): Promise<{
   zeroBidRescue: number;
   reviewRequest: number;
   shootMatchDigest: number;
+  expiredShoots: number;
 }> {
-  const admin = createAdminClient();
-  if (!admin) {
-    return {
-      onboardingReminder: 0,
-      zeroBidRescue: 0,
-      reviewRequest: 0,
-      shootMatchDigest: 0,
-    };
-  }
-
   const results = {
     onboardingReminder: 0,
     zeroBidRescue: 0,
     reviewRequest: 0,
     shootMatchDigest: 0,
+    expiredShoots: 0,
   };
+  const admin = createAdminClient();
+  if (!admin) return results;
 
   try {
     results.onboardingReminder = await scanOnboardingReminder(admin);
@@ -424,6 +431,12 @@ export async function runLifecycleScans(): Promise<{
     results.shootMatchDigest = await scanShootMatchDigest(admin);
   } catch (err) {
     captureError(err, { scope: "lifecycle.shoot_match_digest" });
+  }
+
+  try {
+    results.expiredShoots = await scanExpiredShoots(admin);
+  } catch (err) {
+    captureError(err, { scope: "lifecycle.expired_shoots" });
   }
 
   return results;

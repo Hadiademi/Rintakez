@@ -1,6 +1,6 @@
 // Precondition: run `npx supabase db reset` for clean seed state.
 import { test, expect } from "@playwright/test";
-import { SEED, closeMoment, futureDate, login } from "./helpers";
+import { SEED, closeMoment, confirmDialog, futureDate, login } from "./helpers";
 
 // The app updates itself: a client elsewhere in the app gets a toast naming
 // the shoot when an offer arrives; on the shoot itself the offer is listed
@@ -67,6 +67,14 @@ test.describe("live updates", () => {
     await photographer.goto("/de/shoots");
     const card = photographer.getByTestId("browse-list").locator("a", { hasText: title });
     await expect(card.getByTestId("shoot-card-bid-sent")).toBeVisible({ timeout: 20_000 });
+
+    // The photographer withdraws: the client (who heard nothing about that
+    // before) sees the offer leave their open page, again without a reload.
+    await photographer.goto(shootUrl);
+    await photographer.getByTestId("mybid-withdraw").click();
+    await confirmDialog(photographer);
+    await expect(bids).toHaveCount(0, { timeout: 20_000 });
+    await expect(client.getByText("1 früheres Angebot nicht mehr aktiv")).toBeVisible();
 
     await photoCtx.close();
     await clientCtx.close();

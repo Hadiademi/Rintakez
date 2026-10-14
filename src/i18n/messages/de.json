@@ -345,7 +345,10 @@
     "noOffers": "Noch keine Angebote. Wir benachrichtigen passende Fotograf:innen in deiner Region — du erhältst eine Benachrichtigung, sobald das erste Angebot da ist.",
     "offers": "Angebote",
     "pastOffers": "{count, plural, one {# früheres Angebot nicht mehr aktiv} other {# frühere Angebote nicht mehr aktiv}}",
-    "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}"
+    "refUploadFailed": "{count, plural, one {# Referenzbild konnte nicht hochgeladen werden.} other {# Referenzbilder konnten nicht hochgeladen werden.}}",
+    "expiredNotice": "Das Datum dieses Auftrags ist vorbei – er nimmt keine Angebote mehr an.",
+    "expiredCta": "Neuen Auftrag erstellen",
+    "expiredChangeDate": "Datum ändern"
   },
   "myBids": {
     "title": "Meine Angebote",
@@ -740,6 +743,13 @@
     "verification_rejected": "Deine Verifizierungsanfrage wurde abgelehnt",
     "shoot_invitation": "Du wurdest zu einem Shooting eingeladen",
     "shoot_match": "Neues Shooting in deiner Region",
+    "bid_withdrawn": "Ein Angebot wurde zurückgezogen",
+    "bid_updated": "Ein Angebot wurde geändert",
+    "shoot_updated": "Ein Auftrag, für den du ein Angebot abgegeben hast, wurde geändert",
+    "shoot_completed": "Ein Auftrag wurde als abgeschlossen markiert",
+    "dispute_opened": "Zu einem Auftrag wurde ein Streitfall eröffnet",
+    "dispute_resolved": "Ein Streitfall wurde abgeschlossen",
+    "shoot_expired": "Dein Auftrag ist abgelaufen – das Datum ist vorbei",
     "heading": "Benachrichtigungen",
     "markAllRead": "Alle als gelesen markieren",
     "loadMore": "Mehr laden",

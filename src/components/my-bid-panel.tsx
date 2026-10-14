@@ -41,8 +41,11 @@ export function MyBidPanel({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // The shoot's end state wins: a booking that was cancelled/completed, or an
+  // offer still waiting on a shoot the client cancelled.
   const endedBooking =
-    bid.status === "accepted" && (shootStatus === "cancelled" || shootStatus === "completed")
+    (bid.status === "accepted" && (shootStatus === "cancelled" || shootStatus === "completed")) ||
+    (bid.status === "pending" && shootStatus === "cancelled")
       ? shootStatus
       : null;
 

@@ -13,8 +13,9 @@ const SVG_PROPS = {
 };
 
 /** A restrained per-type glyph for a notification row. Notifications are
- *  grouped into a few visual families (message, offer, positive, negative,
- *  shoot, review) rather than a bespoke icon per type. */
+ *  grouped into a few visual families (message, offer, change, positive,
+ *  negative, attention, time, shoot, review) rather than a bespoke icon per
+ *  type. */
 export function NotificationTypeIcon({
   type,
 }: {
@@ -40,8 +41,41 @@ export function NotificationTypeIcon({
           <circle cx="7.5" cy="7.5" r="1.2" />
         </svg>
       );
+    case "bid_updated":
+    case "shoot_updated":
+      return (
+        <svg {...SVG_PROPS}>
+          <path d="M4 20h4L19 9l-4-4L4 16z" />
+          <path d="M13.5 6.5l4 4" />
+        </svg>
+      );
+    case "dispute_opened":
+      return (
+        <svg {...SVG_PROPS}>
+          <path d="M12 3.5 2.8 19.5h18.4z" />
+          <path d="M12 10v4" />
+          <path d="M12 17v.01" />
+        </svg>
+      );
+    case "dispute_resolved":
+      // Closed either way (resolved or dismissed) — neutral, not a "win".
+      return (
+        <svg {...SVG_PROPS}>
+          <path d="M12 4v16M5 20h14" />
+          <path d="M5 8h14" />
+          <path d="M5 8l-2.5 6h5zM19 8l-2.5 6h5z" />
+        </svg>
+      );
+    case "shoot_expired":
+      return (
+        <svg {...SVG_PROPS}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      );
     case "bid_accepted":
     case "verification_approved":
+    case "shoot_completed":
       return (
         <svg {...SVG_PROPS}>
           <circle cx="12" cy="12" r="9" />
@@ -49,6 +83,7 @@ export function NotificationTypeIcon({
         </svg>
       );
     case "bid_declined":
+    case "bid_withdrawn":
     case "shoot_cancelled":
     case "verification_rejected":
       return (

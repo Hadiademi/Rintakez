@@ -2,21 +2,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth";
+import type { Database } from "@/lib/supabase/database.types";
 
 export type NotificationItem = {
   id: string;
-  type:
-    | "bid_received"
-    | "bid_accepted"
-    | "bid_declined"
-    | "shoot_cancelled"
-    | "message_received"
-    | "shoot_reopened"
-    | "review_received"
-    | "verification_approved"
-    | "verification_rejected"
-    | "shoot_invitation"
-    | "shoot_match";
+  /** The database enum — a new kind there must get a label, icon and link. */
+  type: Database["public"]["Enums"]["notification_type"];
   shootId: string | null;
   conversationId: string | null;
   title: string | null;
