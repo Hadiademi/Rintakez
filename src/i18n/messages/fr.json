@@ -345,7 +345,10 @@
     "noOffers": "Pas encore d'offres. Nous prévenons les photographes adaptés de ta région — tu recevras une notification dès la première offre.",
     "offers": "Offres",
     "pastOffers": "{count, plural, one {# offre antérieure n'est plus active} other {# offres antérieures ne sont plus actives}}",
-    "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}"
+    "refUploadFailed": "{count, plural, one {# image de référence n'a pas pu être téléversée.} other {# images de référence n'ont pas pu être téléversées.}}",
+    "expiredNotice": "La date de cette mission est passée – elle n'accepte plus d'offres.",
+    "expiredCta": "Créer une nouvelle mission",
+    "expiredChangeDate": "Modifier la date"
   },
   "myBids": {
     "title": "Mes offres",
@@ -740,6 +743,13 @@
     "verification_rejected": "Ta demande de vérification a été refusée",
     "shoot_invitation": "Tu as été invité à une séance",
     "shoot_match": "Une nouvelle séance correspond à ton profil",
+    "bid_withdrawn": "Une offre a été retirée",
+    "bid_updated": "Une offre a été modifiée",
+    "shoot_updated": "Une mission pour laquelle tu as fait une offre a été modifiée",
+    "shoot_completed": "Une mission a été marquée comme terminée",
+    "dispute_opened": "Un litige a été ouvert sur une mission",
+    "dispute_resolved": "Un litige a été clos",
+    "shoot_expired": "Ta mission a expiré – la date est passée",
     "heading": "Notifications",
     "markAllRead": "Tout marquer comme lu",
     "loadMore": "Voir plus",

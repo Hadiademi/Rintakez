@@ -54,6 +54,20 @@ describe("hrefFor", () => {
     expect(hrefFor(item({ type: "bid_declined", shootId: "s1" }))).toBe("/my-bids");
   });
 
+  it("links the counterparty notifications to their shoot", () => {
+    for (const type of [
+      "bid_withdrawn",
+      "bid_updated",
+      "shoot_updated",
+      "shoot_completed",
+      "dispute_opened",
+      "dispute_resolved",
+      "shoot_expired",
+    ] as const) {
+      expect(hrefFor(item({ type, shootId: "s1" }))).toBe("/shoots/s1");
+    }
+  });
+
   it("falls back to my-bids when a shoot-scoped type has no shoot id", () => {
     expect(hrefFor(item({ type: "bid_received", shootId: null }))).toBe(
       "/my-bids"

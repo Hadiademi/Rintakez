@@ -1162,6 +1162,10 @@ export type Database = {
           profile_id: string
         }[]
       }
+      lifecycle_notify_expired_shoots: {
+        Args: { p_today: string; p_limit?: number }
+        Returns: number
+      }
       lifecycle_review_request_candidates: {
         Args: { p_cutoff: string; p_limit: number }
         Returns: {
@@ -1245,6 +1249,13 @@ export type Database = {
         | "verification_rejected"
         | "shoot_invitation"
         | "shoot_match"
+        | "bid_withdrawn"
+        | "bid_updated"
+        | "shoot_updated"
+        | "shoot_completed"
+        | "dispute_opened"
+        | "dispute_resolved"
+        | "shoot_expired"
       report_category:
         | "spam"
         | "harassment"
@@ -1438,6 +1449,13 @@ export const Constants = {
         "verification_rejected",
         "shoot_invitation",
         "shoot_match",
+        "bid_withdrawn",
+        "bid_updated",
+        "shoot_updated",
+        "shoot_completed",
+        "dispute_opened",
+        "dispute_resolved",
+        "shoot_expired",
       ],
       report_category: [
         "spam",

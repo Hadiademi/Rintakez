@@ -445,9 +445,13 @@ export default async function ShootDetailPage({
 
     const tBid = await getTranslations("bidSheet");
     const { used, limit } = await getBidQuotaUsage(supabase, profile.id, new Date());
+    // A date in the past takes no offers (RLS refuses them), even while the
+    // shoot still reads "open" — don't offer a form that can only fail.
+    const biddable =
+      shoot.status === "open" && shoot.shoot_date >= zurichDateString(new Date());
 
     const primaryAction =
-      (!myBid || myBid.status === "withdrawn") && shoot.status === "open" ? (
+      (!myBid || myBid.status === "withdrawn") && biddable ? (
         // No bid yet, or a withdrawn one on an open shoot — let them (re-)bid.
         <BidSheet
           shootId={id}
@@ -458,7 +462,7 @@ export default async function ShootDetailPage({
       ) : myBid ? (
         <MyBidPanel
           bid={myBid}
-          canEdit={myBid.status === "pending" && shoot.status === "open"}
+          canEdit={myBid.status === "pending" && biddable}
           shootStatus={shoot.status}
         />
       ) : (
@@ -683,6 +687,11 @@ export default async function ShootDetailPage({
 
   const tReview = await getTranslations("review");
 
+  // Still "open" but the date has passed: it takes no offers any more (RLS),
+  // so say so instead of inviting photographers to it.
+  const expired =
+    shoot.status === "open" && shoot.shoot_date < zurichDateString(new Date());
+
   // "Your shoot is live" — right after the wizard, with the number of
   // photographers who can actually send an offer (same coverage/discipline
   // match as the notification trigger), so the wait feels populated.
@@ -741,6 +750,29 @@ export default async function ShootDetailPage({
       {publishedMoment}
       {firstOfferToast}
       {backLink}
+
+      {expired ? (
+        <div
+          data-testid="shoot-expired"
+          className="flex flex-col gap-3 border-l-2 border-accent bg-surface px-4 py-3 text-[14px] text-ink sm:flex-row sm:items-center sm:justify-between"
+        >
+          <p>{t("expiredNotice")}</p>
+          <div className="flex shrink-0 flex-wrap gap-x-5 gap-y-2">
+            <Link
+              href={`/shoots/${shoot.id}/edit`}
+              className="press label text-accent hover:opacity-70"
+            >
+              {t("expiredChangeDate")}
+            </Link>
+            <Link
+              href="/shoots/new"
+              className="press label text-accent hover:opacity-70"
+            >
+              {t("expiredCta")} →
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       {imgFailed > 0 ? (
         <div
@@ -828,7 +860,7 @@ export default async function ShootDetailPage({
           {bidList.length === 0 ? (
             <div className="space-y-4">
               <p className="text-mute">{t("noOffers")}</p>
-              {shoot.status === "open" ? (
+              {shoot.status === "open" && !expired ? (
                 <Link
                   href={`/photographers?canton=${shoot.canton}&type=${shoot.type}`}
                   data-testid="find-photographers-cta"
