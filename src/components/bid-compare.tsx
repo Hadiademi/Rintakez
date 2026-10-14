@@ -9,6 +9,8 @@ import { Stars } from "@/components/stars";
 import { formatCHF } from "@/lib/format";
 import { sortBids, type BidSortMode } from "@/lib/bid-sort";
 import { useBidDecision } from "@/components/use-bid-decision";
+import { useIsNewOffer } from "@/components/offers-seen";
+import { NewBadge } from "@/components/new-badge";
 
 export type BidCompareItem = {
   id: string;
@@ -115,6 +117,8 @@ function CompareCard({
 }) {
   const tReview = useTranslations("review");
   const tProfile = useTranslations("profile");
+  const tShoot = useTranslations("shoot");
+  const isNew = useIsNewOffer(item.createdAt);
   const [expanded, setExpanded] = useState(false);
   const { accept, decline, isPending, error } = useBidDecision({
     bidId: item.id,
@@ -161,6 +165,9 @@ function CompareCard({
                 <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
                   ✓ {tProfile("verified")}
                 </span>
+              ) : null}
+              {isNew ? (
+                <NewBadge label={tShoot("badgeNew")} testId="offer-new" />
               ) : null}
             </div>
             {p ? <p className="tabular text-[13px] text-mute">{meta}</p> : null}

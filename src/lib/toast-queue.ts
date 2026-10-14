@@ -25,10 +25,19 @@ export const MAX_TOASTS = 3;
 export function toastReducer(state: Toast[], action: ToastQueueAction): Toast[] {
   switch (action.type) {
     case "add": {
-      // Dedup: a message already on screen shouldn't stack (e.g. a rapid
+      // Dedup: a toast already on screen shouldn't stack (e.g. a rapid
       // double-click). Return the same reference so React skips the re-render.
-      const { message, variant } = action.toast;
-      if (state.some((t) => t.message === message && t.variant === variant)) {
+      // The second line counts: "New offer · Wedding" and "New offer ·
+      // Portrait" are two different things to look at.
+      const { message, variant, description } = action.toast;
+      if (
+        state.some(
+          (t) =>
+            t.message === message &&
+            t.variant === variant &&
+            t.description === description
+        )
+      ) {
         return state;
       }
       // Cap the queue, dropping the oldest so the newest is always visible.

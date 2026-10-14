@@ -19,6 +19,7 @@ import { shootImage } from "@/lib/shoot-image";
 import { getShootCoverUrls } from "@/lib/shoot-cover";
 import { getPublicShootCoverUrlsCached } from "@/lib/shoot-cover-cached";
 import { acceptanceRate } from "@/lib/bid-stats";
+import { isNewShoot } from "@/lib/live-updates";
 
 export const dynamic = "force-dynamic";
 
@@ -309,7 +310,7 @@ export default async function HomePage() {
 
   // Photographer
   const OPEN_SHOOTS_COLUMNS =
-    "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf";
+    "id,title,type,discipline,location_city,canton,shoot_date,duration_hours,budget_min_chf,budget_max_chf,created_at";
   const OPEN_SHOOTS_LIMIT = 7;
   const MIN_PERSONALIZED_RESULTS = 3;
 
@@ -328,7 +329,7 @@ export default async function HomePage() {
       .maybeSingle(),
     supabase
       .from("bids")
-      .select("id,status,amount_chf")
+      .select("id,status,amount_chf,shoot_id")
       .eq("photographer_id", profile.id),
     supabase.from("profiles").select("bio").eq("id", profile.id).single(),
     supabase
@@ -429,6 +430,10 @@ export default async function HomePage() {
   }
 
   const bids = myBids ?? [];
+  const bidOn = new Set(
+    bids.filter((b) => b.status !== "withdrawn").map((b) => b.shoot_id)
+  );
+  const now = new Date();
   const accepted = bids.filter((b) => b.status === "accepted").length;
   const wonSumChf = bids
     .filter((b) => b.status === "accepted")
@@ -569,7 +574,12 @@ export default async function HomePage() {
           <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {rest.map((s) => (
               <Link key={s.id} href={`/shoots/${s.id}`} className="press block">
-                <ShootCard shoot={s} coverUrl={covers.get(s.id)} />
+                <ShootCard
+                  shoot={s}
+                  coverUrl={covers.get(s.id)}
+                  isNew={isNewShoot(s.created_at, now)}
+                  bidSent={bidOn.has(s.id)}
+                />
               </Link>
             ))}
           </div>

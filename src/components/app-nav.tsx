@@ -85,6 +85,7 @@ export async function AppNav({
               userId={userId}
               initialItems={notifItems}
               initialUnread={notifUnread}
+              announce
             />
             {role === "client" && (
               <Link

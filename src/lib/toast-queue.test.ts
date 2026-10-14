@@ -21,6 +21,15 @@ describe("toastReducer", () => {
     expect(next).toBe(state); // unchanged reference — no re-render churn
   });
 
+  it("keeps the same text with a different second line (two offers on two shoots)", () => {
+    const state = [t("1", "New offer", { description: "Wedding" })];
+    const next = toastReducer(state, {
+      type: "add",
+      toast: t("2", "New offer", { description: "Portrait" }),
+    });
+    expect(next).toHaveLength(2);
+  });
+
   it("keeps the same text when the variant differs (an error is not a dup of a success)", () => {
     const state = [t("1", "Saved")];
     const next = toastReducer(state, {

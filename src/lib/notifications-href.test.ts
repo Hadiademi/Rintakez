@@ -44,9 +44,14 @@ describe("hrefFor", () => {
     }
   });
 
+  it("sends an accepted offer to the won shoot (where the moment is)", () => {
+    expect(hrefFor(item({ type: "bid_accepted", shootId: "s1" }))).toBe("/shoots/s1");
+  });
+
   it("falls back to my-bids for photographer bid outcomes", () => {
     expect(hrefFor(item({ type: "bid_accepted" }))).toBe("/my-bids");
     expect(hrefFor(item({ type: "bid_declined" }))).toBe("/my-bids");
+    expect(hrefFor(item({ type: "bid_declined", shootId: "s1" }))).toBe("/my-bids");
   });
 
   it("falls back to my-bids when a shoot-scoped type has no shoot id", () => {

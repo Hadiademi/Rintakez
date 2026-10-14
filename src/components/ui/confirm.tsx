@@ -127,7 +127,7 @@ function ConfirmDialog({
             onClick={() => choose(true)}
             className={
               danger
-                ? "press inline-flex min-h-12 w-full items-center justify-center border border-accent bg-accent px-6 py-3.5 text-sm font-medium text-white transition-opacity hover:opacity-90 sm:w-auto"
+                ? "press inline-flex min-h-12 w-full items-center justify-center border border-accent bg-accent px-6 py-3.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto"
                 : buttonClass("primary", "lg", "min-h-12 w-full sm:w-auto")
             }
             {...(danger ? {} : { "data-autofocus": true })}

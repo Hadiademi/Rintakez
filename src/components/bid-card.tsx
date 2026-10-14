@@ -7,6 +7,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { Stars } from "@/components/stars";
 import { formatCHF } from "@/lib/format";
 import { useBidDecision } from "@/components/use-bid-decision";
+import { useIsNewOffer } from "@/components/offers-seen";
+import { NewBadge } from "@/components/new-badge";
 
 type BidStatus = "pending" | "accepted" | "declined" | "withdrawn";
 
@@ -25,6 +27,8 @@ export type BidCardData = {
   avatarUrl?: string | null;
   rating?: { avg: number; count: number };
   verified?: boolean;
+  /** For the "new since your last visit" marker. */
+  createdAt?: string;
 };
 
 export function BidCard({
@@ -40,6 +44,8 @@ export function BidCard({
   const t = useTranslations("shootDetail");
   const tBid = useTranslations("bid");
   const tProfile = useTranslations("profile");
+  const tShoot = useTranslations("shoot");
+  const isNew = useIsNewOffer(bid.createdAt);
   const { accept, decline, isPending, error } = useBidDecision({
     bidId: bid.id,
     photographerName: bid.photographer?.display_name ?? null,
@@ -84,6 +90,9 @@ export function BidCard({
                 <span className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[12px] font-normal text-accent">
                   ✓ {tProfile("verified")}
                 </span>
+              ) : null}
+              {isNew ? (
+                <NewBadge label={tShoot("badgeNew")} testId="offer-new" />
               ) : null}
             </div>
             {location ? (
