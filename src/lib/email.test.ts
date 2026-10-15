@@ -191,3 +191,42 @@ describe("render (branded template)", () => {
     }
   });
 });
+
+describe("renderCompGranted (the gift email)", () => {
+  const until = new Date("2027-01-07T12:00:00Z");
+
+  it("names the plan, the end date and what it unlocks, per language", async () => {
+    const { renderCompGranted } = await import("@/lib/email");
+    const de = renderCompGranted("de", "Marko", "premium", until, "https://framly.ch/de/shoots");
+    expect(de.subject).toContain("Premium");
+    expect(de.html).toContain("7. Januar 2027");
+    expect(de.html).toContain("unbegrenzt");
+    expect(de.html).toContain("Aufträge ansehen");
+    expect(de.html).toContain('href="https://framly.ch/de/shoots"');
+    expect(de.text).toContain("7. Januar 2027");
+
+    const fr = renderCompGranted("fr", "Claire", "standard", until, "https://framly.ch/fr/shoots");
+    expect(fr.subject).toContain("Standard");
+    expect(fr.html).toContain("7 janvier 2027");
+    expect(fr.html).toContain("32");
+
+    const en = renderCompGranted("en", "Sam", "basic", until, "https://framly.ch/en/shoots");
+    expect(en.html).toContain("7 January 2027");
+    expect(en.html).toContain("5 offers");
+  });
+
+  it("says plainly what happens when the gift ends", async () => {
+    const { renderCompGranted } = await import("@/lib/email");
+    const { text } = renderCompGranted("de", "Marko", "premium", until, "https://framly.ch/x");
+    expect(text).toContain("Free");
+  });
+
+  it("keeps the brand template and escapes the name", async () => {
+    const { renderCompGranted } = await import("@/lib/email");
+    const { html } = renderCompGranted("en", "<b>x</b>", "premium", until, "https://framly.ch/x");
+    expect(html).toContain('Framly<span style="color:#C8462C">.</span>');
+    expect(html).toContain("/impressum");
+    expect(html).not.toContain("<b>x</b>");
+  });
+});
+
