@@ -14,8 +14,10 @@ const { revalidatePath, revalidateTag } = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
+const { notifyEmail } = vi.hoisted(() => ({ notifyEmail: vi.fn() }));
 
 vi.mock("@/lib/auth", () => ({ getProfile }));
+vi.mock("@/lib/email", () => ({ notifyEmail }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient }));
 vi.mock("next/cache", () => ({ revalidatePath, revalidateTag }));
 
@@ -105,6 +107,7 @@ describe("grantComp", () => {
     createAdminClient.mockReset();
     revalidatePath.mockReset();
     revalidateTag.mockReset();
+    notifyEmail.mockReset();
   });
 
   it("returns forbidden for a non-admin caller and touches no client", async () => {
@@ -116,6 +119,7 @@ describe("grantComp", () => {
 
     expect(result).toEqual({ ok: false, error: "forbidden" });
     expect(admin.from).not.toHaveBeenCalled();
+    expect(notifyEmail).not.toHaveBeenCalled();
   });
 
   it("rejects months=0 as invalid_input", async () => {
@@ -211,6 +215,11 @@ describe("grantComp", () => {
     const result = await grantComp(PHOTOGRAPHER_ID, "premium", 6, "  founding photographer  ");
 
     expect(result).toEqual({ ok: true });
+    // The photographer learns about the gift by email (plan + end date are
+    // read at send time from the subscription row).
+    expect(notifyEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "comp_granted", recipientId: PHOTOGRAPHER_ID })
+    );
     expect(admin.upsert).toHaveBeenCalledTimes(1);
     const upsertArg = admin.upsert.mock.calls[0][0];
     expect(upsertArg).toMatchObject({
