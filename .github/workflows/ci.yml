@@ -84,10 +84,22 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Use the exact CLI version the lockfile pins — the one every developer
+      # runs `db:reset` / `db:test` with — never `latest`. `latest` silently
+      # moved to CLI 3.0, which rejects the `[inbucket]` section in
+      # supabase/config.toml (2.x only warned), so `supabase start` died before
+      # a single test ran and this job failed on every PR from 2026-11-09 on.
+      # Moving to CLI 3 is a deliberate upgrade: bump `supabase` in
+      # package.json, migrate config.toml, run db:test locally — then CI
+      # follows on its own.
+      - name: Read the Supabase CLI version from the lockfile
+        id: supabase-cli
+        run: echo "version=$(node -p "require('./package-lock.json').packages['node_modules/supabase'].version")" >> "$GITHUB_OUTPUT"
+
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: ${{ steps.supabase-cli.outputs.version }}
 
       - name: Start Supabase (applies all migrations)
         run: supabase start
