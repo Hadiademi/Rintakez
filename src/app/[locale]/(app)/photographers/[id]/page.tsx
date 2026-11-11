@@ -18,6 +18,8 @@ import { buildAlternates } from "@/lib/seo";
 import { safeJsonLd } from "@/lib/json-ld";
 import type { Plan } from "@/lib/billing/plans";
 import { cantonName } from "@/lib/canton-names";
+import { resolveLinks } from "@/lib/links";
+import { ProfileLinkList } from "@/components/profile-links";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +93,7 @@ export default async function PhotographerProfilePage({
       const { data: details } = await supabase
         .from("photographer_details")
         .select(
-          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines, cover_path"
+          "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, links, verification_status, disciplines, cover_path"
         )
         .eq("profile_id", id)
         .maybeSingle();
@@ -276,6 +278,9 @@ export default async function PhotographerProfilePage({
 
   const specialties = details?.specialties ?? [];
   const coverageCantons = details?.coverage_cantons ?? [];
+  // `links`, falling back to the legacy website/instagram columns for a row the
+  // previous release saved (see src/lib/links.ts).
+  const profileLinks = resolveLinks(details);
 
   // Structured data — helps photographer profiles surface in search.
   const jsonLd: Record<string, unknown> = {
@@ -496,8 +501,7 @@ export default async function PhotographerProfilePage({
         {(specialties.length > 0 ||
           coverageCantons.length > 0 ||
           details?.hourly_rate_chf != null ||
-          details?.website_url ||
-          details?.instagram_url) && (
+          profileLinks.length > 0) && (
           <div className="space-y-6 border-t border-line pt-8">
             {/* Disciplines (photo / video) */}
             {(details?.disciplines ?? []).length > 0 && (
@@ -550,29 +554,11 @@ export default async function PhotographerProfilePage({
               </div>
             )}
 
-            {/* Links */}
-            {(details?.website_url || details?.instagram_url) && (
-              <div className="flex flex-wrap gap-4">
-                {details.website_url && (
-                  <a
-                    href={details.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70 transition-opacity"
-                  >
-                    {t("website")}
-                  </a>
-                )}
-                {details.instagram_url && (
-                  <a
-                    href={details.instagram_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70 transition-opacity"
-                  >
-                    {t("instagram")}
-                  </a>
-                )}
+            {/* Links — named per field when the photographer works in several */}
+            {profileLinks.length > 0 && (
+              <div className="space-y-2">
+                <p className="label text-mute">{t("links")}</p>
+                <ProfileLinkList links={profileLinks} />
               </div>
             )}
           </div>

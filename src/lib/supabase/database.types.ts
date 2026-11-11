@@ -436,6 +436,7 @@ export type Database = {
           disciplines: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf: number | null
           instagram_url: string | null
+          links: Json
           plan_expires_at: string | null
           plan_tier: string
           profile_id: string
@@ -451,6 +452,7 @@ export type Database = {
           disciplines?: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf?: number | null
           instagram_url?: string | null
+          links?: Json
           plan_expires_at?: string | null
           plan_tier?: string
           profile_id: string
@@ -466,6 +468,7 @@ export type Database = {
           disciplines?: Database["public"]["Enums"]["discipline"][]
           hourly_rate_chf?: number | null
           instagram_url?: string | null
+          links?: Json
           plan_expires_at?: string | null
           plan_tier?: string
           profile_id?: string
@@ -1204,6 +1207,7 @@ export type Database = {
         Returns: undefined
       }
       shoot_bid_count: { Args: { p_shoot_id: string }; Returns: number }
+      valid_photographer_links: { Args: { p_links: Json }; Returns: boolean }
     }
     Enums: {
       bid_status: "pending" | "accepted" | "declined" | "withdrawn"
@@ -1270,6 +1274,7 @@ export type Database = {
         | "portrait"
         | "commercial"
         | "event"
+        | "sport"
         | "architecture"
         | "family"
         | "other"
@@ -1472,6 +1477,7 @@ export const Constants = {
         "portrait",
         "commercial",
         "event",
+        "sport",
         "architecture",
         "family",
         "other",

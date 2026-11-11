@@ -3,6 +3,7 @@ import { redirect } from "@/i18n/navigation";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import OnboardingForm from "./onboarding-form";
+import { resolveLinks } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function OnboardingPage() {
   const { data: details } = await supabase
     .from("photographer_details")
     .select(
-      "specialties, disciplines, coverage_cantons, hourly_rate_chf, website_url, instagram_url"
+      "specialties, disciplines, coverage_cantons, hourly_rate_chf, website_url, instagram_url, links"
     )
     .eq("profile_id", profile.id)
     .maybeSingle();
@@ -53,8 +54,7 @@ export default async function OnboardingPage() {
     cantons: details?.coverage_cantons ?? [],
     hourlyRate:
       details?.hourly_rate_chf != null ? String(details.hourly_rate_chf) : "",
-    website: details?.website_url ?? "",
-    instagram: details?.instagram_url ?? "",
+    links: resolveLinks(details),
     portfolio,
   };
 

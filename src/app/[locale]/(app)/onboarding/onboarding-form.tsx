@@ -9,7 +9,13 @@ import {
   addPortfolioImage,
   removePortfolioImage,
 } from "@/lib/actions/photographer";
-import { SHOOT_TYPES, DISCIPLINES } from "@/lib/validation/photographer";
+import {
+  SHOOT_TYPES,
+  DISCIPLINES,
+  checkDetailsForm,
+} from "@/lib/validation/photographer";
+import { toLinkPayload, type LinkRow, type ProfileLink } from "@/lib/links";
+import { LinksEditor, linkUrlInputId } from "@/components/links-editor";
 import { downscaleImage } from "@/lib/image-downscale";
 import { errorKey } from "@/lib/error-messages";
 import { cantonOptions } from "@/lib/canton-names";
@@ -26,8 +32,7 @@ type InitialDetails = {
   disciplines: string[];
   cantons: string[];
   hourlyRate: string;
-  website: string;
-  instagram: string;
+  links: ProfileLink[];
   portfolio: PortfolioItem[];
 };
 
@@ -36,8 +41,7 @@ const EMPTY_INITIAL: InitialDetails = {
   disciplines: ["photo"],
   cantons: [],
   hourlyRate: "",
-  website: "",
-  instagram: "",
+  links: [],
   portfolio: [],
 };
 
@@ -63,8 +67,14 @@ export default function OnboardingForm({
   const [disciplines, setDisciplines] = useState<string[]>(initial.disciplines);
   const [cantons, setCantons] = useState<string[]>(initial.cantons);
   const [hourlyRate, setHourlyRate] = useState(initial.hourlyRate);
-  const [website, setWebsite] = useState(initial.website);
-  const [instagram, setInstagram] = useState(initial.instagram);
+  const [linkRows, setLinkRows] = useState<LinkRow[]>(
+    initial.links.map((l) => ({ label: l.label ?? "", url: l.url }))
+  );
+  // Field-level errors. A failed save used to show one generic "please check
+  // your input" under the button, and a photographer could not find what to
+  // fix (she had typed her website without https://).
+  const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
+  const [rateError, setRateError] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>(
     initial.portfolio
   );
@@ -124,17 +134,52 @@ export default function OnboardingForm({
     }
   }
 
+  function onLinksChange(rows: LinkRow[], changed: number | "all") {
+    setLinkRows(rows);
+    setLinkErrors((prev) => {
+      if (changed === "all") return {};
+      if (!(changed in prev)) return prev;
+      const next = { ...prev };
+      delete next[changed];
+      return next;
+    });
+  }
+
   async function handleFinish() {
     setSaveError(null);
-    setSaving(true);
-    const result = await savePhotographerDetails({
+    const { payload, rowOf } = toLinkPayload(linkRows);
+    const input = {
       specialties,
       disciplines,
       coverageCantons: cantons,
       hourlyRateChf: hourlyRate ? Number(hourlyRate) : undefined,
-      websiteUrl: website,
-      instagramUrl: instagram,
-    });
+      links: payload,
+    };
+
+    // Same schema the server uses, run first so the error lands on the field.
+    const check = checkDetailsForm(input, rowOf);
+    if (!check.ok) {
+      setRateError(check.hourlyRate ? tErr(check.hourlyRate) : null);
+      setLinkErrors(
+        Object.fromEntries(
+          Object.entries(check.links).map(([row, code]) => [row, tErr(code)])
+        )
+      );
+      setSaveError(check.general ? tErr("invalid_input") : t("fixFields"));
+      const firstLinkRow = Object.keys(check.links).map(Number).sort((a, b) => a - b)[0];
+      const focusId = check.hourlyRate
+        ? "onboarding-rate"
+        : firstLinkRow !== undefined
+          ? linkUrlInputId("onboarding", firstLinkRow)
+          : null;
+      if (focusId) document.getElementById(focusId)?.focus();
+      return;
+    }
+    setRateError(null);
+    setLinkErrors({});
+
+    setSaving(true);
+    const result = await savePhotographerDetails(input);
     setSaving(false);
     if (result.ok) {
       if (isEdit) {
@@ -198,38 +243,40 @@ export default function OnboardingForm({
 
       {/* Hourly rate */}
       <div className="flex flex-col gap-1.5">
-        <label className="label text-mute">{t("hourlyRate")}</label>
+        <label htmlFor="onboarding-rate" className="label text-mute">
+          {t("hourlyRate")}
+        </label>
         <input
+          id="onboarding-rate"
           type="number"
           min={1}
+          step={1}
+          inputMode="numeric"
           value={hourlyRate}
-          onChange={(e) => setHourlyRate(e.target.value)}
-          className="w-48 border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
+          onChange={(e) => {
+            setHourlyRate(e.target.value);
+            setRateError(null);
+          }}
+          aria-invalid={rateError ? true : undefined}
+          aria-describedby={rateError ? "onboarding-rate-error" : undefined}
+          className={`w-48 border bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-mute-2 focus:border-ink transition-colors ${rateError ? "border-accent" : "border-line"}`}
           placeholder="—"
         />
+        {rateError ? (
+          <p id="onboarding-rate-error" className="text-[13px] text-accent">
+            {rateError}
+          </p>
+        ) : null}
       </div>
 
-      {/* Website */}
+      {/* Links — website, Instagram & co, optionally named per field */}
       <div className="flex flex-col gap-1.5">
-        <label className="label text-mute">{t("website")}</label>
-        <input
-          type="url"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          className="w-full border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
-          placeholder="https://example.com"
-        />
-      </div>
-
-      {/* Instagram */}
-      <div className="flex flex-col gap-1.5">
-        <label className="label text-mute">{t("instagram")}</label>
-        <input
-          type="url"
-          value={instagram}
-          onChange={(e) => setInstagram(e.target.value)}
-          className="w-full border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-mute-2 focus:outline-none focus:border-ink transition-colors"
-          placeholder="https://instagram.com/username"
+        <p className="label text-mute">{t("links")}</p>
+        <LinksEditor
+          rows={linkRows}
+          onChange={onLinksChange}
+          errors={linkErrors}
+          idPrefix="onboarding"
         />
       </div>
 
@@ -286,7 +333,11 @@ export default function OnboardingForm({
       </div>
 
       {/* Error message */}
-      {saveError && <p className="text-sm text-accent">{saveError}</p>}
+      {saveError && (
+        <p role="alert" className="text-sm text-accent">
+          {saveError}
+        </p>
+      )}
 
       {/* Finish button */}
       <button

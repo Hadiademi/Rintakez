@@ -11,6 +11,7 @@ import {
   type PhotographerDetailsInput,
 } from "@/lib/validation/photographer";
 import { isAllowedImage } from "@/lib/uploads";
+import { legacyLinkColumns } from "@/lib/links";
 
 type OkResult<T extends object = object> = { ok: true } & T;
 type ErrResult = { ok: false; error: string };
@@ -37,8 +38,7 @@ export async function savePhotographerDetails(
     disciplines,
     coverageCantons,
     hourlyRateChf,
-    websiteUrl,
-    instagramUrl,
+    links,
   }: PhotographerDetailsInput = parsed.data;
 
   const supabase = await createClient();
@@ -50,8 +50,11 @@ export async function savePhotographerDetails(
       disciplines,
       coverage_cantons: coverageCantons,
       hourly_rate_chf: hourlyRateChf ?? null,
-      website_url: websiteUrl || null,
-      instagram_url: instagramUrl || null,
+      links,
+      // Mirror the first website + first Instagram into the legacy columns so
+      // a rollback to the previous release still shows them (see
+      // 20261111130000_photographer_links.sql).
+      ...legacyLinkColumns(links),
     },
     { onConflict: "profile_id" }
   );
