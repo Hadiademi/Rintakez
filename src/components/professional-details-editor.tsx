@@ -8,7 +8,11 @@ import { savePhotographerDetails } from "@/lib/actions/photographer";
 import {
   SHOOT_TYPES,
   DISCIPLINES,
+  checkDetailsForm,
 } from "@/lib/validation/photographer";
+import { toLinkPayload, type LinkRow, type ProfileLink } from "@/lib/links";
+import { LinksEditor, linkUrlInputId } from "@/components/links-editor";
+import { ProfileLinkList } from "@/components/profile-links";
 import { errorKey } from "@/lib/error-messages";
 import { formatCHF } from "@/lib/format";
 import { useToast } from "@/components/ui/toaster";
@@ -28,9 +32,12 @@ export type ProfessionalDetails = {
   specialties: string[];
   cantons: string[];
   hourlyRate: string;
-  website: string;
-  instagram: string;
+  links: ProfileLink[];
 };
+
+function toRows(links: ProfileLink[]): LinkRow[] {
+  return links.map((l) => ({ label: l.label ?? "", url: l.url }));
+}
 
 /**
  * In-place editor for the photographer's professional details (disciplines,
@@ -60,8 +67,9 @@ export function ProfessionalDetailsEditor({
   const [specialties, setSpecialties] = useState(initial.specialties);
   const [cantons, setCantons] = useState(initial.cantons);
   const [rate, setRate] = useState(initial.hourlyRate);
-  const [website, setWebsite] = useState(initial.website);
-  const [instagram, setInstagram] = useState(initial.instagram);
+  const [linkRows, setLinkRows] = useState<LinkRow[]>(toRows(initial.links));
+  const [linkErrors, setLinkErrors] = useState<Record<number, string>>({});
+  const [rateError, setRateError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -91,22 +99,59 @@ export function ProfessionalDetailsEditor({
     setSpecialties(initial.specialties);
     setCantons(initial.cantons);
     setRate(initial.hourlyRate);
-    setWebsite(initial.website);
-    setInstagram(initial.instagram);
+    setLinkRows(toRows(initial.links));
+    setLinkErrors({});
+    setRateError(null);
     setError(null);
+  }
+
+  function onLinksChange(rows: LinkRow[], changed: number | "all") {
+    setLinkRows(rows);
+    setLinkErrors((prev) => {
+      if (changed === "all") return {};
+      if (!(changed in prev)) return prev;
+      const next = { ...prev };
+      delete next[changed];
+      return next;
+    });
   }
 
   async function onSave() {
     setError(null);
-    setSaving(true);
-    const res = await savePhotographerDetails({
+    const { payload, rowOf } = toLinkPayload(linkRows);
+    const input = {
       specialties,
       disciplines,
       coverageCantons: cantons,
       hourlyRateChf: rate ? Number(rate) : undefined,
-      websiteUrl: website,
-      instagramUrl: instagram,
-    });
+      links: payload,
+    };
+
+    // Same schema as the server, so the error lands on the field that caused
+    // it instead of one generic line under the buttons.
+    const check = checkDetailsForm(input, rowOf);
+    if (!check.ok) {
+      setRateError(check.hourlyRate ? tErr(check.hourlyRate) : null);
+      setLinkErrors(
+        Object.fromEntries(
+          Object.entries(check.links).map(([row, code]) => [row, tErr(code)])
+        )
+      );
+      setError(check.general ? tErr("invalid_input") : tOnb("fixFields"));
+      const firstLinkRow = Object.keys(check.links).map(Number).sort((a, b) => a - b)[0];
+      const focusId = check.hourlyRate
+        ? "pro-rate-input"
+        : firstLinkRow !== undefined
+          ? linkUrlInputId("pro-details", firstLinkRow)
+          : null;
+      if (focusId) document.getElementById(focusId)?.focus();
+      return;
+    }
+    setRateError(null);
+    setLinkErrors({});
+
+    setSaving(true);
+    const res = await savePhotographerDetails(input);
     setSaving(false);
     if (res.ok) {
       setOpen(false);
@@ -126,8 +171,7 @@ export function ProfessionalDetailsEditor({
       specialties.length > 0 ||
       cantons.length > 0 ||
       initial.hourlyRate ||
-      website ||
-      instagram;
+      initial.links.length > 0;
     return (
       <div className="space-y-5">
         {hasAny ? (
@@ -191,28 +235,10 @@ export function ProfessionalDetailsEditor({
               </div>
             )}
 
-            {(website || instagram) && (
-              <div className="flex flex-wrap gap-4 sm:col-span-2">
-                {website && (
-                  <a
-                    href={website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70"
-                  >
-                    {t("website")}
-                  </a>
-                )}
-                {instagram && (
-                  <a
-                    href={instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[14px] text-accent underline underline-offset-2 hover:opacity-70"
-                  >
-                    {t("instagram")}
-                  </a>
-                )}
+            {initial.links.length > 0 && (
+              <div className="space-y-2 sm:col-span-2">
+                <p className="label text-mute">{t("links")}</p>
+                <ProfileLinkList links={initial.links} />
               </div>
             )}
           </div>
@@ -281,41 +307,32 @@ export function ProfessionalDetailsEditor({
           type="number"
           min={1}
           value={rate}
-          onChange={(e) => setRate(e.target.value)}
+          step={1}
+          inputMode="numeric"
+          onChange={(e) => {
+            setRate(e.target.value);
+            setRateError(null);
+          }}
+          aria-invalid={rateError ? true : undefined}
+          aria-describedby={rateError ? "pro-rate-error" : undefined}
           placeholder="—"
-          className={`${inputClass} w-48`}
+          className={`${inputClass} w-48 ${rateError ? "border-accent" : ""}`}
         />
+        {rateError ? (
+          <p id="pro-rate-error" className="text-[13px] text-accent">
+            {rateError}
+          </p>
+        ) : null}
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="pro-website" className="label text-mute">
-            {tOnb("website")}
-          </label>
-          <input
-            id="pro-website"
-            data-testid="pro-details-website"
-            type="url"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-            placeholder="https://example.com"
-            className={inputClass}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="pro-instagram" className="label text-mute">
-            {tOnb("instagram")}
-          </label>
-          <input
-            id="pro-instagram"
-            data-testid="pro-details-instagram"
-            type="url"
-            value={instagram}
-            onChange={(e) => setInstagram(e.target.value)}
-            placeholder="https://instagram.com/username"
-            className={inputClass}
-          />
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <p className="label text-mute">{tOnb("links")}</p>
+        <LinksEditor
+          rows={linkRows}
+          onChange={onLinksChange}
+          errors={linkErrors}
+          idPrefix="pro-details"
+        />
       </div>
 
       <div className="flex items-center gap-2">
@@ -341,7 +358,11 @@ export function ProfessionalDetailsEditor({
         </button>
       </div>
 
-      {error && <p className="text-sm text-accent">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-accent">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
