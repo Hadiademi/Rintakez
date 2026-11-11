@@ -29,7 +29,8 @@ export type EmailKind =
   | "zero_bid_rescue"
   | "review_request"
   | "shoot_match_digest"
-  | "admin_alert";
+  | "admin_alert"
+  | "comp_granted";
 type Locale = "de" | "fr" | "en";
 
 // Which notification-preference column gates each email kind (missing = always
@@ -156,7 +157,7 @@ function link(kind: EmailKind, locale: Locale, shootId?: string | null): string 
     path = `/${locale}/messages`;
   } else if (kind === "admin_alert") {
     path = `/${locale}/admin`;
-  } else if (kind === "shoot_match_digest") {
+  } else if (kind === "shoot_match_digest" || kind === "comp_granted") {
     path = `/${locale}/shoots`;
   } else if (
     (kind === "bid_received" ||
@@ -245,7 +246,108 @@ export const COPY: Record<
     fr: { subject: "De nouvelles séances correspondent à ton profil", lead: "Aujourd’hui, de nouvelles séances ont correspondu à ton profil", cta: "Voir les séances" },
     en: { subject: "New shoots match your profile", lead: "New shoots matched your profile today", cta: "View shoots" },
   },
+  // Generic copy; the drain sends renderCompGranted() (plan, end date, perks).
+  comp_granted: {
+    de: { subject: "Ein Geschenk für dich auf Framly", lead: "Du hast ein Framly-Abo geschenkt bekommen", cta: "Aufträge ansehen" },
+    fr: { subject: "Un cadeau pour toi sur Framly", lead: "Tu as reçu un abonnement Framly en cadeau", cta: "Voir les missions" },
+    en: { subject: "A gift for you on Framly", lead: "You’ve been given a Framly subscription", cta: "See shoots" },
+  },
 };
+
+type GiftPlan = "basic" | "standard" | "premium";
+
+const PLAN_NAME: Record<GiftPlan, string> = {
+  basic: "Basic",
+  standard: "Standard",
+  premium: "Premium",
+};
+
+// What each gifted plan unlocks — mirrors the pricing page (billing.plan.*).
+const GIFT_PERKS: Record<Locale, Record<GiftPlan, string>> = {
+  de: {
+    premium: "Damit sendest du unbegrenzt Angebote, erscheinst ganz oben im Verzeichnis und trägst das Top-Partner-Abzeichen.",
+    standard: "Damit sendest du bis zu 32 Angebote pro Monat, wirst im Verzeichnis bevorzugt angezeigt und erhältst neue Aufträge sofort per E-Mail.",
+    basic: "Damit sendest du bis zu 5 Angebote pro Monat und erhältst eine tägliche Übersicht neuer Aufträge.",
+  },
+  fr: {
+    premium: "Tu peux envoyer des offres sans limite, tu apparais tout en haut de l’annuaire et tu portes le badge Top-Partner.",
+    standard: "Tu peux envoyer jusqu’à 32 offres par mois, tu es mis·e en avant dans l’annuaire et tu reçois les nouvelles missions aussitôt par e-mail.",
+    basic: "Tu peux envoyer jusqu’à 5 offres par mois et tu reçois un récapitulatif quotidien des nouvelles missions.",
+  },
+  en: {
+    premium: "You can send unlimited offers, appear at the top of the directory and carry the Top Partner badge.",
+    standard: "You can send up to 32 offers a month, get preferred placement in the directory and hear about new shoots by email right away.",
+    basic: "You can send up to 5 offers a month and get a daily digest of new shoots.",
+  },
+};
+
+const GIFT_COPY: Record<
+  Locale,
+  { subject: string; lead: string; until: string; after: string; dateLocale: string }
+> = {
+  de: {
+    subject: "Ein Geschenk für dich: Framly {plan}",
+    lead: "Du hast Framly {plan} geschenkt bekommen",
+    until: "Gültig bis {date}",
+    after: "Du musst nichts tun. Danach wechselst du automatisch zurück auf Free – ausser du entscheidest dich für ein Abo.",
+    dateLocale: "de-CH",
+  },
+  fr: {
+    subject: "Un cadeau pour toi : Framly {plan}",
+    lead: "Tu as reçu Framly {plan} en cadeau",
+    until: "Valable jusqu’au {date}",
+    after: "Tu n’as rien à faire. Ensuite, tu repasses automatiquement à Free – sauf si tu choisis un abonnement.",
+    dateLocale: "fr-CH",
+  },
+  en: {
+    subject: "A gift for you: Framly {plan}",
+    lead: "You’ve been given Framly {plan}",
+    until: "Valid until {date}",
+    after: "Nothing to do. Afterwards you switch back to Free automatically – unless you choose a subscription.",
+    dateLocale: "en-GB",
+  },
+};
+
+/**
+ * The gift email: which plan, until when (Zurich calendar date), what it
+ * unlocks, and — honestly — what happens when it ends.
+ */
+export function renderCompGranted(
+  locale: Locale,
+  name: string,
+  plan: GiftPlan,
+  until: Date,
+  url: string
+): { subject: string; html: string; text: string } {
+  const g = GIFT_COPY[locale];
+  const date = new Intl.DateTimeFormat(g.dateLocale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Europe/Zurich",
+  }).format(until);
+  const planName = PLAN_NAME[plan];
+  const lead = g.lead.replace("{plan}", planName);
+  const detail = g.until.replace("{date}", date);
+  const body = `${GIFT_PERKS[locale][plan]} ${g.after}`;
+  const cta = COPY.comp_granted[locale].cta;
+  const greeting = name ? `${name},` : "";
+  const html = renderBrandedEmail({ locale, lead, cta, url, greeting, detail, body });
+  const text = [
+    greeting,
+    lead,
+    detail,
+    "",
+    body,
+    "",
+    `${cta}: ${url}`,
+    "",
+    `Framly — ${TAGLINE[locale]}`,
+  ]
+    .filter((l, i, arr) => l !== "" || arr[i - 1] !== "")
+    .join("\n");
+  return { subject: g.subject.replace("{plan}", planName), html, text };
+}
 
 // Footer link to the notification-preferences section of the profile page.
 // Shown on every email so a recipient annoyed by volume can turn a category
@@ -472,13 +574,41 @@ export async function drainEmailOutbox(
 
       const locale = (profile?.locale ?? "de") as Locale;
       const kind = row.kind as EmailKind;
-      const { subject, html, text } = render(
-        kind,
-        locale,
-        profile?.display_name ?? "",
-        row.shoot_title,
-        link(kind, locale, row.shoot_id)
-      );
+
+      let message: { subject: string; html: string; text: string };
+      if (kind === "comp_granted") {
+        // Plan and end date are read at send time, so the email states what
+        // is true now (a re-grant may have extended it; a revoke cancels it).
+        const { data: sub } = await admin
+          .from("subscriptions")
+          .select("plan, source, comp_until")
+          .eq("user_id", row.recipient_id)
+          .maybeSingle();
+        const until = sub?.comp_until ? new Date(sub.comp_until) : null;
+        if (sub?.source !== "admin_comp" || !until || until <= new Date()) {
+          await admin
+            .from("email_outbox")
+            .update({ status: "sent", sent_at: new Date().toISOString(), last_error: "skipped: no active gift" })
+            .eq("id", row.id);
+          continue;
+        }
+        message = renderCompGranted(
+          locale,
+          profile?.display_name ?? "",
+          sub.plan as GiftPlan,
+          until,
+          link(kind, locale, null)
+        );
+      } else {
+        message = render(
+          kind,
+          locale,
+          profile?.display_name ?? "",
+          row.shoot_title,
+          link(kind, locale, row.shoot_id)
+        );
+      }
+      const { subject, html, text } = message;
 
       await sendEmail(email, subject, html, text);
 

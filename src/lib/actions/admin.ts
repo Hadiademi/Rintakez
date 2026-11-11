@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import { addMonthsUtc } from "@/lib/billing/dates";
 import { ENTITLED_STRIPE_STATUSES } from "@/lib/billing/plans";
+import { notifyEmail } from "@/lib/email";
 
 type ErrResult = { ok: false; error: string };
 type Ok = { ok: true };
@@ -317,6 +318,15 @@ export async function grantComp(
     months,
     note: trimmedNote,
     previous_until: existing?.comp_until ?? null,
+  });
+
+  // Tell the photographer (plan + end date are read when the email is sent).
+  // The window keeps a double-click — or grant-then-fix within minutes — to
+  // one email.
+  await notifyEmail({
+    kind: "comp_granted",
+    recipientId: userId,
+    dedupeWindowMs: 10 * 60 * 1000,
   });
 
   revalidatePath("/[locale]/(admin)/admin/users", "page");
