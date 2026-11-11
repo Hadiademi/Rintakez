@@ -118,7 +118,7 @@ export async function exportMyData(): Promise<
     supabase
       .from("photographer_details")
       .select(
-        "profile_id, specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, created_at, verification_status, disciplines, cover_path, plan_tier, plan_expires_at"
+        "profile_id, specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, links, created_at, verification_status, disciplines, cover_path, plan_tier, plan_expires_at"
       )
       .eq("profile_id", user.id)
       .maybeSingle(),

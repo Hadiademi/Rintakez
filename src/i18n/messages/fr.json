@@ -192,8 +192,16 @@
     "specialties": "Spécialités",
     "cantons": "Régions couvertes",
     "hourlyRate": "Tarif horaire (CHF, optionnel)",
-    "website": "Site web (optionnel)",
-    "instagram": "Instagram (optionnel)",
+    "links": "Site web et réseaux sociaux (facultatif)",
+    "linksHint": "Tu travailles dans plusieurs domaines ? Donne un nom à chaque lien, p. ex. « Sport » et « Mariage ».",
+    "linkLabel": "Nom",
+    "linkLabelPlaceholder": "p. ex. Sport",
+    "linkUrl": "Lien",
+    "linkUrlPlaceholder": "www.ton-site.ch ou @instagram",
+    "addLink": "Ajouter un lien",
+    "removeLink": "Supprimer le lien",
+    "linksFull": "{max} liens au maximum.",
+    "fixFields": "Corrige les champs indiqués.",
     "portfolio": "Portfolio",
     "addPhotos": "Ajouter des photos",
     "portfolioFull": "Tu as atteint le nombre maximal de photos.",
@@ -246,6 +254,7 @@
       "portrait": "Portrait",
       "commercial": "Commercial",
       "event": "Événement",
+      "sport": "Sport",
       "architecture": "Architecture",
       "family": "Famille",
       "other": "Autre"
@@ -255,6 +264,7 @@
       "portrait": "Individuel ou équipe. Studio ou sur place.",
       "commercial": "Produit, campagne, éditorial.",
       "event": "Entreprise, conférence, vernissage.",
+      "sport": "Compétition, équipe, athlètes. Action et mouvement.",
       "architecture": "Extérieur et intérieur.",
       "family": "À la maison ou dehors. Détendu.",
       "other": "Décris-le dans le briefing."
@@ -429,7 +439,6 @@
     "genericError": "Une erreur s’est produite. Réessaie.",
     "hourlyFrom": "dès {amount}/h",
     "hourlyRate": "Tarif horaire",
-    "instagram": "Instagram",
     "inviteAlready": "Déjà invité",
     "inviteCreateShoot": "Créer une séance",
     "inviteCta": "Inviter à ta séance",
@@ -495,7 +504,7 @@
     "verified": "Vérifié",
     "viewPhoto": "Voir la photo",
     "viewPublic": "Voir le profil public",
-    "website": "Site web"
+    "links": "Liens"
   },
   "profileBasics": {
     "edit": "Modifier nom & lieu",
@@ -618,7 +627,10 @@
     "unauthorized": "Connecte-toi.",
     "booking_past": "La mission ne peut plus être annulée le jour du shooting ni après. Marque-la comme terminée ou signale un problème.",
     "dispute_open": "Tant qu'un problème signalé est ouvert, la mission ne peut pas être annulée.",
-    "storage_cleanup_failed": "Tes fichiers n'ont pas pu être entièrement supprimés. Ton compte est conservé. Réessaie dans quelques minutes."
+    "storage_cleanup_failed": "Tes fichiers n'ont pas pu être entièrement supprimés. Ton compte est conservé. Réessaie dans quelques minutes.",
+    "invalid_link": "Ce n’est pas un lien valide. Exemple : www.ton-site.ch ou @instagram",
+    "invalid_link_label": "Le nom ne doit pas dépasser 40 caractères.",
+    "invalid_rate": "Indique un montant entier en CHF, p. ex. 150."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -997,6 +1009,7 @@
       "portrait": "Photographes de portrait {inCanton}",
       "commercial": "Photographes publicitaires {inCanton}",
       "event": "Photographes événementiels {inCanton}",
+      "sport": "Photographes de sport {inCanton}",
       "architecture": "Photographes d'architecture {inCanton}",
       "family": "Photographes de famille {inCanton}",
       "other": "Photographes {inCanton}"
@@ -1006,6 +1019,7 @@
       "portrait": "Tu cherches une séance portrait {inCanton}? Compare les photographes de portrait locaux selon le style, le prix et la note avant de réserver.",
       "commercial": "Besoin de photographie publicitaire {inCanton}? Parcours les photographes expérimentés en produit, campagne et éditorial près de chez toi.",
       "event": "Tu organises un événement {inCanton}? Trouve des photographes événementiels qui connaissent les lieux locaux et peuvent couvrir ton événement de A à Z.",
+      "sport": "Tu cherches un·e photographe de sport {inCanton} ? Trouve des photographes qui saisissent les compétitions, les équipes et les athlètes en mouvement, compare leurs portfolios et leurs avis, puis invite tes favoris à faire une offre.",
       "architecture": "Besoin de photographie d'architecture {inCanton}? Parcours les photographes spécialisés en intérieur et extérieur près de chez toi.",
       "family": "Tu cherches une séance famille {inCanton}? Parcours des photographes de famille locaux et décontractés, et regarde leurs travaux récents avant de les contacter.",
       "other": "Parcours les photographes {inCanton} pour des projets qui ne rentrent pas dans une catégorie standard — décris ton projet et compare les offres."

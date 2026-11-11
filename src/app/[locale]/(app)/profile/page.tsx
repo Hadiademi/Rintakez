@@ -28,6 +28,7 @@ import { SettingsCard } from "@/components/ui/settings-card";
 import { scoreProfileCompleteness } from "@/lib/profile-completeness";
 import { effectivePlan, getBidQuotaUsage } from "@/lib/billing/entitlements";
 import type { Plan } from "@/lib/billing/plans";
+import { resolveLinks } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
 
@@ -155,7 +156,7 @@ export default async function ProfilePage() {
       ? supabase
           .from("photographer_details")
           .select(
-            "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, verification_status, disciplines, cover_path"
+            "specialties, coverage_cantons, hourly_rate_chf, website_url, instagram_url, links, verification_status, disciplines, cover_path"
           )
           .eq("profile_id", profile.id)
           .maybeSingle()
@@ -565,8 +566,7 @@ export default async function ProfilePage() {
                         details?.hourly_rate_chf != null
                           ? String(details.hourly_rate_chf)
                           : "",
-                      website: details?.website_url ?? "",
-                      instagram: details?.instagram_url ?? "",
+                      links: resolveLinks(details),
                     }}
                   />
                 </SettingsCard>

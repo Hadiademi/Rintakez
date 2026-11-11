@@ -1,0 +1,14 @@
+-- Sport as a shoot type / photographer specialty.
+--
+-- Asked for by a founding photographer who shoots sport and weddings: with no
+-- "Sport" specialty she had to file half her work under "Andere", which hides
+-- her from clients filtering for sport and from the sport landing pages.
+--
+-- Placed `after 'event'` so the enum order (which the UI chip order mirrors —
+-- SHOOT_TYPES in src/lib/validation/photographer.ts) keeps the people-and-
+-- occasion types together, ahead of architecture/family/other.
+--
+-- Kept in its own migration on purpose: a value added with ALTER TYPE … ADD
+-- VALUE cannot be USED in the same transaction that adds it. Nothing in this
+-- file uses it, and the next migration does not either.
+alter type public.shoot_type add value if not exists 'sport' after 'event';

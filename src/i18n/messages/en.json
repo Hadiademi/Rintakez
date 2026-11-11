@@ -192,8 +192,16 @@
     "specialties": "Specialties",
     "cantons": "Coverage areas",
     "hourlyRate": "Hourly rate (CHF, optional)",
-    "website": "Website (optional)",
-    "instagram": "Instagram (optional)",
+    "links": "Website & social media (optional)",
+    "linksHint": "Working in more than one field? Give each link a name, e.g. “Sport” and “Wedding”.",
+    "linkLabel": "Name",
+    "linkLabelPlaceholder": "e.g. Sport",
+    "linkUrl": "Link",
+    "linkUrlPlaceholder": "www.your-site.ch or @instagram",
+    "addLink": "Add link",
+    "removeLink": "Remove link",
+    "linksFull": "Up to {max} links.",
+    "fixFields": "Please fix the highlighted fields.",
     "portfolio": "Portfolio",
     "addPhotos": "Add photos",
     "portfolioFull": "You've reached the maximum number of photos.",
@@ -246,6 +254,7 @@
       "portrait": "Portrait",
       "commercial": "Commercial",
       "event": "Event",
+      "sport": "Sports",
       "architecture": "Architecture",
       "family": "Family",
       "other": "Other"
@@ -255,6 +264,7 @@
       "portrait": "Solo or team. Studio or on location.",
       "commercial": "Product, campaign, editorial.",
       "event": "Corporate, conference, opening.",
+      "sport": "Competitions, teams, athletes. Action and motion.",
       "architecture": "Exterior and interior.",
       "family": "At home or outdoors. Relaxed.",
       "other": "Describe it in the brief."
@@ -429,7 +439,6 @@
     "genericError": "Something went wrong. Please try again.",
     "hourlyFrom": "from {amount}/hr",
     "hourlyRate": "Hourly rate",
-    "instagram": "Instagram",
     "inviteAlready": "Already invited",
     "inviteCreateShoot": "Create a shoot",
     "inviteCta": "Invite to your shoot",
@@ -495,7 +504,7 @@
     "verified": "Verified",
     "viewPhoto": "View photo",
     "viewPublic": "View public profile",
-    "website": "Website"
+    "links": "Links"
   },
   "profileBasics": {
     "edit": "Edit name & location",
@@ -618,7 +627,10 @@
     "unauthorized": "Please log in.",
     "booking_past": "A booking can't be cancelled on or after the shoot day. Mark it as completed or report a problem.",
     "dispute_open": "A booking can't be cancelled while a reported problem is open.",
-    "storage_cleanup_failed": "Your files could not all be deleted. Your account is kept; please try again in a few minutes."
+    "storage_cleanup_failed": "Your files could not all be deleted. Your account is kept; please try again in a few minutes.",
+    "invalid_link": "That doesn’t look like a link. Example: www.your-site.ch or @instagram",
+    "invalid_link_label": "The name can be at most 40 characters.",
+    "invalid_rate": "Please enter a whole amount in CHF, e.g. 150."
   },
   "validation": {
     "required": "Please fill in this field.",
@@ -997,6 +1009,7 @@
       "portrait": "Portrait photographers {inCanton}",
       "commercial": "Commercial photographers {inCanton}",
       "event": "Event photographers {inCanton}",
+      "sport": "Sports photographers {inCanton}",
       "architecture": "Architecture photographers {inCanton}",
       "family": "Family photographers {inCanton}",
       "other": "Photographers {inCanton}"
@@ -1006,6 +1019,7 @@
       "portrait": "Looking for a portrait session {inCanton}? Compare local portrait photographers by style, price and rating before you book.",
       "commercial": "Need commercial photography {inCanton}? Browse photographers experienced with product, campaign and editorial work in your area.",
       "event": "Hosting an event {inCanton}? Find event photographers who know the local venues and can cover it start to finish.",
+      "sport": "Need sports photography {inCanton}? Find photographers who capture competitions, teams and athletes in motion, compare portfolios and reviews, and invite your favourites to send an offer.",
       "architecture": "Need architecture photography {inCanton}? Browse photographers who specialize in interiors and exteriors near you.",
       "family": "Looking for a family shoot {inCanton}? Browse relaxed, local family photographers and see their recent work before you reach out.",
       "other": "Browse photographers {inCanton} for shoots that don't fit a standard category — describe your project and compare offers."
