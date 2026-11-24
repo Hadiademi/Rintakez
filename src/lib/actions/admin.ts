@@ -1,6 +1,8 @@
 "use server";
 
+import { z } from "zod";
 import { dbError } from "@/lib/action-error";
+import { captureError } from "@/lib/observability";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { getProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -139,7 +141,90 @@ export async function setShootSuspension(
     { reason: trimmedReason }
   );
 
+  revalidateShootSurfaces();
+  return { ok: true };
+}
+
+/**
+ * Moderation must take effect at once: the landing page caches its "latest
+ * open shoots" (tag `shoots:open`) for up to a minute, and a shoot an admin
+ * just hid or deleted must not stay its hero image for that minute. `expire: 0`
+ * makes the next visit refetch instead of being served the stale list.
+ */
+function revalidateShootSurfaces() {
+  revalidateTag("shoots:open", { expire: 0 });
   revalidatePath("/[locale]/(admin)/admin", "page");
+  revalidatePath("/[locale]/(admin)/admin/shoots", "page");
+}
+
+/**
+ * Permanently removes a shoot (admin only). Bids, invitations, notifications,
+ * conversations and image rows go with it (all FKs to shoots cascade); the
+ * image files and still-queued emails about it are cleaned up here.
+ *
+ * A booked shoot (accepted bid) or one with a dispute is refused: the two
+ * parties' booking, messages and dispute record must survive. Those can only
+ * be hidden (setShootSuspension).
+ */
+export async function deleteShoot(shootId: string): Promise<Ok | ErrResult> {
+  const admin = await requireAdmin();
+  if (!admin) return { ok: false, error: "forbidden" };
+  if (!z.string().uuid().safeParse(shootId).success) {
+    return { ok: false, error: "invalid_input" };
+  }
+
+  const supabase = createAdminClient();
+  if (!supabase) return { ok: false, error: "generic" };
+
+  const { data: shoot, error: readError } = await supabase
+    .from("shoots")
+    .select("id, title, client_id, status, accepted_bid_id")
+    .eq("id", shootId)
+    .maybeSingle();
+  if (readError) return { ok: false, error: dbError(readError, "admin") };
+  if (!shoot) return { ok: false, error: "not_found" };
+  if (shoot.accepted_bid_id) return { ok: false, error: "shoot_not_deletable" };
+
+  const { count: disputeCount, error: disputeError } = await supabase
+    .from("disputes")
+    .select("id", { count: "exact", head: true })
+    .eq("shoot_id", shootId);
+  if (disputeError) return { ok: false, error: dbError(disputeError, "admin") };
+  if ((disputeCount ?? 0) > 0) return { ok: false, error: "shoot_not_deletable" };
+
+  // Read the file paths before the rows cascade away with the shoot.
+  const { data: images, error: imagesError } = await supabase
+    .from("shoot_images")
+    .select("storage_path")
+    .eq("shoot_id", shootId);
+  if (imagesError) return { ok: false, error: dbError(imagesError, "admin") };
+  const paths = (images ?? []).map((image) => image.storage_path);
+
+  const { error: deleteError } = await supabase.from("shoots").delete().eq("id", shootId);
+  if (deleteError) return { ok: false, error: dbError(deleteError, "admin") };
+
+  // The shoot is gone; what follows is cleanup and must not turn a completed
+  // removal into an error for the admin.
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from("shoot-refs").remove(paths);
+    if (storageError) {
+      captureError(storageError, { scope: "admin.deleteShoot.storage" });
+    }
+  }
+  // Queued notifications about it would link to a page that no longer exists.
+  await supabase
+    .from("email_outbox")
+    .delete()
+    .eq("shoot_id", shootId)
+    .eq("status", "pending");
+
+  await writeAudit(supabase, admin.id, "shoot_deleted", "shoot", shootId, {
+    title: shoot.title,
+    client_id: shoot.client_id,
+    images: paths.length,
+  });
+
+  revalidateShootSurfaces();
   return { ok: true };
 }
 

@@ -630,7 +630,8 @@
     "storage_cleanup_failed": "Tes fichiers n'ont pas pu être entièrement supprimés. Ton compte est conservé. Réessaie dans quelques minutes.",
     "invalid_link": "Ce n’est pas un lien valide. Exemple : www.ton-site.ch ou @instagram",
     "invalid_link_label": "Le nom ne doit pas dépasser 40 caractères.",
-    "invalid_rate": "Indique un montant entier en CHF, p. ex. 150."
+    "invalid_rate": "Indique un montant entier en CHF, p. ex. 150.",
+    "shoot_not_deletable": "Une demande réservée ou faisant l’objet d’un litige ne peut pas être supprimée – suspends-la plutôt."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -973,7 +974,23 @@
     "eyebrowOverview": "Aperçu",
     "eyebrowManagement": "Gestion",
     "eyebrowModeration": "Modération",
-    "eyebrowSystem": "Système"
+    "eyebrowSystem": "Système",
+    "tabShoots": "Demandes",
+    "shootFilter": {
+      "all": "Toutes",
+      "open": "Ouvertes",
+      "suspended": "Suspendues"
+    },
+    "searchShoots": "Rechercher par titre…",
+    "noShoots": "Aucune demande trouvée.",
+    "shootBy": "par {name}",
+    "deleteShoot": "Supprimer définitivement",
+    "confirmSuspendShoot": "Suspendre « {title} » ? La demande disparaît immédiatement de la page d’accueil et de toutes les listes. Tu peux lever la suspension à tout moment.",
+    "confirmDeleteShoot": "Supprimer définitivement « {title} » ?",
+    "confirmDeleteShootBody": "La demande, ses images et toutes les offres ouvertes seront supprimées. Cette action est irréversible.",
+    "shootDeleted": "Demande supprimée",
+    "shootNotDeletableHint": "Réservée – ne peut être que suspendue.",
+    "adminPanel": "Admin"
   },
   "pagination": {
     "label": "Pagination",

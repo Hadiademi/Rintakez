@@ -15,7 +15,10 @@ const ADMIN_NAV = [
   },
   {
     sectionKey: "sectionManagement",
-    items: [{ href: "/admin/users", labelKey: "tabUsers" }],
+    items: [
+      { href: "/admin/users", labelKey: "tabUsers" },
+      { href: "/admin/shoots", labelKey: "tabShoots" },
+    ],
   },
   {
     sectionKey: "sectionModeration",

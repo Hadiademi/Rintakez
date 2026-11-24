@@ -24,6 +24,7 @@ import { Stars } from "@/components/stars";
 import { BidSheet } from "@/components/bid-sheet";
 import { MyBidPanel } from "@/components/my-bid-panel";
 import { ReportButton } from "@/components/report-button";
+import { AdminShootActions } from "@/components/admin-shoot-actions";
 import { DisputePanel } from "@/components/dispute-panel";
 import { ShowMomentOnce } from "@/components/ui/moment";
 import { ShowToastOnce } from "@/components/ui/toaster";
@@ -402,12 +403,30 @@ export default async function ShootDetailPage({
   // Two-column editorial shell: shared left column (brief), sticky right
   // sidebar (deal — budget, action, offers). Collapses to a single stacked
   // column below `lg`.
+  // Admins moderate a shoot from its own page, whichever view they get below.
+  // Only reachable while the shoot is visible to them: once suspended it is
+  // lifted again from /admin/shoots.
+  const tAdmin = profile?.is_admin ? await getTranslations("admin") : null;
+  const adminPanel = tAdmin ? (
+    <div className="border border-line bg-surface p-5" data-testid="shoot-admin-panel">
+      <p className="label mb-3 text-mute">{tAdmin("adminPanel")}</p>
+      <AdminShootActions
+        id={id}
+        title={shoot.title}
+        isSuspended={shoot.is_suspended}
+        deletable={!shoot.accepted_bid_id}
+        afterDelete="/admin/shoots"
+      />
+    </div>
+  ) : null;
+
   function shell(left: React.ReactNode, right: React.ReactNode) {
     return (
       <div className="mx-auto max-w-6xl lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-12">
         <div className="min-w-0 space-y-10">{left}</div>
         <aside className="mt-10 space-y-6 lg:sticky lg:top-6 lg:mt-0 lg:self-start">
           {right}
+          {adminPanel}
         </aside>
       </div>
     );

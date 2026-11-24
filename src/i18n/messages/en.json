@@ -630,7 +630,8 @@
     "storage_cleanup_failed": "Your files could not all be deleted. Your account is kept; please try again in a few minutes.",
     "invalid_link": "That doesn’t look like a link. Example: www.your-site.ch or @instagram",
     "invalid_link_label": "The name can be at most 40 characters.",
-    "invalid_rate": "Please enter a whole amount in CHF, e.g. 150."
+    "invalid_rate": "Please enter a whole amount in CHF, e.g. 150.",
+    "shoot_not_deletable": "A booked shoot or one with a dispute can’t be deleted – suspend it instead."
   },
   "validation": {
     "required": "Please fill in this field.",
@@ -973,7 +974,23 @@
     "eyebrowOverview": "Overview",
     "eyebrowManagement": "Management",
     "eyebrowModeration": "Moderation",
-    "eyebrowSystem": "System"
+    "eyebrowSystem": "System",
+    "tabShoots": "Shoots",
+    "shootFilter": {
+      "all": "All",
+      "open": "Open",
+      "suspended": "Suspended"
+    },
+    "searchShoots": "Search by title…",
+    "noShoots": "No shoots found.",
+    "shootBy": "by {name}",
+    "deleteShoot": "Delete permanently",
+    "confirmSuspendShoot": "Suspend “{title}”? The shoot disappears from the home page and every list at once. You can lift the suspension at any time.",
+    "confirmDeleteShoot": "Delete “{title}” permanently?",
+    "confirmDeleteShootBody": "The shoot, its images and all open offers will be deleted. This can’t be undone.",
+    "shootDeleted": "Shoot deleted",
+    "shootNotDeletableHint": "Booked – can only be suspended.",
+    "adminPanel": "Admin"
   },
   "pagination": {
     "label": "Pagination",
