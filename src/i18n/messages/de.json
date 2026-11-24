@@ -990,7 +990,17 @@
     "confirmDeleteShootBody": "Der Auftrag, seine Bilder und alle offenen Angebote werden gelöscht. Das lässt sich nicht rückgängig machen.",
     "shootDeleted": "Auftrag gelöscht",
     "shootNotDeletableHint": "Gebucht – kann nur gesperrt werden.",
-    "adminPanel": "Admin"
+    "adminPanel": "Admin",
+    "roleFilter": {
+      "all": "Alle",
+      "photographer": "Fotograf:innen",
+      "client": "Auftraggeber:innen"
+    },
+    "roleFilterAria": "Nach Rolle filtern",
+    "roleLabel": {
+      "photographer": "Fotograf:in",
+      "client": "Auftraggeber:in"
+    }
   },
   "pagination": {
     "label": "Seitennavigation",

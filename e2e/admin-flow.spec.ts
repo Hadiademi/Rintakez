@@ -145,4 +145,28 @@ test.describe("admin console", () => {
     // The drawer should still be visible after clicking the non-link element
     await expect(page.getByTestId("admin-drawer")).toBeVisible();
   });
+
+  test("users are listed by role: photographers and clients apart", async ({ page }) => {
+    await login(page, SEED.admin.email, SEED.admin.password);
+    await page.goto("/de/admin/users");
+
+    // "Alle" lists both kinds.
+    await expect(page.getByText(SEED.photographer.email)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(SEED.client.email)).toBeVisible();
+
+    await page.getByTestId("admin-users-role-photographer").click();
+    await expect(page).toHaveURL(/role=photographer/);
+    await expect(page.getByText(SEED.photographer.email)).toBeVisible();
+    await expect(page.getByText(SEED.client.email)).toHaveCount(0);
+
+    await page.getByTestId("admin-users-role-client").click();
+    await expect(page).toHaveURL(/role=client/);
+    await expect(page.getByText(SEED.client.email)).toBeVisible();
+    await expect(page.getByText(SEED.photographer.email)).toHaveCount(0);
+
+    // Switching the status keeps the role.
+    await page.getByRole("link", { name: "Gesperrt", exact: true }).click();
+    await expect(page).toHaveURL(/role=client/);
+    await expect(page).toHaveURL(/status=suspended/);
+  });
 });

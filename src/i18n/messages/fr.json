@@ -990,7 +990,17 @@
     "confirmDeleteShootBody": "La demande, ses images et toutes les offres ouvertes seront supprimées. Cette action est irréversible.",
     "shootDeleted": "Demande supprimée",
     "shootNotDeletableHint": "Réservée – ne peut être que suspendue.",
-    "adminPanel": "Admin"
+    "adminPanel": "Admin",
+    "roleFilter": {
+      "all": "Tous",
+      "photographer": "Photographes",
+      "client": "Clients"
+    },
+    "roleFilterAria": "Filtrer par rôle",
+    "roleLabel": {
+      "photographer": "Photographe",
+      "client": "Client·e"
+    }
   },
   "pagination": {
     "label": "Pagination",

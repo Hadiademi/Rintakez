@@ -9,19 +9,35 @@ export const dynamic = "force-dynamic";
 const STATUSES = ["all", "active", "suspended"] as const;
 type StatusFilter = (typeof STATUSES)[number];
 
+// Photographers and clients are listed apart (?role=); "all" keeps both.
+const ROLES = ["all", "photographer", "client"] as const;
+type RoleFilter = (typeof ROLES)[number];
+
 const LIMIT = 50;
 
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; role?: string }>;
 }) {
-  const { q, status: statusParam } = await searchParams;
+  const { q, status: statusParam, role: roleParam } = await searchParams;
   const status: StatusFilter = (STATUSES as readonly string[]).includes(
     statusParam ?? ""
   )
     ? (statusParam as StatusFilter)
     : "all";
+  const role: RoleFilter = (ROLES as readonly string[]).includes(roleParam ?? "")
+    ? (roleParam as RoleFilter)
+    : "all";
+
+  // Query string for links that change one filter and keep the others.
+  const href = (next: { role?: RoleFilter; status?: StatusFilter }) => {
+    const params = new URLSearchParams();
+    params.set("role", next.role ?? role);
+    params.set("status", next.status ?? status);
+    if (q) params.set("q", q);
+    return `/admin/users?${params.toString()}`;
+  };
 
   const t = await getTranslations("admin");
   const [me, admin] = await Promise.all([requireAdminProfile(), adminPageClient()]);
@@ -32,11 +48,28 @@ export default async function AdminUsersPage({
     .select("id, display_name, role, is_admin, is_suspended, created_at")
     .order("created_at", { ascending: false })
     .limit(LIMIT);
+  if (role !== "all") query = query.eq("role", role);
   if (status === "suspended") query = query.eq("is_suspended", true);
   if (status === "active") query = query.eq("is_suspended", false);
   if (q?.trim()) query = query.ilike("display_name", `%${q.trim()}%`);
 
-  const { data: rows } = await query;
+  // Tab counts: how many photographers / clients exist in total.
+  const countRole = (r?: "photographer" | "client") => {
+    let c = admin.from("profiles").select("id", { count: "exact", head: true });
+    if (r) c = c.eq("role", r);
+    return c;
+  };
+  const [{ data: rows }, allCount, photographerCount, clientCount] = await Promise.all([
+    query,
+    countRole(),
+    countRole("photographer"),
+    countRole("client"),
+  ]);
+  const roleCount: Record<RoleFilter, number | null> = {
+    all: allCount.count,
+    photographer: photographerCount.count,
+    client: clientCount.count,
+  };
   const list = rows ?? [];
 
   // Resolve emails (admin-only) for exactly the displayed page of users
@@ -71,11 +104,36 @@ export default async function AdminUsersPage({
   return (
     <section className="space-y-4">
       <AdminPageHeader eyebrow={t("eyebrowManagement")} title={t("tabUsers")} />
+      {/* One row at every width: on a phone the three tabs scroll sideways
+          rather than wrap the active tab onto a line of its own. */}
+      <nav
+        aria-label={t("roleFilterAria")}
+        className="flex overflow-x-auto border-b border-line [scrollbar-width:none]"
+      >
+        {ROLES.map((r) => (
+          <Link
+            key={r}
+            href={href({ role: r })}
+            aria-current={r === role ? "page" : undefined}
+            data-testid={`admin-users-role-${r}`}
+            className={`-mb-px flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-2.5 text-[14px] sm:px-3 sm:text-[15px] ${
+              r === role
+                ? "border-ink font-medium text-ink"
+                : "border-transparent text-mute hover:text-ink"
+            }`}
+          >
+            {t(`roleFilter.${r}`)}
+            {roleCount[r] !== null ? (
+              <span className="tabular-nums text-[13px] text-mute">{roleCount[r]}</span>
+            ) : null}
+          </Link>
+        ))}
+      </nav>
       <nav className="flex flex-wrap gap-3 text-sm">
         {STATUSES.map((s) => (
           <Link
             key={s}
-            href={`/admin/users?status=${s}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
+            href={href({ status: s })}
             aria-current={s === status ? "page" : undefined}
             className={
               s === status ? "font-medium text-ink" : "text-mute hover:text-ink"
@@ -87,6 +145,7 @@ export default async function AdminUsersPage({
       </nav>
 
       <form method="get" className="flex gap-2">
+        <input type="hidden" name="role" value={role} />
         <input type="hidden" name="status" value={status} />
         <input
           name="q"

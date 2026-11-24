@@ -128,7 +128,7 @@ export function AdminUserRow({
         <span className="font-medium text-ink">{name}</span>
         <span className="text-[13px] text-mute">{email}</span>
         <span className="label rounded bg-chip px-1.5 py-0.5 text-mute">
-          {role}
+          {t(role === "photographer" ? "roleLabel.photographer" : "roleLabel.client")}
         </span>
         {admin ? (
           <span className="label rounded bg-ink px-1.5 py-0.5 text-paper">
