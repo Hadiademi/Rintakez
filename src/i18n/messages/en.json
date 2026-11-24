@@ -990,7 +990,17 @@
     "confirmDeleteShootBody": "The shoot, its images and all open offers will be deleted. This can’t be undone.",
     "shootDeleted": "Shoot deleted",
     "shootNotDeletableHint": "Booked – can only be suspended.",
-    "adminPanel": "Admin"
+    "adminPanel": "Admin",
+    "roleFilter": {
+      "all": "All",
+      "photographer": "Photographers",
+      "client": "Clients"
+    },
+    "roleFilterAria": "Filter by role",
+    "roleLabel": {
+      "photographer": "Photographer",
+      "client": "Client"
+    }
   },
   "pagination": {
     "label": "Pagination",
