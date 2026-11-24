@@ -36,6 +36,8 @@ const KNOWN = new Set([
   "booking_past",
   "dispute_open",
   "storage_cleanup_failed",
+  // Admin moderation: a booked or disputed shoot can only be suspended.
+  "shoot_not_deletable",
 ]);
 
 /** Map an action error string to a stable i18n key under the `errors` namespace.

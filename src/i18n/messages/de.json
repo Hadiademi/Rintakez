@@ -630,7 +630,8 @@
     "storage_cleanup_failed": "Deine Dateien konnten nicht vollständig gelöscht werden. Dein Konto bleibt bestehen; bitte versuche es in ein paar Minuten erneut.",
     "invalid_link": "Das sieht nicht wie ein Link aus. Beispiel: www.deine-website.ch oder @instagram",
     "invalid_link_label": "Die Bezeichnung darf höchstens 40 Zeichen lang sein.",
-    "invalid_rate": "Bitte gib einen ganzen Betrag in CHF ein, z. B. 150."
+    "invalid_rate": "Bitte gib einen ganzen Betrag in CHF ein, z. B. 150.",
+    "shoot_not_deletable": "Gebuchte Aufträge oder Aufträge mit Streitfall können nicht gelöscht werden – sperre sie stattdessen."
   },
   "validation": {
     "required": "Bitte ausfüllen.",
@@ -973,7 +974,23 @@
     "eyebrowOverview": "Übersicht",
     "eyebrowManagement": "Verwaltung",
     "eyebrowModeration": "Moderation",
-    "eyebrowSystem": "System"
+    "eyebrowSystem": "System",
+    "tabShoots": "Aufträge",
+    "shootFilter": {
+      "all": "Alle",
+      "open": "Offen",
+      "suspended": "Gesperrt"
+    },
+    "searchShoots": "Nach Titel suchen…",
+    "noShoots": "Keine Aufträge gefunden.",
+    "shootBy": "von {name}",
+    "deleteShoot": "Endgültig löschen",
+    "confirmSuspendShoot": "«{title}» sperren? Der Auftrag verschwindet sofort von der Startseite und aus allen Listen. Du kannst die Sperre jederzeit aufheben.",
+    "confirmDeleteShoot": "«{title}» endgültig löschen?",
+    "confirmDeleteShootBody": "Der Auftrag, seine Bilder und alle offenen Angebote werden gelöscht. Das lässt sich nicht rückgängig machen.",
+    "shootDeleted": "Auftrag gelöscht",
+    "shootNotDeletableHint": "Gebucht – kann nur gesperrt werden.",
+    "adminPanel": "Admin"
   },
   "pagination": {
     "label": "Seitennavigation",
